@@ -10,3 +10,8 @@ frontend/_revision.js
 node_modules/
 .netlify/
 .vercel/
+
+# el webhook de WhatsApp
+webhook-whatsapp/node_modules/
+webhook-whatsapp/media/
+webhook-whatsapp/huipiles/

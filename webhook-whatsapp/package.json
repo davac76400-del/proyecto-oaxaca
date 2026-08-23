@@ -1,0 +1,25 @@
+{
+  "name": "oaxintegra-webhook-whatsapp",
+  "version": "1.0.0",
+  "description": "Webhook de WhatsApp Cloud API para OaxIntegra IA: recibe mensajes y fotos, y busca huipiles oaxaqueños verificados.",
+  "private": true,
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node servidor.js",
+    "tunel": "node servidor.js --tunel",
+    "huipiles": "node lib/huipiles.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "form-data": "^4.0.6",
+    "sharp": "^0.33.5"
+  },
+  "optionalDependencies": {
+    "@ngrok/ngrok": "^1.4.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
