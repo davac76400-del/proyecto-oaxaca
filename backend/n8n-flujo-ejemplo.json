@@ -1,0 +1,102 @@
+{
+  "name": "OaxIntegra IA - Chat (configuración correcta)",
+  "_comentario": "Importa este flujo en n8n (Workflows > Import from File). Ya trae CORS configurado y el nodo Respond to Webhook, que son las dos piezas que faltaban. Después de importar: 1) pon tu credencial de OpenAI en el nodo 'Modelo IA', 2) ENCIENDE el interruptor 'Active' arriba a la derecha.",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-entrada",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "chat",
+      "notes": "CRÍTICO: responseMode debe ser 'responseNode' y allowedOrigins debe ser '*' para que el navegador acepte la respuesta."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Arma el prompt de sistema con el giro del usuario\nconst b = $json.body || {};\nconst giro = b.businessType || 'un negocio pequeño';\nconst usuario = b.username || 'el emprendedor';\n\nconst sistema = `Eres el asistente de OaxIntegra IA, una plataforma hecha para emprendedores oaxaqueños tradicionales: artesanos, mezcaleros, cocineras, comerciantes y gente del turismo en Oaxaca, México.\n\nCON QUIÉN HABLAS:\n- Se llama ${usuario} y su negocio es de: ${giro}.\n- Puede tener poca práctica con la tecnología y algo de desconfianza hacia ella.\n- Valora profundamente su cultura y su oficio.\n\nCÓMO DEBES HABLAR:\n- Español mexicano cálido, cercano y respetuoso.\n- PROHIBIDO usar tecnicismos: nunca digas \"prompt\", \"token\", \"IA generativa\", \"endpoint\". Di \"escríbeme\", \"tu mensaje\".\n- Frases cortas.\n\nQUÉ DEBES ENTREGAR:\n- SIEMPRE material listo para usar, no consejos vagos.\n- Si pide una publicación: escríbela completa, lista para copiar y pegar.\n- Si pregunta por precios: da un rango concreto explicado en lenguaje simple.\n- Usa ejemplos de SU giro (${giro}).\n\nRESPETO CULTURAL:\n- La IA acompaña, NUNCA reemplaza el trabajo artesanal.\n\nLARGO: máximo 200 palabras.`;\n\nreturn {\n  json: {\n    sistema,\n    mensaje: b.message || '',\n    usuario,\n    giro\n  }\n};"
+      },
+      "id": "preparar-prompt",
+      "name": "Preparar prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 900, messages: [ { role: 'system', content: $json.sistema }, { role: 'user', content: $json.mensaje } ] }) }}",
+        "options": {
+          "timeout": 25000
+        }
+      },
+      "id": "modelo-ia",
+      "name": "Modelo IA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "notes": "Configura una credencial Header Auth con Name='Authorization' y Value='Bearer sk-tu-clave'. Para cambiar de IA, ajusta url y jsonBody: Anthropic usa https://api.anthropic.com/v1/messages; Groq usa https://api.groq.com/openai/v1/chat/completions."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Extrae el texto sin importar el formato del proveedor\nconst d = $json;\nlet texto = '';\n\nif (d.choices && d.choices[0] && d.choices[0].message) {\n  texto = d.choices[0].message.content;            // OpenAI / Groq / DeepSeek\n} else if (d.content && d.content.length) {\n  texto = d.content.filter(x => x.type === 'text') // Anthropic\n                   .map(x => x.text).join('');\n} else if (d.candidates && d.candidates[0]) {\n  texto = d.candidates[0].content.parts[0].text;   // Gemini\n}\n\nreturn { json: { output: texto || 'No pude generar una respuesta.' } };"
+      },
+      "id": "extraer-texto",
+      "name": "Extraer texto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ output: $json.output }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin",  "value": "*" },
+              { "name": "Access-Control-Allow-Methods", "value": "POST, OPTIONS" },
+              { "name": "Access-Control-Allow-Headers", "value": "Content-Type" }
+            ]
+          }
+        }
+      },
+      "id": "responder",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1120, 300],
+      "notes": "CRÍTICO: sin estos headers el navegador descarta la respuesta aunque n8n la mande bien. Este es el famoso error de CORS."
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Preparar prompt", "type": "main", "index": 0 }]]
+    },
+    "Preparar prompt": {
+      "main": [[{ "node": "Modelo IA", "type": "main", "index": 0 }]]
+    },
+    "Modelo IA": {
+      "main": [[{ "node": "Extraer texto", "type": "main", "index": 0 }]]
+    },
+    "Extraer texto": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
