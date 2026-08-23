@@ -79,6 +79,16 @@ del chat distingue los tres orígenes posibles. Se verificó con Playwright
 (registro, chat, insignia y diagnóstico) sirviendo el archivo por
 `http://localhost`, sin romper nada existente.
 
+**18 · IA propia y barra de arriba (23 ago 2026).** El autor pide sacar a
+Gemini como motor único y que la IA quede lista de fábrica, directa, sin n8n
+ni conectores, y sin pedirle llaves al usuario final. Se implementa la cadena
+Llama 3.2 (gratis) → Gemini Flash (gratis) → motor local, con memoria de las
+últimas 6 vueltas de la plática. Se elimina `WEBHOOK_ASISTENTE` y todo el
+diagnóstico de CORS de n8n; el webhook de altas y el de contacto se conservan.
+También reporta que en modo noche "se ve medio con la luz en la parte de
+arriba": era un crema horneado en `.encabezado` (BUG-14), del mismo tipo que
+el BUG-08. Todo verificado con Playwright.
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

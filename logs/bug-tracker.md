@@ -245,7 +245,7 @@ revisar si está horneado en el activo.
 
 ---
 
-## BUG-13 · "Modo local" — la IA no responde 🟡 MITIGADO (23 ago 2026)
+## BUG-13 · "Modo local" — la IA no responde ✅ RESUELTO (23 ago 2026)
 
 **Síntoma:** al escribir en el chat, siempre responde el motor local con el
 aviso "no logro conectar con tu servidor de inteligencia artificial".
@@ -287,47 +287,72 @@ cual es el momento ideal para hacer el cambio.
 
 ---
 
-### Lo que se hizo (23 ago 2026)
+### Solución final (23 ago 2026) — se abandonó n8n para el chat
 
-No se puede "resolver" del todo desde el código: las causas 1, 3 y 4 dependen
-de la configuración de n8n del autor (algo que solo él puede arreglar dentro
-de su cuenta), y la causa 2 (`file://`) depende de cómo abra el archivo. Lo
-que sí se hizo fue quitar la dependencia total de n8n y dar un camino de
-respaldo real, siguiendo la recomendación de este mismo documento:
+Se hizo lo que este mismo documento venía recomendando: **quitar n8n del chat
+por completo** y llamar a la IA directo desde el navegador. Con eso desaparecen
+de un golpe las cuatro causas posibles que quedaban (flujo inactivo, CORS,
+preflight, respuesta vacía), porque ya no hay flujo de n8n de por medio.
 
-1. **Se integró la IA directa dentro de `app.src.html`** (la lógica de
-   `backend/ai_service_directo.js`, adaptada a ES5 y al IIFE existente):
-   nuevo bloque `CONFIG_IA` junto a `CONFIG`, con `PROVEEDOR` / `CLAVES` /
-   `PROXY`. Viene **apagada por defecto** (todas las claves vacías), así que
-   el comportamiento no cambia para quien no la configure.
-2. **Nueva cadena de intentos en `consultarIA`:** n8n (si `WEBHOOK_ASISTENTE`
-   tiene URL) → IA directa (si `CONFIG_IA` está configurada) → motor local.
-   Antes solo existía n8n → motor local.
-3. **La insignia del chat** ahora distingue tres estados: "Conectado a n8n",
-   "Conectado a tu IA" (cuando responde la IA directa) y "Sin conexión ·
-   modo local". Antes solo distinguía n8n / modo local.
-4. **Diagnóstico de `file://`:** si el autor abre el archivo con doble clic,
-   el botón de diagnóstico (la insignia) ahora se lo dice explícitamente
-   antes de correr la prueba de red, en vez de solo reportar el error técnico.
-5. **No se tocó nada del flujo de n8n existente** ni se quitó el webhook: se
-   agregó una capa de respaldo, no un reemplazo. Nada de lo existente se
-   eliminó (regla de oro del proyecto).
+**La cadena nueva:** Llama 3.2 (gratis, vía OpenRouter) → Gemini Flash (gratis)
+→ motor local. El motor local **no se quitó**: sigue siendo el último recurso
+para que el emprendedor nunca se quede sin respuesta.
 
-**Para activarla de verdad:** el autor debe rellenar `CONFIG_IA.PROVEEDOR` +
-la clave correspondiente en `CONFIG_IA.CLAVES` (rápido, pero expone la clave
-en el HTML — aceptable solo para pruebas), o mejor, apuntar `CONFIG_IA.PROXY`
-a un pequeño backend/función serverless propia (ver el proxy de ejemplo al
-final de `backend/ai_service_directo.js`) para que la clave nunca viaje al
-navegador. Ninguna clave real se incluyó en el código.
+Cambios concretos en `frontend/app.src.html`:
 
-**Por qué queda "mitigado" y no "resuelto":** sin credenciales reales del
-autor no se puede comprobar una respuesta real de la IA en este entorno; lo
-que se verificó (con Playwright, sirviendo el archivo por `http://localhost`)
-es que la cadena de respaldo se activa correctamente y la app nunca se rompe:
-intenta n8n, falla en la red (esperado en este entorno sin acceso a
-`gamon2.app.n8n.cloud`), cae a motor local, y la insignia queda en "Sin
-conexión · modo local" — igual que antes, pero ahora con un peldaño más
-(la IA directa) listo para cuando se le dé una clave o un proxy.
+1. Se borró `CONFIG.WEBHOOK_ASISTENTE` y todo su camino (`enviarWebhook` para
+   el chat, el diagnóstico de CORS, el extractor de n8n en la ruta del chat).
+   `enviarWebhook` **se conservó** porque las altas de cuenta y el formulario
+   de contacto sí lo siguen usando.
+2. Nuevo bloque `CONFIG_IA` con los dos ayudantes. Las llaves las pone el
+   autor una sola vez; **al usuario final nunca se le pide nada**.
+3. `consultarIA` intenta Llama, y solo si falla intenta Gemini. La estructura
+   de la respuesta (tarjeta, imagen, botones) la sigue armando el motor local
+   y el texto de la IA se inserta dentro, como antes.
+4. La insignia ahora dice "Asistente listo", "Asistente listo · respaldo",
+   "Sin conexión · modo local" o "Modo local". Al tocarla hace una prueba real
+   y explica cuál falló y por qué, en español normal.
+5. **Memoria de la plática:** se mandan las últimas 6 vueltas. Sin esto, el
+   consejo del propio tutorial ("dile: más corto") no funcionaba.
+
+**Verificado con Playwright** (los 5 escenarios, sirviendo por `http://localhost`):
+Llama responde → insignia verde; Llama con error 429 → entra Gemini e insignia
+de respaldo; los dos caídos → motor local con nota amable y diagnóstico que
+nombra los dos fallos; el historial llega bien formado a cada proveedor.
+
+**Fallo encontrado y corregido durante la prueba:** la pregunta se enviaba dos
+veces (`user`,`user`), porque `mensajeYo()` ya la había guardado en la plática
+antes de que el armador la agregara aparte. Se corrigió quitando el último
+turno propio en `historialReciente()`. También se descartan los saludos de
+apertura del asistente al armar la petición de Gemini, que no acepta que la
+conversación empiece hablando el modelo.
+
+**Lo único que falta:** que el autor pegue sus dos llaves gratuitas y
+reconstruya. Instrucciones paso a paso en `docs/06-ia-directa.md`.
+
+---
+
+## BUG-14 · La barra de arriba se quedaba clara en modo noche ✅ RESUELTO (23 ago 2026)
+
+**Síntoma:** al pasar a modo noche y bajar un poco la página, la barra
+superior seguía viéndose clara, como con luz, encima del fondo oscuro.
+
+**Causa:** el mismo patrón del BUG-08 — un color horneado:
+```css
+.encabezado[data-desplazado="si"]{ background-color:rgba(251,246,238,.9); }
+```
+Ese crema fijo no seguía el tema. Solo se notaba al desplazarse, porque sin
+desplazar la barra es transparente; por eso había pasado desapercibido.
+
+**Solución:** el fondo pasa a la variable de superficie elevada:
+```css
+background-color:color-mix(in srgb, rgb(var(--barroalto)) 92%, transparent);
+```
+Día `#F7F0E2` (casi idéntico al crema anterior, no cambia el diseño), noche
+`#131D33`. Verificado midiendo el color calculado en ambos temas.
+
+**Regla, otra vez:** ningún color de fondo se escribe fijo. Siempre
+`rgb(var(--x))` o `color-mix` sobre una variable.
 
 ---
 
@@ -347,4 +372,5 @@ conexión · modo local" — igual que antes, pero ahora con un peldaño más
 | 10 | Textos tenues lavados | ✅ |
 | 11 | Recuadro negro del chapulín | ✅ |
 | 12 | Fosforescente persistente | ✅ |
-| 13 | Modo local / IA no responde | 🟡 mitigado — respaldo de IA directa agregado |
+| 13 | Modo local / IA no responde | ✅ resuelto — n8n fuera del chat, IA directa |
+| 14 | Barra superior clara en modo noche | ✅ |

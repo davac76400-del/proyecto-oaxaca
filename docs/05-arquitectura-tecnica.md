@@ -49,7 +49,7 @@ Ejecutar: `cd frontend && python3 build.py`
 | Lógica | JavaScript vanilla ES5 | sin frameworks, sin build de JS |
 | Tipografías | Playfair Display + Plus Jakarta Sans | via Google Fonts |
 | Persistencia | localStorage | sin backend |
-| IA | fetch a webhook n8n | **con problemas — ver bug-tracker** |
+| IA | fetch directo: Llama 3.2 → Gemini Flash | sin n8n · ver `06-ia-directa.md` |
 | Imágenes | WebP en base64 | incrustadas |
 
 **Por qué ES5 y no ES6+:** compatibilidad con navegadores viejos, que el
@@ -102,36 +102,49 @@ código principal.
 
 ---
 
-## Contrato con la IA
+## Contrato con la IA (desde el 23 ago 2026)
 
-**Petición** (POST a `CONFIG.WEBHOOK_ASISTENTE`):
+**Ya no hay webhook de n8n en el chat.** El navegador llama directo, en este
+orden, y se detiene en el primero que conteste:
+
+1. **Llama 3.2** — `POST` a `CONFIG_IA.LLAMA.URL` (OpenRouter, formato OpenAI):
 ```json
 {
-  "message": "Escríbeme una publicación para vender mis rebozos",
-  "username": "MariaTelar23",
-  "code": "473921",
-  "businessType": "Textil y telar de pedal",
-  "phone": "+52 5512345678",
-  "origen": "oaxintegra-landing"
+  "model": "meta-llama/llama-3.2-3b-instruct:free",
+  "max_tokens": 900,
+  "temperature": 0.7,
+  "messages": [
+    { "role": "system", "content": "…promptMaestroChat()…" },
+    { "role": "user",   "content": "…últimas 6 vueltas de la plática…" },
+    { "role": "user",   "content": "Escríbeme una publicación para mis rebozos" }
+  ]
 }
 ```
+Cabecera: `Authorization: Bearer <CONFIG_IA.LLAMA.CLAVE>`
 
-**Respuesta esperada:** cualquier JSON con el texto en alguna de estas llaves
-(el extractor las busca en orden, y es recursivo):
-```js
-['output', 'respuesta', 'reply', 'text', 'message', 'answer', 'content', 'result', 'data']
-```
-También acepta texto plano y arreglos (`[{output:"..."}]` funciona).
+2. **Gemini Flash** — solo si Llama falló. `POST` a
+`generativelanguage.googleapis.com/v1beta/models/<modelo>:generateContent?key=…`
+con `system_instruction` + `contents` (roles `user` / `model`).
 
-**Timeout:** 20 segundos (`CONFIG.LIMITE_MS`), con `AbortController`.
-Si expira o falla → **motor local de respaldo** genera una respuesta y muestra
-el aviso de "modo local". La app nunca se queda colgada.
+3. **Motor local** — si ninguno contestó.
 
----
+**Extracción de la respuesta:** `extraerTextoProveedor()` entiende los tres
+formatos (`choices[0].message.content` de OpenAI, `content[].text` de
+Anthropic, `candidates[0].content.parts[].text` de Gemini) y, si no reconoce
+ninguno, cae al extractor genérico por llaves (`output`, `respuesta`, `reply`…).
+
+**Timeout:** 20 segundos por ayudante (`CONFIG.LIMITE_MS`) con
+`AbortController`. Si se agota, se intenta el siguiente. La app nunca se cuelga.
+
+**Las llaves** las pone el autor en `CONFIG_IA`; al usuario final jamás se le
+piden. Guía completa: `docs/06-ia-directa.md`.
+
+**Lo que sí sigue usando n8n:** las altas de cuenta (`WEBHOOK_REGISTRO`) y el
+formulario de contacto (`WEBHOOK_CONTACTO`). Eso es aparte del chat.
 
 ## Motor local de respaldo
 
-Cuando n8n no responde, `motorLocal` arma una respuesta estructurada usando el
+Cuando ningún ayudante de IA responde, `motorLocal` arma una respuesta estructurada usando el
 giro del negocio del usuario. Siempre construye la **tarjeta de publicación**
 (con imagen y botones); si la IA real responde, su texto se inserta **dentro**
 de esa tarjeta para conservar el formato.

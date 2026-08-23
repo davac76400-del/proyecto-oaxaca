@@ -205,8 +205,12 @@
   .enlace-nav:hover::after, .enlace-nav:focus-visible::after{ width:100%; }
 
   .encabezado{ transition:background-color .4s ease, border-color .4s ease; }
+  /* OJO: el fondo va con color-mix sobre la variable del tema, NO con un color
+     fijo. Antes era rgba(251,246,238,.9) —crema horneado— y por eso la barra de
+     arriba seguía viéndose clara en modo noche (mismo patrón que el BUG-08). */
   .encabezado[data-desplazado="si"]{
-    background-color:rgba(251,246,238,.9); border-color:rgb(var(--borde));
+    background-color:color-mix(in srgb, rgb(var(--barroalto)) 92%, transparent);
+    border-color:rgb(var(--borde));
     -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
   }
   .insignia-ia{
@@ -1326,11 +1330,13 @@
   'use strict';
 
   /* =========================================================
-     0. CONFIGURACIÓN  ·  aquí se conecta n8n
+     0. CONFIGURACIÓN
+     ---------------------------------------------------------
+     OJO: el asistente YA NO pasa por n8n. Le habla directo a la
+     IA — mira el bloque CONFIG_IA que viene justo abajo.
+     Aquí solo quedan los avisos de altas y el formulario.
      ========================================================= */
   var CONFIG = {
-    // Asistente. Recibe { message, username } · devuelve { output } (o reply/text/message).
-    WEBHOOK_ASISTENTE: 'https://gamon2.app.n8n.cloud/webhook/chat',
     // Altas de cuenta. Recibe { accion:'registro', nombre, correo, telefono, giro }.
     WEBHOOK_REGISTRO: 'https://davidrr7630.app.n8n.cloud/webhook/3ffe0c04-73c3-42a7-973d-2b5f8ec4d37d',
     // Formulario de contacto. Vacío = muestra el modal de éxito sin enviar nada.
@@ -1341,22 +1347,50 @@
     LIMITE_MS: 20000
   };
 
-  /* IA directa (opcional) — respaldo del chat cuando n8n no responde (BUG-13).
-     Apagada por defecto: así el comportamiento no cambia si no la configuras.
-     Para activarla, rellena PROVEEDOR + su clave en CLAVES, o mejor aún, pon
-     la URL de tu propio proxy serverless en PROXY (así la clave nunca queda
-     expuesta en el navegador). Ver backend/ai_service_directo.js. */
+  /* =========================================================
+     0-B. LA INTELIGENCIA ARTIFICIAL  ·  conexión DIRECTA
+     ---------------------------------------------------------
+     El chat NO pasa por n8n, ni por conectores, ni por nada
+     intermedio: le habla directo a la IA desde el navegador.
+
+     Son dos ayudantes, y se intentan en este orden:
+       1) LLAMA    · Llama 3.2, gratuito. Es el que contesta casi siempre.
+       2) GEMINI   · Gemini Flash, gratuito. Entra solo si Llama no pudo.
+       3) Si ninguno contesta, responde el motor local de este archivo,
+          para que el emprendedor NUNCA se quede sin respuesta.
+
+     AL USUARIO JAMÁS SE LE PIDE UNA CLAVE. Las dos claves de abajo las
+     pones tú una sola vez, aquí, y ya funciona para toda la gente.
+
+     ⚠️ IMPORTANTE, léelo: cuando pegas una clave aquí, queda escrita
+     dentro del archivo HTML. Cualquiera que abra tu página y mire el
+     código fuente puede verla y gastarla. Como las dos son gratuitas, el
+     riesgo es que te consuman el límite, no que te cobren. Si algún día
+     quieres esconderlas de verdad, llena PROXY (ver docs/06-ia-directa.md).
+     ========================================================= */
   var CONFIG_IA = {
-    PROVEEDOR: '',   // 'openai' | 'anthropic' | 'groq' | 'deepseek' | 'gemini' | '' (apagada)
-    CLAVES: { openai: '', anthropic: '', groq: '', deepseek: '', gemini: '' },
-    MODELOS: {
-      openai: 'gpt-4o-mini',
-      anthropic: 'claude-3-5-haiku-20241022',
-      groq: 'llama-3.3-70b-versatile',
-      deepseek: 'deepseek-chat',
-      gemini: 'gemini-2.0-flash'
+
+    /* ---- 1. LLAMA 3.2 · el ayudante principal, gratis -------------------
+       Saca tu clave gratis en https://openrouter.ai/keys (empieza con
+       "sk-or-v1-..."). El modelo termina en ":free", así nunca te cobra. */
+    LLAMA: {
+      CLAVE:  '',
+      URL:    'https://openrouter.ai/api/v1/chat/completions',
+      MODELO: 'meta-llama/llama-3.2-3b-instruct:free'
     },
-    PROXY: ''        // ej: 'https://tu-sitio.netlify.app/.netlify/functions/ia'
+
+    /* ---- 2. GEMINI FLASH · el respaldo, gratis --------------------------
+       Saca tu clave gratis en https://aistudio.google.com/apikey */
+    GEMINI: {
+      CLAVE:  '',
+      MODELO: 'gemini-2.0-flash'
+    },
+
+    /* ---- 3. Opcional: tu propio servidor intermedio ---------------------
+       Si algún día no quieres que las claves se vean en el HTML, monta el
+       proxy de backend/ai_service_directo.js y pon aquí su dirección.
+       Si esto tiene algo escrito, se usa ESTO y se ignora todo lo de arriba. */
+    PROXY: ''
   };
 
   /* =========================================================
@@ -2130,11 +2164,17 @@
     return '';
   }
 
-  /* --- IA directa: respaldo cuando n8n no responde (ver BUG-13) ----------- */
-  function iaDirectaActiva() {
-    if (CONFIG_IA.PROXY) { return true; }
-    return !!(CONFIG_IA.PROVEEDOR && CONFIG_IA.CLAVES[CONFIG_IA.PROVEEDOR]);
-  }
+  /* =========================================================
+     7-B. LA IA, DIRECTA  ·  Llama 3.2 → Gemini Flash → motor local
+     ---------------------------------------------------------
+     Sin n8n, sin conectores, sin intermediarios: el navegador le
+     habla directo a la IA. Ver docs/06-ia-directa.md.
+     ========================================================= */
+
+  /* ¿hay al menos un ayudante configurado? */
+  function hayLlama()  { return !!CONFIG_IA.LLAMA.CLAVE; }
+  function hayGemini() { return !!CONFIG_IA.GEMINI.CLAVE; }
+  function hayIA()     { return !!CONFIG_IA.PROXY || hayLlama() || hayGemini(); }
 
   function promptMaestroChat() {
     var giro = sesion ? sesion.giroTexto : 'un negocio pequeño';
@@ -2146,50 +2186,84 @@
       'La IA acompaña el oficio artesanal, nunca lo reemplaza. Máximo 200 palabras salvo que pidan más.';
   }
 
-  function armarPeticionIA(consulta) {
-    if (CONFIG_IA.PROXY) {
-      return {
-        url: CONFIG_IA.PROXY,
-        headers: { 'Content-Type': 'application/json' },
-        body: {
-          message: consulta,
-          username: sesion ? (sesion.usuario || sesion.nombre) : 'invitado',
-          businessType: sesion ? sesion.giroTexto : '',
-          system: promptMaestroChat()
-        }
-      };
+  /* Las últimas vueltas de la plática, para que el asistente entienda
+     cuando le dices "más corto" o "cámbiale el final" sin repetir todo.
+     La guía del tutorial le pide eso al usuario, así que hace falta. */
+  function historialReciente() {
+    var c = convActiva();
+    if (!c || !c.mensajes.length) { return []; }
+    /* La pregunta de ahorita ya la guardó mensajeYo() antes de llamarnos, y
+       quien arma la petición la agrega aparte. Si no la quitamos aquí, se
+       enviaría dos veces. */
+    var todos = c.mensajes.slice();
+    if (todos[todos.length - 1] && todos[todos.length - 1].rol === 'yo') { todos.pop(); }
+    var ultimos = todos.slice(-6), turnos = [];
+    for (var i = 0; i < ultimos.length; i++) {
+      var m = ultimos[i];
+      if (m.rol === 'yo') {
+        turnos.push({ rol: 'user', texto: m.texto });
+      } else if (m.res) {
+        var t = m.res.texto || '';
+        if (m.res.publicacion && m.res.publicacion.cuerpo) { t += '\n\n' + m.res.publicacion.cuerpo; }
+        if (t) { turnos.push({ rol: 'assistant', texto: t }); }
+      }
     }
-    var p = CONFIG_IA.PROVEEDOR, clave = CONFIG_IA.CLAVES[p], modelo = CONFIG_IA.MODELOS[p], sistema = promptMaestroChat();
-    if (p === 'openai' || p === 'groq' || p === 'deepseek') {
-      var urls = {
-        openai: 'https://api.openai.com/v1/chat/completions',
-        groq: 'https://api.groq.com/openai/v1/chat/completions',
-        deepseek: 'https://api.deepseek.com/chat/completions'
-      };
-      return {
-        url: urls[p],
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + clave },
-        body: { model: modelo, max_tokens: 900, messages: [{ role: 'system', content: sistema }, { role: 'user', content: consulta }] }
-      };
+    return turnos;
+  }
+
+  /* --- 1. Llama 3.2 (formato OpenAI, que es el que usa OpenRouter) ------- */
+  function armarLlama(consulta) {
+    var mensajes = [{ role: 'system', content: promptMaestroChat() }];
+    var previos = historialReciente();
+    for (var i = 0; i < previos.length; i++) {
+      mensajes.push({ role: previos[i].rol, content: previos[i].texto });
     }
-    if (p === 'anthropic') {
-      return {
-        url: 'https://api.anthropic.com/v1/messages',
-        headers: {
-          'Content-Type': 'application/json', 'x-api-key': clave,
-          'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: { model: modelo, max_tokens: 900, system: sistema, messages: [{ role: 'user', content: consulta }] }
-      };
+    mensajes.push({ role: 'user', content: consulta });
+    return {
+      url: CONFIG_IA.LLAMA.URL,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + CONFIG_IA.LLAMA.CLAVE },
+      body: { model: CONFIG_IA.LLAMA.MODELO, max_tokens: 900, temperature: 0.7, messages: mensajes }
+    };
+  }
+
+  /* --- 2. Gemini Flash (formato propio de Google) ------------------------ */
+  function armarGemini(consulta) {
+    var contenidos = [], previos = historialReciente();
+    /* Gemini no acepta que la plática empiece hablando el modelo (el saludo
+       de bienvenida es justo eso), así que esos turnos de arranque se quitan. */
+    while (previos.length && previos[0].rol !== 'user') { previos.shift(); }
+    for (var i = 0; i < previos.length; i++) {
+      contenidos.push({
+        role: previos[i].rol === 'user' ? 'user' : 'model',
+        parts: [{ text: previos[i].texto }]
+      });
     }
-    if (p === 'gemini') {
-      return {
-        url: 'https://generativelanguage.googleapis.com/v1beta/models/' + modelo + ':generateContent?key=' + clave,
-        headers: { 'Content-Type': 'application/json' },
-        body: { system_instruction: { parts: [{ text: sistema }] }, contents: [{ parts: [{ text: consulta }] }] }
-      };
-    }
-    return null;
+    contenidos.push({ role: 'user', parts: [{ text: consulta }] });
+    return {
+      url: 'https://generativelanguage.googleapis.com/v1beta/models/' +
+           CONFIG_IA.GEMINI.MODELO + ':generateContent?key=' + encodeURIComponent(CONFIG_IA.GEMINI.CLAVE),
+      headers: { 'Content-Type': 'application/json' },
+      body: {
+        system_instruction: { parts: [{ text: promptMaestroChat() }] },
+        contents: contenidos,
+        generationConfig: { maxOutputTokens: 900, temperature: 0.7 }
+      }
+    };
+  }
+
+  /* --- 3. Tu propio servidor intermedio, si lo configuraste -------------- */
+  function armarProxy(consulta) {
+    return {
+      url: CONFIG_IA.PROXY,
+      headers: { 'Content-Type': 'application/json' },
+      body: {
+        message: consulta,
+        username: sesion ? (sesion.usuario || sesion.nombre) : 'invitado',
+        businessType: sesion ? sesion.giroTexto : '',
+        system: promptMaestroChat(),
+        historial: historialReciente()
+      }
+    };
   }
 
   function extraerTextoProveedor(d) {
@@ -2207,37 +2281,79 @@
     return extraerTexto(d);
   }
 
-  function pedirALaIA(consulta) {
-    var peticion = armarPeticionIA(consulta);
-    if (!peticion) { return Promise.resolve(''); }
+  /* Guarda por qué falló el último intento, para poder explicarlo en pantalla
+     con palabras normales cuando el usuario toque la insignia. */
+  var ultimoFallo = { llama: '', gemini: '' };
+
+  /* Una llamada. Devuelve el texto, o cadena vacía si no se pudo. */
+  function llamarIA(peticion, cualEs) {
     var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var corte = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, CONFIG.LIMITE_MS);
     var opc = { method: 'POST', headers: peticion.headers, body: JSON.stringify(peticion.body) };
     if (ctrl) { opc.signal = ctrl.signal; }
+
     return fetch(peticion.url, opc)
-      .then(function (r) { clearTimeout(corte); if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
-      .then(function (d) { return extraerTextoProveedor(d); })
+      .then(function (r) {
+        clearTimeout(corte);
+        if (!r.ok) {
+          return r.text().then(function (cuerpo) {
+            throw new Error('HTTP ' + r.status + (cuerpo ? ' · ' + cuerpo.slice(0, 200) : ''));
+          });
+        }
+        return r.json();
+      })
+      .then(function (d) { ultimoFallo[cualEs] = ''; return extraerTextoProveedor(d); })
       .catch(function (err) {
         clearTimeout(corte);
-        console.info('[OaxIntegra] Sin respuesta de la IA directa:', err && err.message);
+        var motivo = (err && err.name === 'AbortError')
+          ? 'tardó más de ' + (CONFIG.LIMITE_MS / 1000) + ' segundos'
+          : (err && err.message) || 'no respondió';
+        ultimoFallo[cualEs] = motivo;
+        console.info('[OaxIntegra] ' + cualEs + ': ' + motivo);
         return '';
       });
   }
 
-  /* nota amable cuando ni n8n ni la IA directa respondieron */
+  /* La cadena completa: Llama 3.2 primero, Gemini Flash si Llama no pudo. */
+  function pedirALaIA(consulta) {
+    if (CONFIG_IA.PROXY) {
+      return llamarIA(armarProxy(consulta), 'llama').then(function (t) {
+        return { texto: t, origen: t ? 'proxy' : '' };
+      });
+    }
+
+    var intentoLlama = hayLlama()
+      ? llamarIA(armarLlama(consulta), 'llama')
+      : Promise.resolve('');
+
+    return intentoLlama.then(function (texto) {
+      if (texto) { return { texto: texto, origen: 'llama' }; }
+      if (!hayGemini()) { return { texto: '', origen: '' }; }
+      return llamarIA(armarGemini(consulta), 'gemini').then(function (t2) {
+        return { texto: t2, origen: t2 ? 'gemini' : '' };
+      });
+    });
+  }
+
+  /* nota amable cuando ningún ayudante contestó */
   function respuestaSinIA(local) {
-    local.__origen = false;
-    local.nota = 'Ahora mismo no logro conectar con tu servidor de inteligencia artificial, ' +
-                 'así que esta respuesta la armé aquí en tu equipo. Para activar la IA real, ' +
-                 'toca la insignia «modo local» de arriba y te digo exactamente qué revisar.';
+    local.__origen = '';
+    if (!hayIA()) {
+      local.nota = 'Esta respuesta la armé aquí mismo en tu equipo, sin internet. ' +
+                   'Funciona bien, pero es más limitada que el asistente completo.';
+      return local;
+    }
+    local.nota = 'Ahora mismo no logré comunicarme con el asistente, así que esta respuesta ' +
+                 'la armé aquí en tu equipo para no dejarte esperando. Toca la insignia de ' +
+                 'arriba y te digo qué está pasando.';
     if (typeof location !== 'undefined' && location.protocol === 'file:') {
-      local.nota += ' Un motivo frecuente: si abriste este archivo con doble clic, súbelo a un ' +
-                    'hospedaje real (Netlify, Vercel, GitHub Pages) o pruébalo con "python3 -m http.server".';
+      local.nota += ' Un motivo frecuente: abriste este archivo con doble clic. Súbelo a un ' +
+                    'hospedaje real (Netlify, Vercel, GitHub Pages) y vuelve a probar.';
     }
     return local;
   }
 
-  /* mete el texto de la IA (n8n o directa) dentro de la tarjeta que ya armó el motor local */
+  /* mete el texto de la IA dentro de la tarjeta que ya armó el motor local */
   function insertarTexto(local, texto, origen) {
     if (local.publicacion) {
       local.publicacion.cuerpo = texto;
@@ -2249,37 +2365,21 @@
   }
 
   /* Estrategia: el motor local siempre arma la estructura (tarjeta de publicación,
-     pasos, sugerencias). Si n8n (o la IA directa de respaldo) responde, su texto
-     entra DENTRO de esa estructura, así la redacción es de la IA real pero se
-     conservan la imagen generada y los botones de acción. Orden de intento:
-     n8n → IA directa (si está configurada) → motor local. */
+     pasos, sugerencias). Si la IA responde, su texto entra DENTRO de esa estructura,
+     así la redacción es de la IA real pero se conservan la imagen generada y los
+     botones de acción. Orden: Llama 3.2 → Gemini Flash → motor local. */
   function consultarIA(consulta) {
     var local = motorLocal(consulta);
 
-    if (!CONFIG.WEBHOOK_ASISTENTE && !iaDirectaActiva()) {
+    if (!hayIA()) {
       return new Promise(function (res) {
-        setTimeout(function () { res(local); }, 600 + Math.random() * 500);
+        setTimeout(function () { res(respuestaSinIA(local)); }, 600 + Math.random() * 500);
       });
     }
 
-    var viaN8n = CONFIG.WEBHOOK_ASISTENTE
-      ? enviarWebhook(CONFIG.WEBHOOK_ASISTENTE, {
-          message: consulta,
-          username: sesion ? (sesion.usuario || sesion.nombre) : 'invitado',
-          code: sesion ? sesion.codigo : '',
-          businessType: sesion ? sesion.giroTexto : '',
-          phone: (sesion && sesion.telefono) ? sesion.telefono : 'No proporcionado',
-          origen: 'oaxintegra-landing'
-        }).then(extraerTexto)
-      : Promise.resolve('');
-
-    return viaN8n.then(function (texto) {
-      if (texto) { return insertarTexto(local, texto, 'n8n'); }
-      if (!iaDirectaActiva()) { return respuestaSinIA(local); }
-      return pedirALaIA(consulta).then(function (textoDirecto) {
-        if (textoDirecto) { return insertarTexto(local, textoDirecto, 'directa'); }
-        return respuestaSinIA(local);
-      });
+    return pedirALaIA(consulta).then(function (r) {
+      if (r.texto) { return insertarTexto(local, r.texto, r.origen); }
+      return respuestaSinIA(local);
     });
   }
 
@@ -2289,11 +2389,8 @@
   var hilo = $('#hilo'), formChat = $('#form-chat'), entrada = $('#entrada-chat');
   var sugerencias = $('#sugerencias'), contadorPub = 0, ocupado = false;
 
-  if (CONFIG.WEBHOOK_ASISTENTE) {
-    $('#estado-conexion').textContent = 'Conectado a n8n';
-    $('#estado-conexion').style.color = '#8CDB2B';
-  } else if (iaDirectaActiva()) {
-    $('#estado-conexion').textContent = 'Conectado a tu IA';
+  if (hayIA()) {
+    $('#estado-conexion').textContent = 'Asistente listo';
     $('#estado-conexion').style.color = '#8CDB2B';
   } else {
     $('#estado-conexion').textContent = 'Modo local';
@@ -2738,102 +2835,74 @@
     avisar('Guía lista. Se quedó guardada en esta plática.');
   });
 
-  /* la insignia dice de dónde salió la última respuesta, sin alarmar */
-  /* Explica en pantalla por qué el chat responde en modo local (casi siempre CORS). */
+  /* La insignia dice de dónde salió la última respuesta, sin alarmar.
+     Al tocarla, prueba de verdad los dos ayudantes y explica qué pasa
+     en palabras normales, sin tecnicismos. */
   function diagnosticarConexion() {
-    if (!CONFIG.WEBHOOK_ASISTENTE) {
-      mensajeIA({ texto: iaDirectaActiva()
-        ? '✅ El chat está usando tu IA directa (sin n8n). Si algo falla, revisa la clave o el proxy en CONFIG_IA.'
-        : 'No hay ningún servidor de IA configurado (ni n8n ni IA directa). El chat seguirá en modo local hasta que rellenes CONFIG.WEBHOOK_ASISTENTE o CONFIG_IA en el código.' }, true);
+    if (!hayIA()) {
+      mensajeIA({ texto:
+        'Ahorita el asistente está trabajando solo con lo que trae adentro este archivo, ' +
+        'sin conectarse a internet. Responde bien, pero es más limitado.\n\n' +
+        'Si tú eres quien administra la página: falta poner las llaves de acceso en el ' +
+        'apartado CONFIG_IA del archivo. Vienen las instrucciones en docs/06-ia-directa.md.' }, true);
       return;
     }
 
-    mensajeIA({ texto: 'Estoy probando la conexión con tu servidor de n8n…' }, true);
+    mensajeIA({ texto: 'Voy a probar el asistente. Deme un momento…' }, true);
 
     if (typeof location !== 'undefined' && location.protocol === 'file:') {
       mensajeIA({ texto:
-        '⚠️ Ojo: estás abriendo este archivo con doble clic (protocolo "file://"). Muchos servidores ' +
-        'rechazan las respuestas cuando vienen de ahí, aunque tengan CORS con *. Antes de seguir, prueba ' +
-        'subir este archivo a un hospedaje real (Netlify Drop, Vercel, GitHub Pages) o ábrelo con ' +
-        '"python3 -m http.server" desde una terminal, y entra por http://localhost. Sigo con la prueba…' }, true);
+        '⚠️ Ojo: abriste este archivo con doble clic. Así, algunos servicios no dejan pasar ' +
+        'la respuesta. Si la prueba falla, sube la página a un hospedaje (Netlify, Vercel, ' +
+        'GitHub Pages) y vuelve a intentarlo. Sigo con la prueba…' }, true);
     }
 
     var t0 = Date.now();
-    fetch(CONFIG.WEBHOOK_ASISTENTE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'ping de prueba', username: 'diagnostico' })
-    }).then(function (r) {
-      return r.text().then(function (txt) { return { ok: r.ok, status: r.status, txt: txt }; });
-    }).then(function (info) {
+    pedirALaIA('Responde solamente con la palabra: listo').then(function (r) {
       var ms = Date.now() - t0;
-      if (info.ok && info.txt) {
+
+      if (r.texto && r.origen === 'llama') {
         mensajeIA({ texto:
-          '✅ ¡La conexión funciona! Tu servidor respondió en ' + ms + ' milisegundos. ' +
-          'Ya puedes escribirle al asistente normalmente.' }, true);
-        marcarOrigen('n8n');
-      } else if (info.ok && !info.txt) {
-        mensajeIA({ texto:
-          '🟡 Tu servidor sí respondió, pero llegó vacío. Esto pasa cuando en n8n el flujo termina ' +
-          'sin devolver texto. Revisa dos cosas:\n\n' +
-          '1. El último nodo del flujo debe ser «Respond to Webhook» (no «No Operation» ni el final normal).\n' +
-          '2. Ese nodo debe devolver el texto de la IA, por ejemplo en un campo como «respuesta» o «output».\n\n' +
-          'Cuando el flujo devuelva texto, aquí lo verás de inmediato.' }, true);
-        marcarOrigen(false);
-      } else if (info.status === 404) {
-        mensajeIA({ texto:
-          '🔴 El servidor contestó «no encontrado» (404). Casi siempre es una de estas dos:\n\n' +
-          '1. El flujo de n8n no está *activo*. En n8n, abre tu flujo y enciende el interruptor «Active» arriba a la derecha. ' +
-          'Si solo le das a «Execute workflow», la dirección funciona un ratito y luego se apaga.\n' +
-          '2. La dirección del webhook cambió. Verifica que sea exactamente la URL de producción de tu flujo.' }, true);
-        marcarOrigen(false);
-      } else {
-        mensajeIA({ texto:
-          '⚠️ Tu servidor contestó con un aviso (código ' + info.status + '). ' +
-          'Revisa que tu flujo de n8n esté activo y que el último nodo sea «Respond to Webhook».' }, true);
-        marcarOrigen(false);
+          '✅ Todo bien. El asistente principal (Llama 3.2) contestó en ' + ms +
+          ' milisegundos. Ya puedes escribirle con confianza.' }, true);
+        marcarOrigen('llama');
+        return;
       }
-    }).catch(function (err) {
-      /* segunda prueba: un GET simple en modo no-cors distingue
-         «servidor caído/apagado» de «servidor vivo pero sin permiso CORS» */
-      fetch(CONFIG.WEBHOOK_ASISTENTE, { method: 'GET', mode: 'no-cors' })
-        .then(function () {
-          /* el servidor SÍ existe y responde → el bloqueo es CORS */
-          mensajeIA({ texto:
-            '🔌 Ya sé qué pasa: tu servidor de n8n SÍ está prendido, pero le falta un permiso ' +
-            'llamado CORS, y por eso el navegador no deja entrar la respuesta.\n\n' +
-            'ARRÉGLALO ASÍ EN n8n (una sola vez):\n' +
-            '1. Abre tu flujo del chat.\n' +
-            '2. Haz clic en el PRIMER nodo (el «Webhook»).\n' +
-            '3. Busca «Options» / «Opciones» y ábrelo.\n' +
-            '4. Activa «Allowed Origins (CORS)» y escribe un asterisco:  *\n' +
-            '5. Asegúrate de que el ÚLTIMO nodo sea «Respond to Webhook».\n' +
-            '6. Guarda y deja el flujo en «Active» (interruptor de arriba a la derecha).\n\n' +
-            'Cuando lo hagas, vuelve a tocar esta insignia: se pondrá verde y ya podrás escribirle a la IA.' }, true);
-          marcarOrigen(false);
-        })
-        .catch(function () {
-          /* ni siquiera el GET pasó → el servidor no responde: flujo apagado o URL mala */
-          mensajeIA({ texto:
-            '🔴 Tu servidor de n8n no está respondiendo. Antes de tocar nada de CORS, revisa esto:\n\n' +
-            '1. Entra a n8n y abre tu flujo del chat.\n' +
-            '2. Arriba a la derecha, enciende el interruptor «Active» (que quede en verde/encendido).\n' +
-            '   OJO: el botón «Execute workflow» NO sirve para esto; se apaga a los pocos segundos. ' +
-            'Tiene que ser «Active».\n' +
-            '3. Confirma que la dirección del webhook sea exactamente:\n' +
-            '   ' + CONFIG.WEBHOOK_ASISTENTE + '\n' +
-            '   (En el nodo Webhook, copia la «Production URL» y compárala.)\n\n' +
-            'Cuando el flujo esté Active y la URL coincida, vuelve a tocar esta insignia.' }, true);
-          marcarOrigen(false);
-        });
+      if (r.texto && r.origen === 'gemini') {
+        mensajeIA({ texto:
+          '🟡 El asistente sí funciona, pero contestó el de respaldo (Gemini Flash), en ' + ms +
+          ' milisegundos.\n\nEl principal (Llama 3.2) no pudo: ' + (ultimoFallo.llama || 'no respondió') +
+          '.\n\nPuedes usar la página con normalidad; el respaldo hace el mismo trabajo.' }, true);
+        marcarOrigen('gemini');
+        return;
+      }
+      if (r.texto && r.origen === 'proxy') {
+        mensajeIA({ texto:
+          '✅ Todo bien. Tu servidor propio contestó en ' + ms + ' milisegundos.' }, true);
+        marcarOrigen('proxy');
+        return;
+      }
+
+      /* ninguno contestó: explicar cada uno por separado */
+      var detalle = '🔴 No logré comunicarme con ningún asistente.\n\n';
+      if (hayLlama())  { detalle += '· Llama 3.2 (el principal): ' + (ultimoFallo.llama || 'no respondió') + '\n'; }
+      else             { detalle += '· Llama 3.2: no tiene llave de acceso configurada.\n'; }
+      if (hayGemini()) { detalle += '· Gemini Flash (el respaldo): ' + (ultimoFallo.gemini || 'no respondió') + '\n'; }
+      else             { detalle += '· Gemini Flash: no tiene llave de acceso configurada.\n'; }
+      detalle += '\nLo más común es que la llave esté mal copiada, o que se haya acabado el ' +
+                 'límite gratuito del día. Mientras tanto sigo respondiendo con lo que traigo ' +
+                 'adentro, para no dejarte esperando.';
+      mensajeIA({ texto: detalle }, true);
+      marcarOrigen('');
     });
   }
 
   function marcarOrigen(origen) {
     var b = $('#estado-conexion');
-    if (!CONFIG.WEBHOOK_ASISTENTE && !iaDirectaActiva()) { return; }
-    if (origen === 'n8n' || origen === 'directa') {
-      b.textContent = origen === 'n8n' ? 'Conectado a n8n' : 'Conectado a tu IA';
+    if (!hayIA()) { return; }
+    var nombres = { llama: 'Asistente listo', gemini: 'Asistente listo · respaldo', proxy: 'Asistente listo' };
+    if (nombres[origen]) {
+      b.textContent = nombres[origen];
       b.style.color = '#8CDB2B';
       b.style.borderColor = 'rgba(140,219,43,.5)';
     } else {

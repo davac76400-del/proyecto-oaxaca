@@ -1,29 +1,23 @@
 # Pendientes y mejoras
 
-## 🟡 PRIORIDAD 1 — Mitigado, falta que el autor active una IA real
+## ✅ PRIORIDAD 1 — RESUELTO (23 ago 2026)
 
 ### Conectar la IA de verdad
-El chat siempre caía en modo local. Ver `logs/bug-tracker.md` → BUG-13.
+Hecho. Se sacó n8n del chat y ahora la IA es directa:
+**Llama 3.2 (gratis) → Gemini Flash (gratis) → motor local.**
+Ver `logs/bug-tracker.md` → BUG-13 y la guía completa en
+`docs/06-ia-directa.md`.
 
-**Lo que ya se hizo (23 ago 2026):** se integró `CONFIG_IA` directamente en
-`frontend/app.src.html` (adaptado de `backend/ai_service_directo.js`), con una
-cadena de respaldo n8n → IA directa → motor local. Viene apagada por defecto.
+**Lo único que falta, y te toca a ti (5 minutos):**
+1. Saca tu llave gratis de Llama en https://openrouter.ai/keys
+2. Saca tu llave gratis de Gemini en https://aistudio.google.com/apikey
+3. Pégalas en `CONFIG_IA` dentro de `frontend/app.src.html`
+4. `cd frontend && python3 build.py`
+5. Sube `dist/OaxIntegra-IA-app.html` a Netlify Drop (no la pruebes con
+   doble clic)
 
-**Lo que falta para que responda una IA real (le toca al autor):**
-1. **Prueba decisiva primero:** subir `dist/OaxIntegra-IA-app.html` a Netlify
-   Drop (arrastrar y soltar, gratis, 30 segundos) y probar desde la URL
-   `https://`. Si ahí sí funciona, el problema era el protocolo `file://`.
-2. Si sigue fallando con n8n: F12 → Console → leer el error exacto, o usar
-   la insignia de diagnóstico del chat (ya explica cada caso).
-3. **Activar la IA directa:** en `frontend/app.src.html`, buscar `CONFIG_IA` y
-   poner `PROVEEDOR` + la clave en `CLAVES` (rápido, solo para pruebas — la
-   clave queda visible en el HTML), o mejor, desplegar un proxy propio
-   (ejemplo de función serverless al final de `backend/ai_service_directo.js`)
-   y poner su URL en `CONFIG_IA.PROXY`. Después reconstruir con
-   `cd frontend && python3 build.py`.
-4. El autor quiere cambiar de Gemini. Sugerencias ya cableadas en `CONFIG_IA`:
-   OpenAI GPT-4o mini (más fácil), Claude Haiku (mejor español), Groq
-   (gratis y rápido), DeepSeek (económico).
+Mientras no pongas las llaves, la app funciona igual pero con el motor
+local, y la insignia dice "Modo local".
 
 ---
 

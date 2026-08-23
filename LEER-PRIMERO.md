@@ -2,7 +2,9 @@
 
 **Autor:** David Alfredo Romero Rendón (Oaxaca, México)
 **Fecha de exportación:** 22 de agosto de 2026
-**Estado:** funcional, con 1 problema abierto (conexión n8n — ver `logs/bug-tracker.md`)
+**Estado:** funcional. La IA quedó conectada de forma directa el 23 ago 2026
+(Llama 3.2 → Gemini Flash → motor local). Solo falta que el autor pegue sus dos
+llaves gratuitas: ver `docs/06-ia-directa.md`.
 
 ---
 
@@ -45,7 +47,8 @@ OaxIntegra-Export/
 │   ├── 02-design-system.md
 │   ├── 03-assets-chapulin.md
 │   ├── 04-auth-flow.md
-│   └── 05-arquitectura-tecnica.md
+│   ├── 05-arquitectura-tecnica.md
+│   └── 06-ia-directa.md              ← CÓMO ENCENDER LA IA
 │
 ├── backend/                         ← IA, webhooks, base de datos
 │   ├── n8n-webhooks.md              ← URLs reales y configuración
@@ -84,9 +87,13 @@ Nunca edites `dist/`. Edita `frontend/app.src.html` y reconstruye.
 
 ---
 
-## Lo único que NO funciona hoy
+## La IA: qué falta para encenderla
 
-La conexión con la IA real (n8n) cae en "modo local". Está documentado a fondo
-en `logs/bug-tracker.md` sección BUG-12, con las tres causas posibles y la
-solución recomendada: **abandonar n8n y llamar a la IA directamente**
-(código listo en `backend/ai_service_directo.js`).
+Ya está conectada de forma directa, sin n8n: **Llama 3.2 (gratis) → Gemini
+Flash (gratis) → motor local**. Falta un paso de 5 minutos que solo tú puedes
+hacer: sacar las dos llaves gratuitas y pegarlas en `CONFIG_IA`.
+
+Paso a paso en **`docs/06-ia-directa.md`**.
+
+Mientras tanto la app funciona igual, respondiendo con el motor local que trae
+adentro, y la insignia del chat dice "Modo local".
