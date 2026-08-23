@@ -3,7 +3,7 @@
 Servidor que **recibe** lo que la gente le escribe al WhatsApp del negocio:
 textos y fotos. Las fotos las baja de verdad y las guarda.
 
-Está en `webhook-whatsapp/` y es **independiente** del resto: no toca la app
+Vive en la raíz del proyecto y es **independiente** del resto: no toca la app
 ni el servidor de la IA. Puedes correrlo o no, sin afectar nada.
 
 > No confundir con `backend/otp-core.js`, que **manda** los códigos de
@@ -14,7 +14,6 @@ ni el servidor de la IA. Puedes correrlo o no, sin afectar nada.
 ## Arrancarlo
 
 ```bash
-cd webhook-whatsapp
 npm install          # solo la primera vez
 cp .env.example .env # y pon tus datos
 npm start            # servidor en el puerto 8080
@@ -51,7 +50,7 @@ cloudflared tunnel --url http://localhost:8080
 
 ### C · Publicarlo de verdad ⭐ para cuando ya funcione
 
-Sube `webhook-whatsapp/` a **Railway**, **Render** o **Fly.io**. Te dan un
+Sube el proyecto a **Railway**, **Render** o **Fly.io**. Te dan un
 dominio fijo con https, y ya no tienes que volver a tocar la configuración de
 Meta.
 
