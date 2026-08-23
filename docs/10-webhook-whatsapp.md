@@ -42,11 +42,25 @@ Levanta el túnel solo y te imprime la URL pública, ya lista para pegar.
 **Ojo:** con la cuenta gratuita la dirección **cambia cada vez que reinicias**,
 y hay que volver a pegarla en Meta. Para algo permanente, usa el camino C.
 
+**Si falla con «tls handshake error»**, no es tu token: es la red. Un proxy,
+un firewall o el wifi de una oficina o escuela está bloqueando la salida a
+ngrok. Pruébalo desde otra red, o usa el camino B o C.
+
 ### B · Cloudflare Tunnel (gratis, sin cuenta)
 
 ```bash
 cloudflared tunnel --url http://localhost:8080
 ```
+
+Te da una dirección `https://loquesea.trycloudflare.com`. Pégala en el `.env`
+como `URL_PUBLICA` y el recuadro de la terminal te imprime la Callback URL ya
+armada, sin que tengas que pegarle el `/webhook` a mano:
+
+```bash
+URL_PUBLICA=https://loquesea.trycloudflare.com
+```
+
+Sirve igual para Railway, Render o Fly.io.
 
 ### C · Publicarlo de verdad ⭐ para cuando ya funcione
 
@@ -208,10 +222,12 @@ Te dice qué está configurado y qué falta, sin enseñar ninguna credencial.
 
 **No pude probar aquí:**
 
-- **El túnel de ngrok.** La máquina donde corro tiene bloqueada la salida a
-  internet: ngrok falla con «tls handshake error» antes de poder conectarse.
-  El código está bien y funcionará en tu computadora, pero **la URL pública
-  tienes que verla tú** cuando lo corras.
+- **El túnel de ngrok.** La máquina donde corro solo tiene permitido salir a
+  GitHub y a npm. Todo lo demás responde `000`: ngrok, Cloudflare y hasta
+  `graph.facebook.com`. Con el authtoken puesto, ngrok llega a intentarlo
+  («Levantando el túnel…») y muere en «tls handshake error». El código está
+  bien y funcionará en tu computadora, pero **la URL pública tienes que verla
+  tú** cuando lo corras.
 - **La conexión real con Meta**, porque hace falta tu token de verdad.
 - **La búsqueda real de huipiles**, por el mismo bloqueo de red. Lo que sí
   verifiqué fue el filtro, que es la parte que decide.

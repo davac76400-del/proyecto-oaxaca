@@ -328,9 +328,19 @@ async function arrancar() {
       console.log('');
     }
 
-    let publica = 'http://localhost:' + PUERTO;
+    /* Si ya tienes una dirección pública por tu cuenta (cloudflared, Railway,
+       Render, un ngrok aparte…), ponla en URL_PUBLICA y el recuadro de abajo
+       te la imprime lista para pegar, sin tener que armarla a mano. */
+    let publica = (process.env.URL_PUBLICA || '').trim().replace(/\/+$/, '') ||
+                  'http://localhost:' + PUERTO;
+    const fijadaAMano = publica.indexOf('localhost') === -1;
 
-    if (CON_TUNEL) {
+    if (fijadaAMano) {
+      console.log('  ' + VERDE + '✓ Usando la URL_PUBLICA de tu .env' + FIN);
+      console.log('');
+    }
+
+    if (CON_TUNEL && !fijadaAMano) {
       try {
         const ngrok = require('@ngrok/ngrok');
         const authtoken = process.env.NGROK_AUTHTOKEN;
@@ -345,6 +355,15 @@ async function arrancar() {
       } catch (e) {
         console.log('  ' + ROJO + '✗ No pude levantar ngrok: ' + e.message + FIN);
         console.log('');
+        /* El error de ngrok no dice cuál de los dos problemas es, y son muy
+           distintos: uno se arregla cambiando el token y el otro no. */
+        if (/handshake|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN/i.test(e.message)) {
+          console.log('  ' + AMARILLO + 'Esto NO es culpa de tu token.' + FIN);
+          console.log('  Es la red: algo (un proxy, un firewall, el wifi de una');
+          console.log('  oficina o escuela) está bloqueando la salida a ngrok.');
+          console.log('  Pruébalo desde otra red, o usa una de las alternativas.');
+          console.log('');
+        }
         console.log('  Alternativas, cualquiera sirve igual:');
         console.log('    ngrok http ' + PUERTO + '                (si lo tienes instalado aparte)');
         console.log('    cloudflared tunnel --url http://localhost:' + PUERTO);
@@ -377,6 +396,7 @@ async function arrancar() {
     if (publica.indexOf('https://') !== 0) {
       console.log('  ' + AMARILLO + '⚠ Meta EXIGE una dirección https:// pública.' + FIN);
       console.log('    Con http://localhost no va a poder verificar.');
+      console.log('    Si ya tienes una, ponla en el .env como  URL_PUBLICA=https://…');
       console.log('');
     }
     console.log('  Para detenerlo: Control + C');
