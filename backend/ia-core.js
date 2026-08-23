@@ -22,6 +22,9 @@
 const CONFIG = {
   LLAMA_URL:    process.env.OPENROUTER_URL   || 'https://openrouter.ai/api/v1/chat/completions',
   LLAMA_MODELO: process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.2-3b-instruct:free',
+  /* Para fotos hace falta un modelo que sepa VER. El de texto no puede.
+     Este también es gratuito (termina en :free). */
+  LLAMA_MODELO_FOTO: process.env.OPENROUTER_MODEL_VISION || 'meta-llama/llama-3.2-11b-vision-instruct:free',
   GEMINI_MODELO: process.env.GEMINI_MODEL    || 'gemini-2.0-flash',
   GEMINI_BASE:  process.env.GEMINI_URL_BASE  || 'https://generativelanguage.googleapis.com/v1beta/models/',
   LIMITE_MS:    Number(process.env.IA_TIMEOUT_MS || 20000),
@@ -97,6 +100,24 @@ function limpiarHistorial(bruto) {
 }
 
 
+/* La foto llega como "data:image/jpeg;base64,…". No se confía en ella:
+   se comprueba el tipo y el tamaño antes de mandarla a ningún lado. */
+const TIPOS_FOTO = ['image/jpeg', 'image/png', 'image/webp'];
+const TOPE_FOTO = 4 * 1024 * 1024;   /* 4 MB ya descodificada */
+
+function limpiarFoto(bruto) {
+  if (typeof bruto !== 'string' || !bruto) { return null; }
+  const m = /^data:([a-z/+.-]+);base64,([A-Za-z0-9+/=]+)$/i.exec(bruto.trim());
+  if (!m) { return null; }
+  const tipo = m[1].toLowerCase();
+  if (TIPOS_FOTO.indexOf(tipo) === -1) { return null; }
+  const datos = m[2];
+  /* tamaño real aproximado a partir del base64 */
+  if (datos.length * 0.75 > TOPE_FOTO) { return null; }
+  return { tipo: tipo, datos: datos, uri: 'data:' + tipo + ';base64,' + datos };
+}
+
+
 /* Los avisos de error viajan al navegador para poder explicarle al usuario qué
    pasó. Antes de salir se tachan las llaves: si un proveedor devolviera la
    llave dentro de su mensaje (o si viniera en una URL), no debe escaparse. */
@@ -131,10 +152,22 @@ async function pedirConLimite(url, opciones) {
 
 
 /* --- 1. Llama 3.2, vía OpenRouter (formato OpenAI) ----------------------- */
-async function pedirALlama(mensaje, sistema, historial) {
+async function pedirALlama(mensaje, sistema, historial, foto) {
   const messages = [{ role: 'system', content: sistema }];
   historial.forEach(t => messages.push({ role: t.rol, content: t.texto }));
-  messages.push({ role: 'user', content: mensaje });
+
+  if (foto) {
+    /* con foto, el mensaje va en partes: el texto y la imagen */
+    messages.push({
+      role: 'user',
+      content: [
+        { type: 'text', text: mensaje },
+        { type: 'image_url', image_url: { url: foto.uri } }
+      ]
+    });
+  } else {
+    messages.push({ role: 'user', content: mensaje });
+  }
 
   const d = await pedirConLimite(CONFIG.LLAMA_URL, {
     method: 'POST',
@@ -146,7 +179,7 @@ async function pedirALlama(mensaje, sistema, historial) {
       'X-Title': 'OaxIntegra IA'
     },
     body: JSON.stringify({
-      model: CONFIG.LLAMA_MODELO,
+      model: foto ? CONFIG.LLAMA_MODELO_FOTO : CONFIG.LLAMA_MODELO,
       max_tokens: CONFIG.MAX_TOKENS,
       temperature: CONFIG.TEMPERATURA,
       messages
@@ -159,7 +192,7 @@ async function pedirALlama(mensaje, sistema, historial) {
 
 
 /* --- 2. Gemini Flash (formato propio de Google) -------------------------- */
-async function pedirAGemini(mensaje, sistema, historial) {
+async function pedirAGemini(mensaje, sistema, historial, foto) {
   /* Gemini no acepta que la plática empiece hablando el modelo. */
   const previos = historial.slice();
   while (previos.length && previos[0].rol !== 'user') { previos.shift(); }
@@ -168,7 +201,12 @@ async function pedirAGemini(mensaje, sistema, historial) {
     role: t.rol === 'user' ? 'user' : 'model',
     parts: [{ text: t.texto }]
   }));
-  contents.push({ role: 'user', parts: [{ text: mensaje }] });
+  const trozos = [{ text: mensaje }];
+  if (foto) {
+    /* Gemini ya sabe ver: la foto va como otra parte del mismo mensaje */
+    trozos.push({ inline_data: { mime_type: foto.tipo, data: foto.datos } });
+  }
+  contents.push({ role: 'user', parts: trozos });
 
   const url = CONFIG.GEMINI_BASE +
               encodeURIComponent(CONFIG.GEMINI_MODELO) + ':generateContent?key=' +
@@ -198,13 +236,20 @@ async function pedirAGemini(mensaje, sistema, historial) {
 async function responder(peticion) {
   const mensaje   = limpiarTexto(peticion && peticion.message);
   const historial = limpiarHistorial(peticion && peticion.historial);
+  const foto      = limpiarFoto(peticion && peticion.imagen);
   const sistema   = (peticion && typeof peticion.system === 'string' && peticion.system.trim())
     ? limpiarTexto(peticion.system, 8000)
     : promptMaestro(peticion);
 
-  if (!mensaje) {
+  /* Con foto se acepta que no venga texto: la persona manda la imagen y ya. */
+  if (!mensaje && !foto) {
     return { output: '', origen: '', fallos: { general: 'No llegó ningún mensaje' } };
   }
+  if (peticion && peticion.imagen && !foto) {
+    return { output: '', origen: '',
+             fallos: { general: 'Esa foto no la pude leer. Manda una imagen JPG, PNG o WebP de menos de 4 MB.' } };
+  }
+  const consulta = mensaje || 'Mira esta foto de mi negocio y dime cómo la puedo aprovechar para vender.';
   if (!hayIA()) {
     return { output: '', origen: '', fallos: { general: 'El servidor no tiene llaves configuradas' } };
   }
@@ -213,7 +258,7 @@ async function responder(peticion) {
 
   if (hayLlama()) {
     try {
-      const t = await pedirALlama(mensaje, sistema, historial);
+      const t = await pedirALlama(consulta, sistema, historial, foto);
       if (t && t.trim()) { return { output: t, origen: 'llama', fallos }; }
       fallos.llama = 'contestó vacío';
     } catch (e) {
@@ -227,7 +272,7 @@ async function responder(peticion) {
 
   if (hayGemini()) {
     try {
-      const t = await pedirAGemini(mensaje, sistema, historial);
+      const t = await pedirAGemini(consulta, sistema, historial, foto);
       if (t && t.trim()) { return { output: t, origen: 'gemini', fallos }; }
       fallos.gemini = 'contestó vacío';
     } catch (e) {
@@ -250,7 +295,10 @@ function estado() {
     listo: hayIA(),
     llama: hayLlama(),
     gemini: hayGemini(),
-    modelos: { llama: CONFIG.LLAMA_MODELO, gemini: CONFIG.GEMINI_MODELO }
+    /* si hay cualquiera de los dos, se pueden mandar fotos */
+    fotos: hayIA(),
+    modelos: { llama: CONFIG.LLAMA_MODELO, gemini: CONFIG.GEMINI_MODELO,
+               llamaFoto: CONFIG.LLAMA_MODELO_FOTO }
   };
 }
 

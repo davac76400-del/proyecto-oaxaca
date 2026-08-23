@@ -818,6 +818,37 @@
     .medalla-aviso, .globo-termino{ transition:none; animation:none; }
   }
 
+
+  /* ---------- mandarle una foto al asistente ---------- */
+  .previa-foto{
+    display:flex; align-items:center; gap:.8rem;
+    padding:.7rem 1.25rem; border-top:1px solid rgb(var(--borde));
+    background:rgb(var(--barroalto));
+  }
+  @media (min-width:640px){ .previa-foto{ padding-left:2rem; padding-right:2rem; } }
+  .previa-foto img{
+    width:52px; height:52px; object-fit:cover; flex-shrink:0;
+    border-radius:var(--radio); border:1px solid rgb(var(--borde));
+  }
+  .previa-foto__datos{ flex:1; min-width:0; }
+  .previa-foto__titulo{ font-size:.85rem; color:rgb(var(--texto)); font-weight:600; }
+  .previa-foto__peso{ font-size:.76rem; color:rgb(var(--tenue)); margin-top:.1rem; }
+  .previa-foto__quitar{
+    flex-shrink:0; width:32px; height:32px; display:grid; place-items:center;
+    border-radius:var(--radio); border:1px solid rgb(var(--borde));
+    background:transparent; color:rgb(var(--tenue)); cursor:pointer;
+    transition:color .25s ease, border-color .25s ease;
+  }
+  .previa-foto__quitar:hover{ color:rgb(var(--rosa)); border-color:rgb(var(--rosa)); }
+
+  /* la foto ya mandada, dentro de la burbuja del usuario */
+  .grupo-yo{ display:flex; flex-direction:column; align-items:flex-end; gap:.5rem; max-width:min(560px,88%); }
+  .foto-enviada{
+    max-width:220px; width:100%; height:auto; display:block;
+    border-radius:var(--radio-card); border:1px solid rgb(var(--borde));
+    box-shadow:var(--sombra-suave);
+  }
+
 </style>
 <noscript><style>.revela{opacity:1;transform:none}</style></noscript>
 </head>
@@ -1303,11 +1334,28 @@
 
             <div id="sugerencias" class="px-5 sm:px-8 pb-5 flex flex-wrap gap-2.5"></div>
 
+        <!-- vista previa de la foto antes de mandarla -->
+        <div id="previa-foto" class="previa-foto" hidden>
+          <img id="previa-foto-img" alt="Foto que vas a mandar" width="64" height="64">
+          <div class="previa-foto__datos">
+            <p class="previa-foto__titulo">Foto lista para mandar</p>
+            <p class="previa-foto__peso" id="previa-foto-peso"></p>
+          </div>
+          <button type="button" id="quitar-foto" class="previa-foto__quitar" aria-label="Quitar la foto">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+
         <form id="form-chat" class="barra-chat border-t border-borde px-5 sm:px-8 py-3.5 flex items-center gap-3">
           <label for="entrada-chat" class="sr-only">Escribe tu mensaje para el asistente</label>
           <input id="entrada-chat" type="text" autocomplete="off" maxlength="400"
                  class="flex-1 min-w-0 bg-transparent border-0 outline-none text-texto text-[0.95rem] placeholder:text-tenue"
                  placeholder="Escríbele como le hablarías a tu ayudante de confianza…">
+          <input type="file" id="archivo-foto" accept="image/jpeg,image/png,image/webp" hidden>
+          <button type="button" id="btn-foto" class="boton-micro"
+                  aria-label="Mandarle una foto al asistente" title="Mandar una foto">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.2"/><path d="M8 5l1.2-2h5.6L16 5"/></svg>
+          </button>
           <button type="button" id="btn-microfono" class="boton-micro" hidden
                   aria-label="Dictar tu mensaje con la voz" title="Dictar con la voz">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></svg>
@@ -1597,7 +1645,7 @@
                 <select id="reg-lada" class="campo select-lada" aria-label="Código de país"></select>
                 <input id="reg-telefono" type="tel" class="campo flex-1" placeholder="10 dígitos" autocomplete="tel" inputmode="tel" data-regla="telefono-opcional">
               </div>
-              <p class="text-[0.78rem] text-tenue mt-1.5">Por si pierdes tu código, para recuperar tu cuenta. Puedes dejarlo vacío.</p>
+              <p class="text-[0.78rem] text-tenue mt-1.5" id="pista-telefono">Por si pierdes tu código, para recuperar tu cuenta. Puedes dejarlo vacío.</p>
               <p class="error-campo" id="error-reg-telefono" hidden></p>
             </div>
             <div>
@@ -1623,6 +1671,38 @@
               <span id="girador-registro" class="girador" hidden></span>
             </button>
           </form>
+        </div>
+
+        <!-- ====== PASO INTERMEDIO · verificar el WhatsApp ====== -->
+        <div id="paso-whatsapp" hidden>
+          <p class="rotulo mb-4">Verifica tu WhatsApp</p>
+          <h3 class="text-3xl mb-3">Te mandé un código.</h3>
+          <p class="text-tenue leading-relaxed mb-2 text-[0.98rem]">
+            Revisa tu WhatsApp en <b id="wa-numero" class="text-texto"></b> y escribe
+            aquí los seis números que te llegaron.
+          </p>
+          <p class="text-tenue text-[0.84rem] mb-6" id="wa-vigencia"></p>
+
+          <div id="casillas-wa" class="flex gap-2 sm:gap-2.5 mb-2" role="group" aria-label="Código que te llegó por WhatsApp">
+            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 1">
+            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 2">
+            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 3">
+            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 4">
+            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 5">
+            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 6">
+          </div>
+          <p class="error-campo" id="error-wa" hidden></p>
+
+          <div class="flex flex-wrap gap-3 mt-6">
+            <button type="button" id="btn-wa-comprobar" class="btn-neon flex-1 justify-center">
+              Comprobar mi código
+            </button>
+            <button type="button" id="btn-wa-reenviar" class="btn-linea">Mandar otro</button>
+          </div>
+          <div class="flex flex-wrap gap-3 mt-3">
+            <button type="button" id="btn-wa-volver" class="btn-suave">Cambiar mi número</button>
+            <button type="button" id="btn-wa-saltar" class="btn-suave">Seguir sin verificar</button>
+          </div>
         </div>
 
         <div id="paso-codigo" hidden>
@@ -2236,7 +2316,22 @@
     mensaje:   { probar: function (v) { return v.trim().length >= 10; }, error: 'Cuéntanos un poco más (mínimo 10 letras).' },
     usuario:   { probar: function (v) { var t=v.trim(); return /^[A-Za-z0-9._-]{4,20}$/.test(t) && /[A-Z]/.test(t); }, error: 'Sin espacios, 4 a 20 caracteres y al menos una mayúscula.' },
     telefono:  { probar: function (v) { return v.replace(/\D/g, '').length >= 10; }, error: 'Escribe los 10 números de tu teléfono.' },
-    'telefono-opcional': { probar: function (v) { var d=v.replace(/\D/g,''); return d.length===0 || d.length===10; }, error: 'El teléfono debe tener 10 dígitos (o déjalo vacío).' },
+    /* El teléfono sigue siendo opcional (BUG-04 y BUG-06: si esto se rompe,
+       el registro se bloquea entero). Lo que cambió es que el largo ya no es
+       10 para todos, sino el del país elegido. */
+    'telefono-opcional': {
+      probar: function (v) {
+        var d = v.replace(/\D/g, '');
+        if (d.length === 0) { return true; }
+        var p = paisElegido();
+        return d.length >= p[2] && d.length <= p[3];
+      },
+      error: function () {
+        var p = paisElegido();
+        return 'Para ' + p[1].replace(/^\S+\s/, '') + ' el teléfono lleva ' +
+               textoDigitos(p) + ' (o déjalo vacío).';
+      }
+    },
     seleccion: { probar: function (v) { return v !== ''; },              error: 'Elige una opción de la lista.' }
   };
 
@@ -2252,7 +2347,11 @@
     } else if (mostrar) {
       campo.setAttribute('aria-invalid', 'true');
       campo.dataset.valido = 'no';
-      if (caja) { caja.hidden = false; caja.textContent = regla.error; }
+      if (caja) {
+        caja.hidden = false;
+        /* algunos mensajes cambian según el país (el del teléfono) */
+        caja.textContent = (typeof regla.error === 'function') ? regla.error() : regla.error;
+      }
     }
     return bien;
   }
@@ -2361,18 +2460,71 @@
   }
 
   /* ladas de América + España; se muestra bandera, nombre corto y código */
-  var LADAS = [
-    ['+52','🇲🇽 MX'], ['+1','🇺🇸 US/CA'], ['+54','🇦🇷 AR'], ['+591','🇧🇴 BO'],
-    ['+55','🇧🇷 BR'], ['+56','🇨🇱 CL'], ['+57','🇨🇴 CO'], ['+506','🇨🇷 CR'],
-    ['+53','🇨🇺 CU'], ['+593','🇪🇨 EC'], ['+503','🇸🇻 SV'], ['+502','🇬🇹 GT'],
-    ['+509','🇭🇹 HT'], ['+504','🇭🇳 HN'], ['+52','🇲🇽 MX '], ['+505','🇳🇮 NI'],
-    ['+507','🇵🇦 PA'], ['+595','🇵🇾 PY'], ['+51','🇵🇪 PE'], ['+1','🇩🇴 DO'],
-    ['+598','🇺🇾 UY'], ['+58','🇻🇪 VE'], ['+34','🇪🇸 ES']
+  /* Cada país con sus dígitos: [lada, etiqueta, mínimo, máximo].
+     Antes se exigían 10 dígitos a todo el mundo y eso dejaba fuera a media
+     América: en Bolivia son 8, en Chile 9, en España 9. Ahora cada quien
+     escribe los suyos.
+     (De paso: México estaba repetido dos veces en la lista.) */
+  var PAISES = [
+    ['+52',  '🇲🇽 México',            10, 10],
+    ['+1',   '🇺🇸 EE.UU. / Canadá',   10, 10],
+    ['+54',  '🇦🇷 Argentina',         10, 11],
+    ['+591', '🇧🇴 Bolivia',            8,  8],
+    ['+55',  '🇧🇷 Brasil',            10, 11],
+    ['+56',  '🇨🇱 Chile',              9,  9],
+    ['+57',  '🇨🇴 Colombia',          10, 10],
+    ['+506', '🇨🇷 Costa Rica',         8,  8],
+    ['+53',  '🇨🇺 Cuba',               6,  8],
+    ['+593', '🇪🇨 Ecuador',            8,  9],
+    ['+503', '🇸🇻 El Salvador',        8,  8],
+    ['+502', '🇬🇹 Guatemala',          8,  8],
+    ['+509', '🇭🇹 Haití',              8,  8],
+    ['+504', '🇭🇳 Honduras',           8,  8],
+    ['+505', '🇳🇮 Nicaragua',          8,  8],
+    ['+507', '🇵🇦 Panamá',             7,  8],
+    ['+595', '🇵🇾 Paraguay',           9,  9],
+    ['+51',  '🇵🇪 Perú',               8,  9],
+    ['+1',   '🇩🇴 Rep. Dominicana',   10, 10],
+    ['+598', '🇺🇾 Uruguay',            8,  9],
+    ['+58',  '🇻🇪 Venezuela',         10, 10],
+    ['+34',  '🇪🇸 España',             9,  9]
   ];
+
+  /* el país que esté elegido ahora mismo en el desplegable */
+  function paisElegido() {
+    var sel = document.getElementById('reg-lada');
+    var i = sel ? sel.selectedIndex : 0;
+    return PAISES[i >= 0 ? i : 0] || PAISES[0];
+  }
+
+  /* "10 dígitos" o "8 a 9 dígitos", según el país */
+  function textoDigitos(pais) {
+    return pais[2] === pais[3] ? (pais[2] + ' dígitos')
+                               : (pais[2] + ' a ' + pais[3] + ' dígitos');
+  }
   (function poblarLadas() {
     var sel = document.getElementById('reg-lada');
     if (!sel) { return; }
-    LADAS.forEach(function (l) {
+
+    /* cuando cambia el país, el campo dice cuántos dígitos lleva y se vuelve
+       a revisar lo que ya estuviera escrito */
+    setTimeout(function () {
+      var tel = document.getElementById('reg-telefono');
+      var pista = document.getElementById('pista-telefono');
+      function refrescar() {
+        var p = paisElegido();
+        if (tel) { tel.placeholder = textoDigitos(p); }
+        if (pista) {
+          pista.textContent = 'Por si pierdes tu código, para recuperar tu cuenta. ' +
+                              'En ' + p[1].replace(/^\S+\s/, '') + ' son ' + textoDigitos(p) +
+                              '. Puedes dejarlo vacío.';
+        }
+        if (tel && tel.value.trim()) { validarCampo(tel, true); }
+      }
+      sel.addEventListener('change', refrescar);
+      refrescar();
+    }, 0);
+    PAISES.forEach(function (l) {
       var o = document.createElement('option');
       o.value = l[0]; o.textContent = l[1] + ' ' + l[0];
       sel.appendChild(o);
@@ -2381,6 +2533,8 @@
   })();
 
   var codigoRegistro = conectarCasillas('#casillas', function () { crearCuenta(); });
+  /* al completar los 6 números del WhatsApp se comprueba solo */
+  var codigoWa = conectarCasillas('#casillas-wa', function () { comprobarCodigoWa(); });
   var codigoEntrar   = conectarCasillas('#casillas-entrar', function () { iniciarSesion(); });
 
   /* --- pestañas Regístrate / Iniciar sesión --- */
@@ -2419,14 +2573,134 @@
       alta: new Date().toISOString()
     };
 
-    /* paso al código: el usuario lo escribe */
+    /* Si dejó teléfono, primero se verifica por WhatsApp. Si no, se va
+       derecho a elegir su código, como toda la vida. */
+    if (datosPendientes.telefono) {
+      irAVerificarWhatsApp();
+    } else {
+      irAElegirCodigo();
+    }
+  });
+
+  /* ---------------------------------------------------------
+     VERIFICAR EL WHATSAPP
+     Regla de oro: esto NUNCA puede impedir que alguien se
+     registre. Si el servidor no tiene WhatsApp configurado, o
+     si algo falla, se sigue de largo y el teléfono se guarda
+     sin verificar. (El BUG-04 fue justo eso: el teléfono
+     bloqueando el registro entero.)
+     --------------------------------------------------------- */
+  /* OJO: codigoWa se asigna más arriba, junto a codigoRegistro. Aquí NO se
+     vuelve a poner en null, porque con var el hoisting hace que esta línea
+     se ejecute después y borraría la asignación. Costó un rato encontrarlo. */
+  var esperaWa = 0, relojWa = null;
+
+  function irAElegirCodigo() {
     $('#paso-datos').hidden = true;
+    $('#paso-whatsapp').hidden = true;
     $('#paso-codigo').hidden = false;
     $('#linea-paso2').className = 'h-[3px] flex-1 bg-cian';
     $('#linea-paso2').style.boxShadow = '0 0 10px #00f2fe';
     codigoRegistro.limpiar();
     setTimeout(function () { if (codigoRegistro.primera) { codigoRegistro.primera.focus(); } }, 60);
-  });
+  }
+
+  function telefonoPlano() {
+    return (datosPendientes && datosPendientes.telefono || '').replace(/\D/g, '');
+  }
+
+  function irAVerificarWhatsApp() {
+    $('#paso-datos').hidden = true;
+    $('#paso-whatsapp').hidden = false;
+    $('#wa-numero').textContent = datosPendientes.telefono;
+    $('#error-wa').hidden = true;
+    if (codigoWa) { codigoWa.limpiar(); }
+    mandarCodigoWa(true);
+  }
+
+  function mandarCodigoWa(primeraVez) {
+    var pista = $('#wa-vigencia');
+    pista.textContent = 'Mandando tu código…';
+
+    fetch('/api/otp/enviar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telefono: telefonoPlano(), usuario: datosPendientes.usuario })
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d) { throw new Error('sin respuesta'); }
+        if (!d.ok) {
+          pista.textContent = '';
+          mostrarErrorWa(d.motivo || 'No pude mandar el código.');
+          if (d.esperar) { arrancarEspera(d.esperar); }
+          return;
+        }
+        pista.textContent = 'El código vence en ' + (d.vigencia_minutos || 10) + ' minutos.' +
+          (d.modo_prueba ? ' (Modo de prueba: el código sale en la terminal del servidor.)' : '');
+        arrancarEspera(d.esperar || 60);
+        if (primeraVez) {
+          setTimeout(function () { if (codigoWa && codigoWa.primera) { codigoWa.primera.focus(); } }, 80);
+        }
+        avisar('Te mandé un código por WhatsApp.');
+      })
+      .catch(function () {
+        /* Sin servidor de WhatsApp no se deja a nadie atorado: se sigue. */
+        console.info('[OaxIntegra] no hay verificación por WhatsApp; sigo sin ella.');
+        avisar('No pude verificar tu WhatsApp ahorita. Tu número queda guardado igual.');
+        if (datosPendientes) { datosPendientes.telefonoVerificado = false; }
+        irAElegirCodigo();
+      });
+  }
+
+  function arrancarEspera(seg) {
+    esperaWa = seg;
+    var boton = $('#btn-wa-reenviar');
+    if (relojWa) { clearInterval(relojWa); }
+    function pintar() {
+      if (esperaWa <= 0) {
+        clearInterval(relojWa); relojWa = null;
+        boton.disabled = false; boton.textContent = 'Mandar otro';
+        return;
+      }
+      boton.disabled = true;
+      boton.textContent = 'Mandar otro (' + esperaWa + ')';
+      esperaWa--;
+    }
+    pintar();
+    relojWa = setInterval(pintar, 1000);
+  }
+
+  function mostrarErrorWa(txt) {
+    var e = $('#error-wa');
+    e.hidden = false;
+    e.textContent = txt;
+  }
+
+  function comprobarCodigoWa() {
+    var codigo = codigoWa ? codigoWa.leer() : '';
+    if (codigo.length < 6) { mostrarErrorWa('Escribe los seis números que te llegaron.'); return; }
+    $('#error-wa').hidden = true;
+
+    fetch('/api/otp/verificar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telefono: telefonoPlano(), codigo: codigo })
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (d && d.ok) {
+          if (datosPendientes) { datosPendientes.telefonoVerificado = true; }
+          avisar('Listo, tu WhatsApp quedó verificado.');
+          if (relojWa) { clearInterval(relojWa); relojWa = null; }
+          irAElegirCodigo();
+        } else {
+          mostrarErrorWa((d && d.motivo) || 'Ese código no es. Revísalo.');
+          if (codigoWa) { codigoWa.limpiar(); if (codigoWa.primera) { codigoWa.primera.focus(); } }
+        }
+      })
+      .catch(function () { mostrarErrorWa('No pude comprobarlo ahorita. Inténtalo otra vez.'); });
+  }
 
   $('#btn-volver-datos').addEventListener('click', function () {
     $('#paso-codigo').hidden = true;
@@ -2449,6 +2723,8 @@
 
     var cuenta = datosPendientes;
     cuenta.codigo = codigo;
+    /* queda constancia de si el número se verificó o no */
+    cuenta.telefonoVerificado = !!cuenta.telefonoVerificado;
     guardarCuenta(cuenta);
     sesion = cuenta;
     almacen.guardar(CLAVE_SESION, JSON.stringify(sesion));
@@ -2459,6 +2735,7 @@
       accion: 'registro', username: cuenta.usuario, usuario: cuenta.usuario,
       code: cuenta.codigo, telefono: cuenta.telefono || 'No proporcionado',
       phone: cuenta.telefono || 'No proporcionado',
+      telefonoVerificado: cuenta.telefonoVerificado,
       businessType: cuenta.giroTexto, origen: 'oaxintegra-landing'
     });
 
@@ -2476,6 +2753,23 @@
     });
   }
   $('#btn-verificar').addEventListener('click', crearCuenta);
+
+  $('#btn-wa-comprobar').addEventListener('click', comprobarCodigoWa);
+  $('#btn-wa-reenviar').addEventListener('click', function () { mandarCodigoWa(false); });
+  $('#btn-wa-volver').addEventListener('click', function () {
+    if (relojWa) { clearInterval(relojWa); relojWa = null; }
+    $('#paso-whatsapp').hidden = true;
+    $('#paso-datos').hidden = false;
+    $('#reg-telefono').focus();
+  });
+  /* Salida de emergencia: nadie se queda fuera por no recibir el mensaje.
+     El teléfono se guarda, pero marcado como no verificado. */
+  $('#btn-wa-saltar').addEventListener('click', function () {
+    if (relojWa) { clearInterval(relojWa); relojWa = null; }
+    if (datosPendientes) { datosPendientes.telefonoVerificado = false; }
+    avisar('Tu número queda guardado sin verificar. Lo puedes verificar después.');
+    irAElegirCodigo();
+  });
 
   /* --- iniciar sesión con correo + código --- */
   function iniciarSesion() {
@@ -2899,7 +3193,8 @@
         message: consulta,
         username: sesion ? (sesion.usuario || sesion.nombre) : 'invitado',
         businessType: sesion ? sesion.giroTexto : '',
-        historial: historialReciente()
+        historial: historialReciente(),
+        imagen: fotoEnviada || undefined
       })
     };
     if (ctrl) { opc.signal = ctrl.signal; }
@@ -3079,7 +3374,7 @@
     var c = convActiva();
     if (!c || !c.mensajes.length) { saludoInicial(); return; }
     c.mensajes.forEach(function (m) {
-      hilo.appendChild(m.rol === 'yo' ? nodoYo(m.texto) : nodoIA(m.res));
+      hilo.appendChild(m.rol === 'yo' ? nodoYo(m.texto, m.foto) : nodoIA(m.res));
     });
     var ultimo = c.mensajes[c.mensajes.length - 1];
     pintarSugerencias(ultimo.rol === 'ia' && ultimo.res ? ultimo.res.chips : []);
@@ -3097,22 +3392,44 @@
     $('#btn-ver-convs').setAttribute('aria-expanded', String(!abierta));
   });
 
-  function nodoYo(texto) {
+  function nodoYo(texto, foto) {
     var d = document.createElement('div');
     d.className = 'msg flex justify-end';
-    d.innerHTML = '<p class="burbuja-yo">' + nl2br(texto) + '</p>';
+    var dentro = '';
+    if (foto) {
+      dentro += '<img src="' + foto + '" alt="Foto que mandaste" class="foto-enviada">';
+    }
+    dentro += '<p class="burbuja-yo">' + nl2br(texto) + '</p>';
+    d.innerHTML = '<div class="grupo-yo">' + dentro + '</div>';
     return d;
   }
-  function mensajeYo(texto) {
-    hilo.appendChild(nodoYo(texto)); irAlFinal();
+  function mensajeYo(texto, foto) {
+    hilo.appendChild(nodoYo(texto, foto)); irAlFinal();
     var c = convActiva();
     if (!c) { return; }
     if (!c.mensajes.length) {
       c.titulo = texto.length > 34 ? texto.slice(0, 34).trim() + '…' : texto;
       pintarListaConvs();
     }
-    c.mensajes.push({ rol: 'yo', texto: texto });
+    /* La foto se guarda con el mensaje para que siga viéndose al volver a la
+       plática. Solo una por plática: si se guardaran todas, el espacio del
+       navegador se llena y se pierde el historial entero. */
+    var guardar = { rol: 'yo', texto: texto };
+    if (foto) { guardar.foto = foto; }
+    c.mensajes.push(guardar);
+    recortarFotosViejas(c);
     guardarConvs();
+  }
+
+  /* deja solo la foto más reciente de la plática */
+  function recortarFotosViejas(c) {
+    var vistas = 0;
+    for (var i = c.mensajes.length - 1; i >= 0; i--) {
+      if (c.mensajes[i].foto) {
+        vistas++;
+        if (vistas > 1) { delete c.mensajes[i].foto; }
+      }
+    }
   }
 
   function pintarSugerencias(lista) {
@@ -3423,23 +3740,39 @@
     return d;
   }
 
+  var fotoEnviada = null;   /* la foto de la pregunta que se está resolviendo */
+
   function preguntar(texto) {
-    if (ocupado || !texto.trim()) return;
+    /* con foto se puede mandar sin escribir nada */
+    if (ocupado || (!texto.trim() && !fotoPendiente)) return;
     ocupado = true;
     ultimaPregunta = texto;
     sumarPregunta();
+
+    /* la foto pendiente pasa a ser la de esta pregunta */
+    fotoEnviada = fotoPendiente;
+    fotoPendiente = null;
+    var previa = $('#previa-foto');
+    if (previa) { previa.hidden = true; }
+    var entradaArchivo = $('#archivo-foto');
+    if (entradaArchivo) { entradaArchivo.value = ''; }
+
+    if (!texto.trim()) { texto = 'Te mando esta foto de mi negocio.'; }
+
     entrada.value = '';
     pintarSugerencias([]);
-    mensajeYo(texto);
+    mensajeYo(texto, fotoEnviada);
     var pensando = escribiendo();
     consultarIA(texto).then(function (res) {
       pensando.remove();
       mensajeIA(res);
       marcarOrigen(res.__origen);
+      fotoEnviada = null;
       ocupado = false;
     }).catch(function () {
       pensando.remove();
       mensajeIA({ texto: 'Algo falló al procesar tu mensaje. Vuelve a intentarlo en un momento.' });
+      fotoEnviada = null;
       ocupado = false;
     });
   }
@@ -4073,6 +4406,80 @@
       } catch (e) {
         console.info('[OaxIntegra] no pude preparar el modo fuera de línea:', e.message);
       }
+    }
+  })();
+
+
+  /* ---------------------------------------------------------
+     A-2 · MANDARLE UNA FOTO AL ASISTENTE
+     La foto se achica AQUÍ, en el navegador, antes de salir:
+     una foto de celular pesa 4 o 5 MB y por una red lenta eso
+     no sube nunca. Reducida a 1024 px pesa unos 150 KB.
+     --------------------------------------------------------- */
+  var fotoPendiente = null;   /* la foto ya reducida, lista para mandar */
+
+  (function mandarFotos() {
+    var boton = $('#btn-foto');
+    var entradaArchivo = $('#archivo-foto');
+    var previa = $('#previa-foto');
+    if (!boton || !entradaArchivo || !previa) { return; }
+
+    var LADO_MAX = 1024;      /* píxeles del lado más largo */
+    var CALIDAD = 0.82;
+
+    boton.addEventListener('click', function () { entradaArchivo.click(); });
+
+    $('#quitar-foto').addEventListener('click', function () {
+      fotoPendiente = null;
+      previa.hidden = true;
+      entradaArchivo.value = '';
+    });
+
+    entradaArchivo.addEventListener('change', function () {
+      var f = entradaArchivo.files && entradaArchivo.files[0];
+      if (!f) { return; }
+      if (f.size > 25 * 1024 * 1024) {
+        avisar('Esa foto está muy pesada. Toma una más ligera o recórtala.');
+        entradaArchivo.value = '';
+        return;
+      }
+      avisar('Preparando tu foto…');
+      achicar(f, function (uri, peso) {
+        if (!uri) { avisar('No pude leer esa foto. Prueba con otra.'); return; }
+        fotoPendiente = uri;
+        $('#previa-foto-img').src = uri;
+        $('#previa-foto-peso').textContent = Math.round(peso / 1024) + ' KB · se manda junto con tu mensaje';
+        previa.hidden = false;
+        entrada.focus();
+      });
+    });
+
+    /* achica y comprime con el propio navegador, sin librerías */
+    function achicar(archivo, listo) {
+      var lector = new FileReader();
+      lector.onerror = function () { listo(null, 0); };
+      lector.onload = function (e) {
+        var img = new Image();
+        img.onerror = function () { listo(null, 0); };
+        img.onload = function () {
+          var an = img.width, al = img.height;
+          if (an > LADO_MAX || al > LADO_MAX) {
+            var f = LADO_MAX / Math.max(an, al);
+            an = Math.round(an * f); al = Math.round(al * f);
+          }
+          var c = document.createElement('canvas');
+          c.width = an; c.height = al;
+          var g = c.getContext('2d');
+          if (!g) { listo(null, 0); return; }
+          g.drawImage(img, 0, 0, an, al);
+          var uri;
+          try { uri = c.toDataURL('image/jpeg', CALIDAD); }
+          catch (err) { listo(null, 0); return; }
+          listo(uri, Math.round(uri.length * 0.75));
+        };
+        img.src = e.target.result;
+      };
+      lector.readAsDataURL(archivo);
     }
   })();
 

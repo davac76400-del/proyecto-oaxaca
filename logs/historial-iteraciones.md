@@ -127,6 +127,17 @@ incrustado 4 veces (975 KB) y, sobre todo, la hoja de tipografías de Google
 que **bloquea el pintado**. Corregidas las dos, la primera pintura bajó a
 **112 ms**. Ver BUG-20 a BUG-23.
 
+**22 · Fotos a la IA, teléfono por país y WhatsApp (23 ago 2026).** Cuatro
+peticiones. (1) Mandarle fotos al asistente: el navegador la achica a 1024 px
+antes de subirla y el backend elige solo el modelo con visión. (2) El teléfono
+deja de exigir 10 dígitos a todos: tabla de 22 países con mínimo y máximo
+(BUG-24). (3) Verificación por WhatsApp con código de 6 dígitos, con cuatro
+mensajeros posibles (Meta, Twilio, n8n o consola para probar) y todas las
+protecciones; nunca bloquea el registro. (4) Las fotos reales de huipiles no
+se pudieron poner: el proxy de la máquina bloquea Wikimedia, así que se dejó
+`traer_huipiles.py`, que verifica procedencia y licencia antes de descargar.
+Durante la prueba salió el BUG-25, un `var` que borraba su propia asignación.
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

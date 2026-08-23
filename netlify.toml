@@ -19,3 +19,9 @@
   from = "/api/ia"
   to   = "/.netlify/functions/ia"
   status = 200
+
+# Verificación del teléfono por WhatsApp
+[[redirects]]
+  from = "/api/otp/*"
+  to   = "/.netlify/functions/otp/:splat"
+  status = 200

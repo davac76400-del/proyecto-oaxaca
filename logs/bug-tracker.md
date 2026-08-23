@@ -596,6 +596,50 @@ verdad antes de cambiar un color.
 
 ---
 
+## BUG-24 · El teléfono exigía 10 dígitos a todo el mundo ✅ RESUELTO (23 ago 2026)
+
+**Síntoma:** alguien de Bolivia (8 dígitos), Chile (9) o España (9) no podía
+poner su teléfono: la app le decía que estaba mal.
+
+**Causa:** la regla `telefono-opcional` comparaba contra 10 fijo. Ya estaba
+anotado como pendiente desde el BUG-06.
+
+**Solución:** tabla `PAISES` con `[lada, etiqueta, mínimo, máximo]` para los
+22 países. La regla lee el país elegido, el campo dice cuántos dígitos lleva
+(«8 dígitos», «10 a 11 dígitos») y el mensaje de error nombra el país.
+
+**De paso:** México estaba **repetido dos veces** en la lista de ladas.
+
+**Probado** con 12 casos en 6 países, incluido el vacío (sigue siendo opcional:
+si esa regla se rompe, el registro se bloquea entero — BUG-04).
+
+---
+
+## BUG-25 · `var codigoWa = null` borraba la asignación ✅ RESUELTO (23 ago 2026)
+
+**Síntoma:** el código de WhatsApp nunca se leía. Al escribir los 6 números
+salía «Escribe los seis números que te llegaron», como si estuvieran vacíos.
+
+**Causa:** clásico del hoisting de `var`. La asignación estaba arriba:
+
+```js
+codigoWa = conectarCasillas('#casillas-wa', …);   // línea 2503
+…
+var codigoWa = null, esperaWa = 0;                 // línea 2560 ← ¡lo borraba!
+```
+
+`var` sube la declaración al principio, pero **la asignación a `null` se
+ejecuta donde está escrita**, o sea después. Resultado: `codigoWa` quedaba en
+`null` justo antes de usarse.
+
+**Solución:** declarar `var codigoWa = conectarCasillas(…)` en un solo lugar y
+no volver a inicializarlo más abajo.
+
+**Lección:** en este archivo todo vive en un IIFE gigante con `var`. Antes de
+declarar una variable, buscar si ya existe más arriba.
+
+---
+
 ## Resumen
 
 | # | Problema | Estado |
@@ -623,3 +667,5 @@ verdad antes de cambiar un color.
 | 21 | Copiar/guardar respuesta normal reventaba | ✅ |
 | 22 | Insignia "IA" ilegible en modo noche | ✅ |
 | 23 | Contraste bajo en verde, ámbar y cian | ✅ |
+| 24 | Teléfono exigía 10 dígitos a todos los países | ✅ |
+| 25 | `var` que borraba su propia asignación | ✅ |

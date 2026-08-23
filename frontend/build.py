@@ -151,6 +151,35 @@ def resolver_endpoint(src):
     return nuevo
 
 
+def incrustar_huipiles(src):
+    """Si ya bajaste fotos reales con traer_huipiles.py, las mete aquí.
+       Si no hay fotos, deja los patrones dibujados que trae la app.
+       Los marcadores son __HUIPIL_1__, __HUIPIL_2__, __HUIPIL_3__."""
+    carpeta = os.path.join(RAIZ, 'assets', 'huipiles')
+    puestas = 0
+    for i in (1, 2, 3):
+        marcador = '__HUIPIL_%d__' % i
+        if marcador not in src:
+            continue
+        archivo = os.path.join(carpeta, 'huipil_%02d.webp' % i)
+        if not os.path.exists(archivo):
+            print('  ✗ Falta %s, pero no existe assets/huipiles/huipil_%02d.webp' % (marcador, i))
+            print('    Corre primero:  python3 traer_huipiles.py')
+            sys.exit(1)
+        with open(archivo, 'rb') as f:
+            uri = 'data:image/webp;base64,' + base64.b64encode(f.read()).decode()
+        src = src.replace(marcador, uri)
+        puestas += 1
+    if puestas:
+        print('  fotos de huipil incrustadas: %d' % puestas)
+        creditos = os.path.join(carpeta, 'CREDITOS.md')
+        if not os.path.exists(creditos):
+            print('  ✗ Faltan los créditos (assets/huipiles/CREDITOS.md).')
+            print('    Estas licencias exigen dar crédito. Corre traer_huipiles.py.')
+            sys.exit(1)
+    return src
+
+
 def main():
     if not os.path.exists(FUENTE):
         print('✗ No encuentro', FUENTE); sys.exit(1)
@@ -192,6 +221,7 @@ def main():
     # Antes de nada: que no haya llaves en el fuente.
     revisar_llaves(src, 'app.src.html')
     src = resolver_endpoint(src)
+    src = incrustar_huipiles(src)
 
     print('→ Ensamblando…')
     final = src.replace('/*__TAILWIND__*/', css).replace('__CHAPULIN__', uri)
