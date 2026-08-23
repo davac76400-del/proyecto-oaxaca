@@ -112,6 +112,21 @@ la respuesta a PDF con membrete (`window.print()` + `@media print`). Además,
 las cajas amarillas de alarma y el pie ya no menciona n8n. Tres bugs salieron
 durante la propia verificación: BUG-17, BUG-18 y BUG-19.
 
+**21 · Double check, rendimiento y cinco herramientas más (23 ago 2026).**
+El autor pide revisar todo y corregir lo que aparezca, **deshacer el blanco
+prístino** y volver al modo día original, un recorrido con scroll sobre vender
+directo, y cinco funciones más. Se revierte la paleta, la tipografía (Plus
+Jakarta Sans) y los componentes al diseño original, conservando solo el peso
+400 del cuerpo para que no se vea delgado. Se añaden: sin conexión con Service
+Worker, guardar como imagen con Canvas, glosario sin tecnicismos, calculadora
+de precios y medallas.
+
+El hallazgo grande fue de rendimiento: en un celular con la CPU frenada 6
+veces, la página tardaba **13 segundos** en aparecer. Dos causas: el chapulín
+incrustado 4 veces (975 KB) y, sobre todo, la hoja de tipografías de Google
+que **bloquea el pintado**. Corregidas las dos, la primera pintura bajó a
+**112 ms**. Ver BUG-20 a BUG-23.
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

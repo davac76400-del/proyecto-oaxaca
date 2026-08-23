@@ -11,7 +11,25 @@
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     LAS TIPOGRAFÍAS NO BLOQUEAN LA PÁGINA (arreglo del 23 ago 2026)
+     Antes esta hoja se cargaba de la forma normal, y la forma normal DETIENE
+     el pintado hasta que llega. Con señal mala —lo habitual en muchos pueblos
+     de Oaxaca— la persona veía la pantalla en blanco 12 segundos o más.
+     Con media="print" el navegador la baja sin frenar nada, y el onload la
+     activa en cuanto llega. Mientras tanto se lee con las letras del propio
+     teléfono, que se ven bien igual. Si no hay internet, nunca se nota.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap">
+<noscript>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap">
+</noscript>
+
+<!-- el chapulín también de icono, y así el navegador deja de pedir favicon.ico -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ctext y=%2726%27 font-size=%2728%27%3E%F0%9F%A6%97%3C/text%3E%3C/svg%3E">
 
 <style>/*__TAILWIND__*/</style>
 
@@ -25,30 +43,47 @@
 
   /* ===== MODO DÍA · tonos tierra claros (por defecto) ===== */
   /* ---------------------------------------------------------------------
-     PALETA DÍA — blanco prístino, contraste alto.
-     Todos los acentos están elegidos para leerse sobre blanco con al menos
-     4.5:1 (WCAG AA). Los colores vivos de alebrije se usan en detalles
-     —bordes al pasar el cursor, iconos—, nunca como fondo de texto largo.
+     PALETA DÍA · la original del proyecto (tierra de Oaxaca, papel artesanal).
+     Se volvió a ella el 23 ago 2026: el blanco prístino de la vuelta anterior
+     perdía la identidad. Lo único que se conserva de aquella son los tokens de
+     relieve y radio de abajo, que ahora van calibrados a esta estética.
+     Legibilidad: --texto y --tenue son oscuros a propósito (BUG-09 y BUG-10).
      --------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------
+     EL CHAPULÍN, UNA SOLA VEZ (23 ago 2026)
+     Antes iba incrustado 4 veces en base64: 714 KB de los 975 que pesaba el
+     archivo. En un celular de gama baja eso retrasaba la primera pintura
+     más de 12 segundos. Ahora se incrusta aquí una vez y las 4 apariciones
+     lo usan como fondo: el navegador lo descodifica una sola vez.
+     El chapulín sigue en sus 4 lugares — es la identidad de la marca y no
+     se toca (BUG-01).
+     --------------------------------------------------------------------- */
+  :root{ --chapulin:url("__CHAPULIN__"); }
+  .chapulin-img{
+    background-image:var(--chapulin);
+    background-size:contain; background-position:center; background-repeat:no-repeat;
+    aspect-ratio:672 / 627;   /* reserva el espacio: la página no brinca al cargar */
+  }
+
   :root, [data-tema="dia"]{
-    --obsidiana:248 249 250;   /* #F8F9FA — fondo general, gris ultra claro */
-    --barro:255 255 255;       /* #FFFFFF — tarjetas, blanco puro */
-    --barroalto:255 255 255;   /* #FFFFFF — superficies elevadas y cabecera */
-    --borde:226 232 240;       /* #E2E8F0 — borde gris suave */
-    --cian:14 116 144;         /* #0E7490 — turquesa profundo, 4.9:1 */
-    --cian-vivo:#06B6D4;       /* cian alebrije, solo para detalles */
-    --verde:21 128 61;         /* #15803D — 4.6:1 */
-    --rosa:190 24 93;          /* #BE185D — magenta alebrije, 6.4:1 */
-    --naranja:194 65 12;       /* #C2410C — 4.9:1 */
-    --ambar:161 98 7;          /* #A16207 — mostaza, 4.8:1 */
-    --texto:17 24 39;          /* #111827 — casi negro, máxima legibilidad */
-    --tenue:71 85 105;         /* #475569 — gris pizarra, 7.4:1 */
-    --tinta-inversa:#FFFFFF; --violeta:109 40 217; --amarillo:161 98 7; --glow:0;
-    /* sombras 3D suaves (claymorphism) */
-    --sombra-suave:0 10px 25px rgba(17,24,39,.05);
-    --sombra-media:0 14px 34px rgba(17,24,39,.09);
-    --sombra-alta:0 22px 48px rgba(17,24,39,.14);
-    --radio:14px; --radio-card:20px;
+    --obsidiana:228 213 190;   /* fondo café claro, un poco menos suave/más definido */
+    --barro:255 253 248;       /* tarjetas blanco papel */
+    --barroalto:247 240 226;   /* superficies elevadas */
+    --borde:201 180 143;       /* bordes arena más marcados */
+    --cian:9 111 118;        /* turquesa oscuro · 5.22:1 sobre tarjeta (antes 4.38) */
+    --cian-vivo:#0E9BA4;
+    --verde:56 99 27;       /* verde bosque · se oscureció un punto el 23 ago 2026:
+                               con el anterior (#3F6E1E) el texto de 18px quedaba en
+                               4.21:1 y AA pide 4.5:1. Ahora da 4.90:1. */
+    --rosa:176 21 96; --naranja:168 72 28; --ambar:138 96 7;   /* ámbar: 4.93:1 sobre tarjeta */
+    --texto:36 28 19;       /* casi negro café, máxima legibilidad */
+    --tenue:74 63 50;       /* café oscuro — lectura garantizada, nada claro */
+    --tinta-inversa:#FFFDF8; --violeta:109 44 176; --amarillo:154 107 8; --glow:0;
+    /* relieve discreto, al tono de la estética original (nada de 3D marcado) */
+    --sombra-suave:0 2px 8px rgba(60,45,25,.07);
+    --sombra-media:0 6px 18px rgba(60,45,25,.11);
+    --sombra-alta:0 14px 34px rgba(60,45,25,.16);
+    --radio:3px; --radio-card:4px;
   }
   /* ===== MODO NOCHE · obsidiana original con neones ===== */
   [data-tema="noche"]{
@@ -58,10 +93,10 @@
     --naranja:255 138 61; --ambar:255 194 61; --texto:244 248 255; --tenue:174 190 214;
     --tinta-inversa:#05070f; --violeta:192 123 255; --amarillo:255 229 0; --glow:1;
     /* mismas sombras, calibradas para fondo oscuro */
-    --sombra-suave:0 10px 25px rgba(0,0,0,.40);
-    --sombra-media:0 14px 34px rgba(0,0,0,.52);
-    --sombra-alta:0 22px 48px rgba(0,0,0,.62);
-    --radio:14px; --radio-card:20px;
+    --sombra-suave:0 2px 10px rgba(0,0,0,.35);
+    --sombra-media:0 6px 20px rgba(0,0,0,.48);
+    --sombra-alta:0 14px 38px rgba(0,0,0,.6);
+    --radio:3px; --radio-card:4px;
   }
   html{ transition:background-color .4s ease; }
   body{ transition:background-color .4s ease, color .4s ease; }
@@ -70,7 +105,7 @@
   html{ scroll-behavior:smooth; scroll-padding-top:88px; }
   body{
     background:rgb(var(--obsidiana)); color:rgb(var(--texto));
-    font-family:'Inter', system-ui, -apple-system, sans-serif; font-weight:400;
+    font-family:'Plus Jakarta Sans', system-ui, sans-serif; font-weight:400;
     -webkit-font-smoothing:antialiased; overflow-x:hidden;
   }
   body.sin-scroll{ overflow:hidden; }
@@ -143,78 +178,70 @@
   @keyframes respira{ 0%,100%{opacity:.15} 50%{opacity:.6} }
 
   /* ---------- botones ---------- */
-  /* ---------- botones 3D (claymorphism) ----------
-     Relieve suave con sombra proyectada + luz interior arriba. Al pasar el
-     cursor "flotan" un poco. El acento vivo de alebrije aparece solo en el
-     borde y el resplandor, nunca como fondo de texto. */
+  /* ---------- botones · diseño original del proyecto ----------
+     Se volvió al original el 23 ago 2026. El relieve marcado de la vuelta
+     anterior no encajaba con la estética artesanal. Queda solo una sombra
+     muy discreta, que da cuerpo sin gritar. */
   .btn-neon{
     position:relative; display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
     background:rgb(var(--cian)); color:var(--tinta-inversa); font-weight:600; letter-spacing:.01em;
     padding:1rem 1.9rem; border-radius:var(--radio); cursor:pointer; border:0;
     font-family:inherit; font-size:1rem;
-    box-shadow:var(--sombra-media), inset 0 1px 0 rgba(255,255,255,.22);
-    transition:box-shadow .3s ease, transform .25s ease, opacity .3s ease, filter .3s ease;
+    box-shadow:0 0 0 1px color-mix(in srgb, rgb(var(--cian)) 55%, transparent), var(--sombra-suave);
+    transition:box-shadow .3s ease, transform .3s ease, opacity .3s ease;
   }
   .btn-neon:hover{
-    transform:translateY(-3px); filter:saturate(1.12);
-    box-shadow:var(--sombra-alta), inset 0 1px 0 rgba(255,255,255,.3),
-               0 0 0 3px color-mix(in srgb, var(--cian-vivo) 26%, transparent);
+    box-shadow:0 0 0 1px rgb(var(--cian)), var(--sombra-media);
+    transform:translateY(-2px);
   }
-  .btn-neon:active{ transform:translateY(-1px); box-shadow:var(--sombra-suave); }
   .btn-neon:disabled{ opacity:.6; cursor:wait; transform:none; }
 
   .btn-linea{
     display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
     color:rgb(var(--texto)); font-weight:500; padding:1rem 1.5rem; border-radius:var(--radio); cursor:pointer;
-    background:rgb(var(--barro)); font-family:inherit; font-size:1rem;
+    background:transparent; font-family:inherit; font-size:1rem;
     border:1px solid rgb(var(--borde));
-    box-shadow:var(--sombra-suave);
-    transition:border-color .3s ease, color .3s ease, box-shadow .3s ease, transform .25s ease;
+    transition:border-color .3s ease, color .3s ease, background .3s ease;
   }
   .btn-linea:hover{
-    border-color:var(--cian-vivo); color:rgb(var(--cian));
-    transform:translateY(-2px); box-shadow:var(--sombra-media);
+    border-color:rgb(var(--cian)); color:rgb(var(--cian));
+    background:color-mix(in srgb, rgb(var(--cian)) 6%, transparent);
   }
-  .btn-linea:active{ transform:none; box-shadow:var(--sombra-suave); }
 
   .btn-suave{
-    display:inline-flex; align-items:center; gap:.5rem; cursor:pointer;
-    background:rgb(var(--barro));
-    border:1px solid rgb(var(--borde)); color:rgb(var(--tenue)); font-family:inherit;
-    font-size:.9rem; padding:.6rem 1rem; border-radius:calc(var(--radio) - 4px);
-    box-shadow:var(--sombra-suave);
-    transition:border-color .3s ease, color .3s ease, transform .25s ease, box-shadow .3s ease;
+    display:inline-flex; align-items:center; gap:.5rem; cursor:pointer; background:transparent;
+    border:1px dashed rgb(var(--borde)); color:rgb(var(--tenue)); font-family:inherit;
+    font-size:.9rem; padding:.6rem 1rem; border-radius:var(--radio);
+    transition:border-color .3s ease, color .3s ease;
   }
-  .btn-suave:hover{
-    border-color:rgb(var(--verde)); color:rgb(var(--verde));
-    transform:translateY(-2px); box-shadow:var(--sombra-media);
-  }
+  .btn-suave:hover{ border-color:rgb(var(--verde)); color:rgb(var(--verde)); }
 
-  /* ---------- tarjetas 3D ---------- */
+  /* ---------- tarjetas · diseño original ---------- */
   .tarjeta{
     position:relative; overflow:hidden; cursor:pointer; text-align:left;
-    background:rgb(var(--barro));
+    /* El degradado original terminaba en rgba(19,27,46,.55): un azul oscuro
+       horneado que en tema claro ensuciaba la parte baja de la tarjeta.
+       Se cambió por la variable de superficie: mismo efecto, sigue el tema. */
+    background:linear-gradient(180deg, rgb(var(--barro)) 0%, rgb(var(--barroalto)) 100%);
     border:1px solid rgb(var(--borde)); border-radius:var(--radio-card);
-    box-shadow:var(--sombra-suave);
-    transition:border-color .45s ease, transform .35s ease, box-shadow .35s ease;
+    transition:border-color .45s ease, transform .45s ease, box-shadow .45s ease;
   }
-  /* patrón de textil oaxaqueño, muy tenue: acompaña sin estorbar la lectura */
   .tarjeta::before{
     content:''; position:absolute; inset:0; pointer-events:none; background-color:var(--acento);
     -webkit-mask-image:var(--greca-fondo); mask-image:var(--greca-fondo);
-    -webkit-mask-repeat:repeat; mask-repeat:repeat; opacity:.04; transition:opacity .45s ease;
+    -webkit-mask-repeat:repeat; mask-repeat:repeat; opacity:.05; transition:opacity .45s ease;
   }
   .tarjeta::after{
     content:''; position:absolute; inset:0; pointer-events:none;
-    background:radial-gradient(90% 60% at 50% 0%, color-mix(in srgb, var(--acento) 10%, transparent) 0%, transparent 70%);
+    background:radial-gradient(90% 60% at 50% 0%, color-mix(in srgb, var(--acento) 16%, transparent) 0%, transparent 70%);
     opacity:0; transition:opacity .45s ease;
   }
   .tarjeta > *{ position:relative; z-index:2; }
   .tarjeta:hover, .tarjeta:focus-within{
-    transform:translateY(-6px); box-shadow:var(--sombra-alta);
+    transform:translateY(-6px); box-shadow:var(--sombra-media);
     border-color:color-mix(in srgb, var(--acento) 55%, rgb(var(--borde)));
   }
-  .tarjeta:hover::before, .tarjeta:focus-within::before{ opacity:.09; }
+  .tarjeta:hover::before, .tarjeta:focus-within::before{ opacity:.16; }
   .tarjeta:hover::after, .tarjeta:focus-within::after{ opacity:1; }
   .tarjeta:hover .banda-greca{ opacity:1; }
   .icono-fusion{ transition:filter .45s ease; }
@@ -223,13 +250,12 @@
     background:transparent; border:0; padding:0; font-family:inherit; font-size:.85rem;
     color:rgb(var(--tenue)); transition:color .3s ease;
   }
-  .disparo-ejemplo:hover{ color:rgb(var(--cian)); }
+  .disparo-ejemplo:hover{ color:rgb(var(--texto)); }
 
   /* ---------- formularios ---------- */
   .campo{
     width:100%; background:rgb(var(--barro)); border:1px solid rgb(var(--borde)); border-radius:var(--radio);
     padding:.95rem 1.1rem; color:rgb(var(--texto)); font-family:inherit; font-weight:400; font-size:1rem;
-    box-shadow:inset 0 1px 2px rgba(17,24,39,.04);
     transition:border-color .25s ease, box-shadow .25s ease;
   }
   .campo::placeholder{ color:rgb(var(--tenue)); opacity:.75; }
@@ -260,7 +286,7 @@
     -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
   }
   .insignia-ia{
-    background:rgb(var(--cian)); color:#FBF6EE; font-weight:600; letter-spacing:.02em;
+    background:rgb(var(--cian)); color:var(--tinta-inversa); font-weight:600; letter-spacing:.02em;
     clip-path:polygon(14% 0, 100% 0, 100% 100%, 0 100%);
     box-shadow:0 0 18px rgba(0,242,254,.35);
   }
@@ -317,7 +343,7 @@
     position:relative; width:100%; min-width:0; background:rgb(var(--barro));
     border:1px solid rgb(var(--borde));
     border-radius:var(--radio-card); max-height:88vh; display:flex; flex-direction:column;
-    box-shadow:var(--sombra-alta);
+    box-shadow:0 30px 90px rgba(60,45,25,.28);
     animation:sube .35s cubic-bezier(.2,.8,.3,1) both;
   }
   @keyframes sube{ from{opacity:0; transform:translateY(20px) scale(.985)} }
@@ -340,12 +366,12 @@
   /* ---------- documento de ley ---------- */
   .doc-ley{ font-family:'Playfair Display', Georgia, serif; font-weight:400; line-height:1.75; }
   .doc-ley p{ text-align:justify; margin-bottom:.9rem; color:rgb(var(--tenue)); font-size:.98rem; }
-  .doc-ley h4{ font-size:1rem; letter-spacing:.14em; text-transform:uppercase; text-align:center; color:rgb(var(--cian)); margin:2rem 0 1rem; font-family:'Inter',system-ui,sans-serif; font-weight:600; }
+  .doc-ley h4{ font-size:1rem; letter-spacing:.14em; text-transform:uppercase; text-align:center; color:rgb(var(--cian)); margin:2rem 0 1rem; font-family:'Plus Jakarta Sans',sans-serif; font-weight:500; }
   .doc-ley .articulo{ color:rgb(var(--texto)); font-weight:600; }
   .doc-ley .fraccion{ padding-left:1.5rem; }
 
   /* ---------- misceláneos ---------- */
-  .girador{ width:15px; height:15px; border:2px solid rgba(4,18,26,.25); border-top-color:#FBF6EE; border-radius:50%; animation:gira .7s linear infinite; }
+  .girador{ width:15px; height:15px; border:2px solid rgba(4,18,26,.25); border-top-color:var(--tinta-inversa); border-radius:50%; animation:gira .7s linear infinite; }
   @keyframes gira{ to{ transform:rotate(360deg) } }
   .aviso-flotante{
     position:fixed; left:50%; bottom:1.5rem; z-index:100; transform:translateX(-50%) translateY(160%);
@@ -467,36 +493,34 @@
     padding:.7rem 1.15rem; border-radius:var(--radio); cursor:pointer; white-space:nowrap;
     font-family:inherit; font-size:.88rem; font-weight:600; letter-spacing:.01em;
     color:var(--tinta-inversa); border:0;
-    background:linear-gradient(135deg, rgb(var(--violeta)) 0%, rgb(var(--rosa)) 100%);
-    box-shadow:var(--sombra-media), inset 0 1px 0 rgba(255,255,255,.28);
-    transition:transform .25s ease, box-shadow .3s ease, filter .3s ease;
+    background:rgb(var(--violeta));
+    box-shadow:0 0 0 1px color-mix(in srgb, rgb(var(--violeta)) 55%, transparent), var(--sombra-suave);
+    transition:transform .25s ease, box-shadow .3s ease;
   }
   .btn-guia:hover{
-    transform:translateY(-3px); filter:saturate(1.15);
-    box-shadow:var(--sombra-alta), inset 0 1px 0 rgba(255,255,255,.36),
-               0 0 0 3px color-mix(in srgb, rgb(var(--rosa)) 24%, transparent);
+    transform:translateY(-2px);
+    box-shadow:0 0 0 1px rgb(var(--violeta)), var(--sombra-media);
   }
-  .btn-guia:active{ transform:translateY(-1px); box-shadow:var(--sombra-suave); }
   .btn-guia__ico{
-    display:grid; place-items:center; width:22px; height:22px; border-radius:7px;
-    background:rgba(255,255,255,.22);
+    display:grid; place-items:center; width:22px; height:22px; border-radius:3px;
+    background:rgba(255,255,255,.2);
   }
 
   /* ---------- botones del chat ---------- */
   .boton-enviar{
-    width:38px; height:38px; display:grid; place-items:center; border-radius:12px;
+    width:38px; height:38px; display:grid; place-items:center; border-radius:var(--radio);
     background:rgb(var(--cian)); color:var(--tinta-inversa);
-    box-shadow:var(--sombra-suave), inset 0 1px 0 rgba(255,255,255,.22);
-    transition:transform .2s ease, box-shadow .25s ease;
+    box-shadow:0 0 0 1px color-mix(in srgb, rgb(var(--cian)) 45%, transparent);
+    transition:box-shadow .25s ease;
   }
-  .boton-enviar:hover{ transform:translateY(-2px); box-shadow:var(--sombra-media); }
+  .boton-enviar:hover{ box-shadow:0 0 0 1px rgb(var(--cian)), var(--sombra-suave); }
   .boton-micro{
-    width:38px; height:38px; display:grid; place-items:center; border-radius:12px; flex-shrink:0;
-    background:rgb(var(--barro)); color:rgb(var(--tenue)); cursor:pointer;
-    border:1px solid rgb(var(--borde)); box-shadow:var(--sombra-suave);
-    transition:transform .2s ease, box-shadow .25s ease, color .25s ease, border-color .25s ease;
+    width:38px; height:38px; display:grid; place-items:center; border-radius:var(--radio); flex-shrink:0;
+    background:transparent; color:rgb(var(--tenue)); cursor:pointer;
+    border:1px solid rgb(var(--borde));
+    transition:color .25s ease, border-color .25s ease, background .25s ease;
   }
-  .boton-micro:hover{ transform:translateY(-2px); color:rgb(var(--rosa)); border-color:rgb(var(--rosa)); }
+  .boton-micro:hover{ color:rgb(var(--rosa)); border-color:rgb(var(--rosa)); }
   .boton-micro[data-oyendo="si"]{
     background:rgb(var(--rosa)); color:var(--tinta-inversa); border-color:rgb(var(--rosa));
     animation:latido 1.3s ease-in-out infinite;
@@ -511,11 +535,10 @@
   .guia-riel{ display:flex; align-items:flex-start; min-width:0; transition:transform .45s cubic-bezier(.22,.61,.36,1); }
   .guia-tarjeta{ flex:0 0 100%; width:100%; min-width:0; padding:1.4rem 1.3rem 1rem; box-sizing:border-box; }
   .guia-num{
-    display:inline-grid; place-items:center; width:44px; height:44px; border-radius:14px;
+    display:inline-grid; place-items:center; width:44px; height:44px; border-radius:var(--radio-card);
     font-weight:700; font-size:1.05rem; color:#fff;
     background:linear-gradient(135deg, var(--tono1), var(--tono2));
-    box-shadow:var(--sombra-media), inset 0 1px 0 rgba(255,255,255,.3);
-    margin-bottom:.9rem;
+    box-shadow:var(--sombra-suave); margin-bottom:.9rem;
   }
   .guia-tarjeta h4{
     font-family:'Playfair Display',Georgia,serif; font-size:1.35rem;
@@ -523,7 +546,7 @@
   }
   .guia-tarjeta p{ color:rgb(var(--tenue)); font-size:.95rem; line-height:1.65; }
   .guia-ejemplo{
-    margin-top:.9rem; padding:.85rem 1rem; border-radius:12px;
+    margin-top:.9rem; padding:.85rem 1rem; border-radius:var(--radio);
     background:rgb(var(--barroalto)); border:1px solid rgb(var(--borde));
     font-size:.88rem; color:rgb(var(--texto)); line-height:1.6;
   }
@@ -570,8 +593,7 @@
   .simulador input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance:none; appearance:none; width:26px; height:26px; border-radius:50%;
     background:linear-gradient(135deg, rgb(var(--cian)), rgb(var(--violeta)));
-    box-shadow:var(--sombra-media), inset 0 1px 0 rgba(255,255,255,.35);
-    cursor:pointer; border:2px solid rgb(var(--barro));
+    box-shadow:var(--sombra-suave); cursor:pointer; border:2px solid rgb(var(--barro));
   }
   .simulador input[type="range"]::-moz-range-thumb{
     width:24px; height:24px; border-radius:50%;
@@ -583,7 +605,7 @@
   }
   .sim-caja{
     background:rgb(var(--barroalto)); border:1px solid rgb(var(--borde));
-    border-radius:14px; padding:.9rem 1rem; text-align:center;
+    border-radius:var(--radio); padding:.9rem 1rem; text-align:center;
   }
   .sim-cifra{
     font-family:'Playfair Display',Georgia,serif; font-size:1.9rem; line-height:1.1;
@@ -637,6 +659,165 @@
     #hoja-print img{ max-width:58% !important; height:auto !important; }
     #hoja-print .aviso-suave{ background:#fff !important; }
   }
+
+  /* =====================================================================
+     VENDER DIRECTO · recorrido con scroll
+     ---------------------------------------------------------------------
+     DECISIÓN DE RENDIMIENTO (importa): se descartó animar el "bordado"
+     trazo por trazo. Eso pide animar stroke-dashoffset o máscaras sobre
+     varios elementos grandes, y en un celular de gama baja provoca repintes
+     constantes: se siente trabado justo en los teléfonos del público de
+     esta app.
+     En su lugar se reutiliza el mismo aparecer que ya usa toda la página
+     (.revela + IntersectionObserver, que además deja de observar en cuanto
+     dispara). Solo se animan opacity y transform, que el navegador resuelve
+     en la tarjeta gráfica sin recalcular el diseño. El "bordado" está en el
+     patrón tejido de la imagen, que es estático y no cuesta nada.
+     ===================================================================== */
+  .lienzo-huipil{
+    position:relative; width:100%; max-width:420px; flex-shrink:0;
+    border:1px solid rgb(var(--borde)); border-radius:var(--radio-card);
+    overflow:hidden; background:rgb(var(--barroalto));
+    box-shadow:var(--sombra-suave);
+  }
+  .lienzo-huipil img{ border-radius:0; }
+  /* franja tejida arriba y abajo, como el remate de un huipil */
+  .lienzo-huipil::before, .lienzo-huipil::after{
+    content:''; position:absolute; left:0; right:0; height:10px; pointer-events:none;
+    background-color:rgb(var(--ambar));
+    -webkit-mask-image:var(--greca-banda); mask-image:var(--greca-banda);
+    -webkit-mask-repeat:repeat-x; mask-repeat:repeat-x;
+    -webkit-mask-size:auto 10px; mask-size:auto 10px;
+    opacity:.55;
+  }
+  .lienzo-huipil::before{ top:0; }
+  .lienzo-huipil::after{ bottom:0; transform:scaleY(-1); }
+
+  .pie-huipil{
+    padding:.7rem .9rem; font-size:.78rem; line-height:1.5;
+    color:rgb(var(--tenue)); background:rgb(var(--barro));
+    border-top:1px solid rgb(var(--borde));
+  }
+  .cifra-huipil{
+    font-family:'Playfair Display',Georgia,serif; font-size:2.9rem; line-height:1;
+    color:rgb(var(--cian)); font-weight:600; margin-bottom:.5rem;
+  }
+  @media (min-width:640px){ .cifra-huipil{ font-size:3.4rem; } }
+
+  /* cada bloque entra un pelín después que el anterior, sin encimarse */
+  .hilo-huipil.revela{ transition-duration:.7s; }
+
+
+  /* =====================================================================
+     LAS CINCO HERRAMIENTAS · sin conexión, glosario, calculadora, medallas
+     ===================================================================== */
+
+  /* ---------- aviso de sin conexión ---------- */
+  .barra-offline{
+    position:fixed; left:0; right:0; top:0; z-index:120;
+    display:flex; align-items:center; justify-content:center; gap:.55rem;
+    padding:.6rem 1rem; font-size:.85rem; line-height:1.35; text-align:center;
+    background:rgb(var(--ambar)); color:var(--tinta-inversa);
+    box-shadow:var(--sombra-suave);
+  }
+  body[data-offline="si"] .encabezado{ top:38px; }
+  @media (max-width:600px){ .barra-offline{ font-size:.78rem; padding:.5rem .75rem; } }
+
+  /* ---------- glosario: palabra subrayada + globo ---------- */
+  .termino{
+    display:inline; padding:0; border:0; background:none; cursor:help;
+    font:inherit; color:rgb(var(--cian)); font-weight:600;
+    text-decoration:underline; text-decoration-style:dotted;
+    text-underline-offset:3px; text-decoration-thickness:2px;
+  }
+  .termino:hover, .termino:focus-visible{ color:rgb(var(--rosa)); }
+  .globo-termino{
+    position:absolute; z-index:150; padding:.85rem 1rem;
+    background:rgb(var(--barro)); border:1px solid rgb(var(--borde));
+    border-radius:var(--radio-card); box-shadow:var(--sombra-alta);
+    animation:aparece .22s ease both;
+  }
+  .globo-palabra{
+    font-size:.7rem; letter-spacing:.16em; text-transform:uppercase;
+    color:rgb(var(--cian)); margin-bottom:.35rem; font-weight:600;
+  }
+  .globo-texto{ font-size:.88rem; line-height:1.6; color:rgb(var(--texto)); }
+
+  /* ---------- calculadora de precios ---------- */
+  .calc-precio{
+    margin-top:1rem; padding:1.1rem 1.2rem;
+    background:rgb(var(--barroalto)); border:1px solid rgb(var(--borde));
+    border-radius:var(--radio-card);
+  }
+  .calc-ayuda{ font-size:.82rem; color:rgb(var(--tenue)); margin-bottom:1rem; line-height:1.5; }
+  .calc-fila{
+    display:flex; justify-content:space-between; align-items:baseline; gap:1rem;
+    font-size:.86rem; color:rgb(var(--texto)); margin:.85rem 0 .3rem;
+  }
+  .calc-val{ color:rgb(var(--cian)); font-weight:700; white-space:nowrap; }
+  .calc-barra{
+    -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:99px;
+    background:rgb(var(--barro)); border:1px solid rgb(var(--borde)); outline:none; cursor:pointer;
+  }
+  .calc-barra::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:22px; height:22px; border-radius:50%;
+    background:rgb(var(--cian)); border:2px solid rgb(var(--barro));
+    box-shadow:var(--sombra-suave); cursor:pointer;
+  }
+  .calc-barra::-moz-range-thumb{
+    width:20px; height:20px; border-radius:50%;
+    background:rgb(var(--cian)); border:2px solid rgb(var(--barro)); cursor:pointer;
+  }
+  .calc-salida{
+    display:flex; flex-wrap:wrap; gap:1.5rem; align-items:flex-end;
+    margin-top:1.2rem; padding-top:1rem; border-top:1px solid rgb(var(--borde));
+  }
+  .calc-cifra{
+    font-family:'Playfair Display',Georgia,serif; font-size:2.2rem; line-height:1;
+    color:rgb(var(--cian)); font-weight:600;
+  }
+  .calc-cifra--chica{ font-size:1.4rem; color:rgb(var(--tenue)); }
+  .calc-etiqueta{ font-size:.75rem; color:rgb(var(--tenue)); margin-top:.15rem; }
+  .calc-nota{ font-size:.78rem; color:rgb(var(--tenue)); line-height:1.55; margin-top:.9rem; }
+
+  /* ---------- medallas ---------- */
+  .panel-medallas{
+    padding:1.1rem 1.2rem; background:rgb(var(--barro));
+    border:1px solid rgb(var(--borde)); border-radius:var(--radio-card);
+  }
+  .medalla{
+    display:inline-flex; align-items:center; gap:.45rem;
+    padding:.45rem .8rem; border-radius:99px; font-size:.82rem;
+    border:1px solid rgb(var(--borde)); color:rgb(var(--tenue));
+    background:rgb(var(--barroalto));
+    transition:border-color .3s ease, color .3s ease;
+  }
+  .medalla[data-ganada="si"]{
+    border-color:rgb(var(--ambar)); color:rgb(var(--ambar)); font-weight:600;
+    background:color-mix(in srgb, rgb(var(--ambar)) 10%, transparent);
+  }
+  .medalla[data-ganada="no"]{ opacity:.72; }
+  .medalla[data-ganada="no"] .medalla-ico{ opacity:.5; }
+  .medalla-ico{ display:inline-grid; place-items:center; flex-shrink:0; }
+
+  .medalla-aviso{
+    position:fixed; left:50%; bottom:26px; transform:translate(-50%, 18px);
+    z-index:160; display:flex; align-items:flex-start; gap:.7rem;
+    max-width:min(420px, calc(100vw - 32px));
+    padding:.9rem 1.1rem; border-radius:var(--radio-card);
+    background:rgb(var(--barro)); border:1px solid rgb(var(--ambar));
+    color:rgb(var(--texto)); font-size:.86rem; line-height:1.5;
+    box-shadow:var(--sombra-alta);
+    opacity:0; pointer-events:none;
+    transition:opacity .35s ease, transform .35s ease;
+  }
+  .medalla-aviso[data-visible="si"]{ opacity:1; transform:translate(-50%, 0); }
+  .medalla-aviso .medalla-ico{ color:rgb(var(--ambar)); margin-top:1px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .medalla-aviso, .globo-termino{ transition:none; animation:none; }
+  }
+
 </style>
 <noscript><style>.revela{opacity:1;transform:none}</style></noscript>
 </head>
@@ -644,6 +825,12 @@
 
 <!-- ==================== CABECERA ==================== -->
 <div id="hoja-print" aria-hidden="true"></div>
+
+<!-- aviso amable cuando se cae la señal -->
+<div id="barra-offline" class="barra-offline" role="status" hidden>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1 1l22 22M16.7 16.7A10.9 10.9 0 0 1 12 18M5 12.5a10.9 10.9 0 0 1 4-2.4M2 8.8a16 16 0 0 1 4.5-2.7M22 8.8a16 16 0 0 0-8.9-3.7M12 21h.01"/></svg>
+  Estás sin conexión. Tus pláticas siguen aquí; el asistente vuelve en cuanto regrese tu internet.
+</div>
 
 <header id="encabezado" class="encabezado fixed top-0 inset-x-0 z-50 border-b border-transparent">
   <div class="max-w-7xl mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between">
@@ -653,8 +840,8 @@
         <span class="absolute inset-[-40%] pointer-events-none" aria-hidden="true"
               style="background:radial-gradient(circle,rgba(0,242,254,.22) 0%,transparent 68%)"></span>
         <span class="medallon-chapulin medallon-chapulin--sm relative z-10 block w-full">
-          <img src="__CHAPULIN__" alt="Chapulín alebrije de OaxIntegra IA" width="52" height="49"
-               class="chapulin w-full h-auto">
+          <span class="chapulin chapulin-img w-full block" role="img"
+                aria-label="Chapulín alebrije de OaxIntegra IA"></span>
         </span>
       </span>
       <span class="flex items-baseline gap-1.5">
@@ -791,8 +978,8 @@
       <div class="relative w-[74%] sm:w-[58%] lg:w-full max-w-[460px]">
         <div class="halo" aria-hidden="true"></div>
         <div class="medallon-chapulin relative z-10">
-          <img src="__CHAPULIN__" width="672" height="627" class="chapulin w-full h-auto"
-               alt="Chapulín alebrije tallado en negro mate con grecas zapotecas y punteado en verde neón, rosa mexicano y naranja, saltando hacia la derecha">
+          <span class="chapulin chapulin-img w-full block" role="img"
+                aria-label="Chapulín alebrije tallado en negro mate con grecas zapotecas y punteado en verde neón, rosa mexicano y naranja, saltando hacia la derecha"></span>
         </div>
       </div>
     </div>
@@ -856,6 +1043,91 @@
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ==================== VENDER DIRECTO · recorrido con scroll ==================== -->
+<section id="vender-directo" class="relative py-24 sm:py-32 border-t border-borde/60">
+  <div class="max-w-5xl mx-auto px-5 sm:px-8">
+
+    <div class="revela text-center mb-16">
+      <p class="rotulo mb-4">Lo que se gana vendiendo directo</p>
+      <h2 class="tipo-display text-3xl sm:text-5xl leading-tight text-texto">
+        Tu trabajo ya vale.<br>Falta que llegue <span class="text-cian">a quien lo paga</span>.
+      </h2>
+    </div>
+
+    <div class="space-y-20 sm:space-y-28">
+      <article class="hilo-huipil revela flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+        <figure class="lienzo-huipil">
+          <!-- ─────────────────────────────────────────────────────────────
+               PARA PONER TU PROPIA FOTO: cambia el src de esta etiqueta por
+               la ruta de tu imagen. Deja el width, el height y el loading
+               tal cual: son los que evitan que la página brinque y los que
+               hacen que cargue rápido en celulares de gama baja.
+               ───────────────────────────────────────────────────────────── -->
+          <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%20420%22%20width%3D%22640%22%20height%3D%22420%22%3E%3Crect%20width%3D%22640%22%20height%3D%22420%22%20fill%3D%22%23F7F0E2%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23B01560%22%20stroke-width%3D%227%22%3E%3Cpath%20d%3D%22M0%2070%20H640%22%2F%3E%3Cpath%20d%3D%22M0%20350%20H640%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%230B7C84%22%3E%3Cpath%20d%3D%22M30%20210%20l34%20-46%20l34%2046%20l-34%2046%20Z%22%2F%3E%3Cpath%20d%3D%22M106%20210%20l34%20-46%20l34%2046%20l-34%2046%20Z%22%2F%3E%3Cpath%20d%3D%22M182%20210%20l34%20-46%20l34%2046%20l-34%2046%20Z%22%2F%3E%3Cpath%20d%3D%22M258%20210%20l34%20-46%20l34%2046%20l-34%2046%20Z%22%2F%3E%3Cpath%20d%3D%22M334%20210%20l34%20-46%20l34%2046%20l-34%2046%20Z%22%2F%3E%3Cpath%20d%3D%22M410%20210%20l34%20-46%20l34%2046%20l-34%2046%20Z%22%2F%3E%3Cpath%20d%3D%22M486%20210%20l34%20-46%20l34%2046%20l-34%2046%20Z%22%2F%3E%3Cpath%20d%3D%22M562%20210%20l34%20-46%20l34%2046%20l-34%2046%20Z%22%2F%3E%3Cpath%20d%3D%22M638%20210%20l34%20-46%20l34%2046%20l-34%2046%20Z%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23A8481C%22%3E%3Ccircle%20cx%3D%2268%22%20cy%3D%22140%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%2268%22%20cy%3D%22280%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22144%22%20cy%3D%22140%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22144%22%20cy%3D%22280%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22220%22%20cy%3D%22140%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22220%22%20cy%3D%22280%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22296%22%20cy%3D%22140%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22296%22%20cy%3D%22280%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22372%22%20cy%3D%22140%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22372%22%20cy%3D%22280%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22448%22%20cy%3D%22140%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22448%22%20cy%3D%22280%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22524%22%20cy%3D%22140%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22524%22%20cy%3D%22280%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22600%22%20cy%3D%22140%22%20r%3D%2211%22%2F%3E%3Ccircle%20cx%3D%22600%22%20cy%3D%22280%22%20r%3D%2211%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%239A6B08%22%20stroke-width%3D%225%22%3E%3Cpath%20d%3D%22M0%20110%20H640%22%2F%3E%3Cpath%20d%3D%22M0%20310%20H640%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+               alt="Canesú de huipil oaxaqueño bordado a mano, con rombos y bandas de color"
+               width="640" height="420" loading="lazy" decoding="async"
+               class="w-full h-auto block">
+          <figcaption class="pie-huipil">Canesú de huipil oaxaqueño bordado a mano, con rombos y bandas de color</figcaption>
+        </figure>
+
+        <div class="flex-1 min-w-0">
+          <p class="cifra-huipil">$5000</p>
+          <h3 class="tipo-display text-2xl sm:text-3xl text-texto mb-3">Vende directo, sin intermediarios</h3>
+          <p class="text-tenue leading-relaxed">Si vendes tus prendas directamente en línea, sin intermediarios, te quedas con el cien por ciento de tu ganancia. En una venta buena eso puede significar hasta cinco mil pesos libres que antes se quedaban en el camino.</p>
+        </div>
+      </article>
+      <article class="hilo-huipil revela flex flex-col lg:flex-row-reverse items-center gap-8 lg:gap-12">
+        <figure class="lienzo-huipil">
+          <!-- ─────────────────────────────────────────────────────────────
+               PARA PONER TU PROPIA FOTO: cambia el src de esta etiqueta por
+               la ruta de tu imagen. Deja el width, el height y el loading
+               tal cual: son los que evitan que la página brinque y los que
+               hacen que cargue rápido en celulares de gama baja.
+               ───────────────────────────────────────────────────────────── -->
+          <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%20420%22%20width%3D%22640%22%20height%3D%22420%22%3E%3Crect%20width%3D%22640%22%20height%3D%22420%22%20fill%3D%22%23F7F0E2%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%230B7C84%22%20stroke-width%3D%229%22%20stroke-linejoin%3D%22miter%22%3E%3Cpath%20d%3D%22M10%20400%20v-40%20h40%20v-40%20h40%20v-40%20h40%20v-40%20h40%22%2F%3E%3Cpath%20d%3D%22M150%20400%20v-40%20h40%20v-40%20h40%20v-40%20h40%20v-40%20h40%22%2F%3E%3Cpath%20d%3D%22M290%20400%20v-40%20h40%20v-40%20h40%20v-40%20h40%20v-40%20h40%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23B01560%22%20stroke-width%3D%229%22%3E%3Cpath%20d%3D%22M630%2020%20v40%20h-40%20v40%20h-40%20v40%20h-40%20v40%20h-40%22%2F%3E%3Cpath%20d%3D%22M490%2020%20v40%20h-40%20v40%20h-40%20v40%20h-40%20v40%20h-40%22%2F%3E%3Cpath%20d%3D%22M350%2020%20v40%20h-40%20v40%20h-40%20v40%20h-40%20v40%20h-40%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%239A6B08%22%3E%3Crect%20x%3D%2240%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%2234%22%20transform%3D%22rotate%2845%2057%20213%29%22%2F%3E%3Crect%20x%3D%22130%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%2234%22%20transform%3D%22rotate%2845%20147%20213%29%22%2F%3E%3Crect%20x%3D%22220%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%2234%22%20transform%3D%22rotate%2845%20237%20213%29%22%2F%3E%3Crect%20x%3D%22310%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%2234%22%20transform%3D%22rotate%2845%20327%20213%29%22%2F%3E%3Crect%20x%3D%22400%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%2234%22%20transform%3D%22rotate%2845%20417%20213%29%22%2F%3E%3Crect%20x%3D%22490%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%2234%22%20transform%3D%22rotate%2845%20507%20213%29%22%2F%3E%3Crect%20x%3D%22580%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%2234%22%20transform%3D%22rotate%2845%20597%20213%29%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+               alt="Greca zapoteca de Mitla, el patrón geométrico que se teje en los huipiles"
+               width="640" height="420" loading="lazy" decoding="async"
+               class="w-full h-auto block">
+          <figcaption class="pie-huipil">Greca zapoteca de Mitla, el patrón geométrico que se teje en los huipiles</figcaption>
+        </figure>
+
+        <div class="flex-1 min-w-0">
+          <p class="cifra-huipil">$3500</p>
+          <h3 class="tipo-display text-2xl sm:text-3xl text-texto mb-3">Tu trabajo vale lo que pides por él</h3>
+          <p class="text-tenue leading-relaxed">Un huipil de telar de cintura, bien presentado y bien contado en internet, se vende por más de tres mil quinientos pesos. La diferencia no está en la prenda: está en cómo la enseñas y a quién se la enseñas.</p>
+        </div>
+      </article>
+      <article class="hilo-huipil revela flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+        <figure class="lienzo-huipil">
+          <!-- ─────────────────────────────────────────────────────────────
+               PARA PONER TU PROPIA FOTO: cambia el src de esta etiqueta por
+               la ruta de tu imagen. Deja el width, el height y el loading
+               tal cual: son los que evitan que la página brinque y los que
+               hacen que cargue rápido en celulares de gama baja.
+               ───────────────────────────────────────────────────────────── -->
+          <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%20420%22%20width%3D%22640%22%20height%3D%22420%22%3E%3Crect%20width%3D%22640%22%20height%3D%22420%22%20fill%3D%22%23F7F0E2%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233F6E1E%22%20stroke-width%3D%226%22%3E%3Cpath%20d%3D%22M0%2060%20H640%22%2F%3E%3Cpath%20d%3D%22M0%20360%20H640%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23B01560%22%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%2274%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%22124%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%22176%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22144%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22118%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22170%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22144%22%20cy%3D%22124%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22144%22%20cy%3D%22176%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22240%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22214%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22266%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22240%22%20cy%3D%22124%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22240%22%20cy%3D%22176%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22336%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22310%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22362%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22336%22%20cy%3D%22124%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22336%22%20cy%3D%22176%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22432%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22406%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22458%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22432%22%20cy%3D%22124%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22432%22%20cy%3D%22176%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22528%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22502%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22554%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22528%22%20cy%3D%22124%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22528%22%20cy%3D%22176%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22624%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22598%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22650%22%20cy%3D%22150%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22624%22%20cy%3D%22124%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22624%22%20cy%3D%22176%22%20r%3D%2213%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%236D2CB0%22%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%2274%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%22244%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%22296%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22144%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22118%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22170%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22144%22%20cy%3D%22244%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22144%22%20cy%3D%22296%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22240%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22214%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22266%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22240%22%20cy%3D%22244%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22240%22%20cy%3D%22296%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22336%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22310%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22362%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22336%22%20cy%3D%22244%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22336%22%20cy%3D%22296%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22432%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22406%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22458%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22432%22%20cy%3D%22244%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22432%22%20cy%3D%22296%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22528%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22502%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22554%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22528%22%20cy%3D%22244%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22528%22%20cy%3D%22296%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22624%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22598%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22650%22%20cy%3D%22270%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22624%22%20cy%3D%22244%22%20r%3D%2213%22%2F%3E%3Ccircle%20cx%3D%22624%22%20cy%3D%22296%22%20r%3D%2213%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23A8481C%22%20stroke-width%3D%225%22%3E%3Cpath%20d%3D%22M0%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M40%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M80%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M120%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M160%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M200%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M240%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M280%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M320%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M360%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M400%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M440%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M480%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M520%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M560%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M600%20400%20l20%2020%20l20%20-20%22%2F%3E%3Cpath%20d%3D%22M640%20400%20l20%2020%20l20%20-20%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+               alt="Bordado de punto de cruz con flores, típico de los huipiles de Oaxaca"
+               width="640" height="420" loading="lazy" decoding="async"
+               class="w-full h-auto block">
+          <figcaption class="pie-huipil">Bordado de punto de cruz con flores, típico de los huipiles de Oaxaca</figcaption>
+        </figure>
+
+        <div class="flex-1 min-w-0">
+          <p class="cifra-huipil">Sin intermediarios</p>
+          <h3 class="tipo-display text-2xl sm:text-3xl text-texto mb-3">Habla directo con quien te compra</h3>
+          <p class="text-tenue leading-relaxed">Los negocios locales venden más cuando usan herramientas digitales para contactar directo a sus clientes. Un mensaje tuyo, con tu nombre y tu voz, vale más que cualquier anuncio pagado.</p>
+        </div>
+      </article>
+    </div>
+
+    <p class="text-tenue text-[0.8rem] text-center mt-16 max-w-2xl mx-auto leading-relaxed">
+      Las cifras son rangos de referencia del mercado artesanal oaxaqueño, para darte
+      una idea de lo que está en juego. Lo que tú puedas cobrar depende de tu pieza,
+      tu material y tu cliente.
+    </p>
   </div>
 </section>
 
@@ -987,6 +1259,12 @@
         Mis publicaciones (<span id="cuenta-guardadas">0</span>)
       </button>
       <button type="button" id="btn-limpiar" class="btn-linea !py-2.5 !px-4 !text-[0.9rem]">Limpiar conversación</button>
+    </div>
+
+    <div class="revela panel-medallas mb-8">
+      <p class="rotulo mb-3" style="color:rgb(var(--ambar))">Tus reconocimientos</p>
+      <div id="mis-medallas" class="flex flex-wrap gap-2.5"></div>
+      <p id="medallas-pie" class="text-tenue text-[0.8rem] mt-3"></p>
     </div>
 
     <div class="revela max-w-4xl mx-auto">
@@ -1229,7 +1507,7 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-10">
 
       <div class="flex items-center gap-3">
-        <img src="__CHAPULIN__" alt="" width="40" height="37" class="chapulin w-[38px] h-auto" aria-hidden="true">
+        <span class="chapulin chapulin-img w-[38px] block" aria-hidden="true"></span>
         <span class="flex items-baseline gap-1.5">
           <span class="tipo-display text-[1.15rem]">OaxIntegra</span>
           <span class="insignia-ia text-[0.65rem] px-1.5 py-[2px] leading-none">IA</span>
@@ -1271,8 +1549,8 @@
       <div class="tarjeta-marca">
         <span class="tarjeta-marca__resplandor" aria-hidden="true"></span>
         <div class="medallon-chapulin">
-          <img src="__CHAPULIN__" width="672" height="627" class="chapulin w-full h-auto"
-               alt="Chapulín alebrije con grecas zapotecas y punteado neón, emblema de OaxIntegra IA">
+          <span class="chapulin chapulin-img w-full block" role="img"
+                aria-label="Chapulín alebrije con grecas zapotecas y punteado neón, emblema de OaxIntegra IA"></span>
         </div>
       </div>
       <h1 class="tipo-display text-4xl sm:text-5xl mb-4" style="line-height:1.1">
@@ -2186,6 +2464,7 @@
 
     codigoRegistro.limpiar();
     pintarSesion();
+  pintarMedallas();
     cargarConvs();
     ocultarPortada();
     irA('#demo');
@@ -2865,8 +3144,40 @@
     return caja;
   }
 
+  /* Saca el texto limpio de una tarjeta de publicación O de una respuesta
+     cualquiera. Antes daba por hecho que siempre venía una tarjeta y
+     reventaba con "innerText de null" al copiar o guardar una respuesta
+     normal (guía de trámites, consejos de precio…). */
   function textoPlano(caja) {
-    return $('.js-cuerpo', caja).innerText + '\n\n' + $('.js-etiquetas', caja).textContent;
+    if (!caja) { return ''; }
+    var cuerpo = $('.js-cuerpo', caja);
+    if (cuerpo) {
+      var etiquetas = $('.js-etiquetas', caja);
+      return cuerpo.innerText + (etiquetas ? '\n\n' + etiquetas.textContent : '');
+    }
+    /* respuesta sin tarjeta: se toma su texto quitando los botones */
+    var copia = caja.cloneNode(true);
+    Array.prototype.forEach.call(copia.querySelectorAll('button, .chip, .calc-precio'), function (n) {
+      n.parentNode.removeChild(n);
+    });
+    return (copia.innerText || copia.textContent || '').trim();
+  }
+
+  /* acciones para una respuesta cualquiera (sin tarjeta de publicación) */
+  function accionesRespuesta(cuerpo) {
+    var fila = document.createElement('div');
+    fila.className = 'flex flex-wrap gap-2.5 mt-3';
+    [
+      { t: 'Copiar el texto', f: function () { copiar(textoPlano(cuerpo), 'Texto copiado.'); } },
+      { t: 'Descargar en PDF', f: function () { exportarPDF(cuerpo); } },
+      { t: 'Guardar como imagen', f: function () { guardarComoImagen(cuerpo); } }
+    ].forEach(function (a) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = a.t;
+      b.addEventListener('click', a.f);
+      fila.appendChild(b);
+    });
+    return fila;
   }
 
   function accionesPublicacion(caja) {
@@ -2877,7 +3188,8 @@
       { t: 'Cambiar la imagen', f: accionImagen },
       { t: 'Programar la publicación', f: accionProgramar },
       { t: 'Copiar el texto', f: function (c) { copiar(textoPlano(c), 'Texto copiado. Pégalo en Facebook o WhatsApp.'); } },
-      { t: 'Descargar en PDF', f: function (c) { exportarPDF(c); } }
+      { t: 'Descargar en PDF', f: function (c) { exportarPDF(c); } },
+      { t: 'Guardar como imagen', f: function (c) { guardarComoImagen(c); } }
     ];
     if (sesion) { acciones.push({ t: 'Guardar', f: accionGuardar }); }
     acciones.forEach(function (a) {
@@ -3074,6 +3386,19 @@
       cuerpo.appendChild(nota);
     }
 
+    /* si habló de precios, se le pone abajo la calculadora */
+    if (pareceDePrecios(res)) { cuerpo.appendChild(calculadoraPrecios()); }
+
+    /* Guardar y compartir en TODA respuesta, no solo en las tarjetas de
+       publicación: una guía de trámites o una lista de precios también se
+       quiere llevar en papel o mandar por WhatsApp. */
+    if (!res.publicacion && (res.texto || res.pasos)) {
+      cuerpo.appendChild(accionesRespuesta(cuerpo));
+    }
+
+    /* y se subrayan las palabras raras que se hayan colado */
+    marcarTecnicismos(cuerpo);
+
     d.appendChild(cuerpo);
     return d;
   }
@@ -3101,6 +3426,8 @@
   function preguntar(texto) {
     if (ocupado || !texto.trim()) return;
     ocupado = true;
+    ultimaPregunta = texto;
+    sumarPregunta();
     entrada.value = '';
     pintarSugerencias([]);
     mensajeYo(texto);
@@ -3678,6 +4005,435 @@
       setTimeout(function () { hoja.innerHTML = ''; }, 1200);
     }, 220);
   }
+
+
+  /* =========================================================
+     11-C. CINCO HERRAMIENTAS MÁS
+     ---------------------------------------------------------
+     Todas con lo que ya trae el navegador. Sin librerías.
+     ========================================================= */
+
+  /* ---------------------------------------------------------
+     A · SIN CONEXIÓN
+     El archivo es autocontenido: una vez abierto, la página
+     entera ya está en el equipo y las pláticas viven en el
+     mismo navegador. Así que al perder la señal NO hay que
+     recargar nada: basta con avisarlo con calma y dejar claro
+     que lo suyo sigue ahí. El Service Worker solo se registra
+     cuando la app se sirve desde un servidor (con doble clic
+     no se puede, y no pasa nada).
+     --------------------------------------------------------- */
+  (function sinConexion() {
+    var barra = $('#barra-offline');
+    if (!barra) { return; }
+
+    function pintar() {
+      var fuera = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : false;
+      barra.hidden = !fuera;
+      document.body.dataset.offline = fuera ? 'si' : 'no';
+    }
+    window.addEventListener('online', function () {
+      pintar();
+      avisar('Ya volvió tu internet. El asistente puede responder otra vez.');
+    });
+    window.addEventListener('offline', function () {
+      pintar();
+      avisar('Te quedaste sin internet. Tus pláticas siguen guardadas aquí.');
+    });
+    pintar();
+
+    /* El Service Worker se arma al vuelo, sin archivo aparte, para no
+       romper la regla de "un solo archivo". Guarda la página para que
+       abra aunque no haya señal. */
+    if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+      var codigo =
+        "var CACHE='oaxintegra-v1';" +
+        "self.addEventListener('install',function(e){self.skipWaiting();});" +
+        "self.addEventListener('activate',function(e){e.waitUntil(self.clients.claim());});" +
+        "self.addEventListener('fetch',function(e){" +
+        "  if(e.request.method!=='GET'){return;}" +
+        "  var u=new URL(e.request.url);" +
+        "  if(u.pathname.indexOf('/api/')===0){return;}" +   /* la IA nunca se guarda */
+        "  e.respondWith(" +
+        "    caches.match(e.request).then(function(g){" +
+        "      var red=fetch(e.request).then(function(r){" +
+        "        if(r&&r.status===200&&r.type==='basic'){" +
+        "          var c=r.clone();caches.open(CACHE).then(function(k){k.put(e.request,c);});" +
+        "        }return r;" +
+        "      }).catch(function(){return g;});" +
+        "      return g||red;" +
+        "    })" +
+        "  );" +
+        "});";
+      try {
+        var url = URL.createObjectURL(new Blob([codigo], { type: 'text/javascript' }));
+        navigator.serviceWorker.register(url).catch(function (e) {
+          console.info('[OaxIntegra] sin modo fuera de línea:', e.message);
+        });
+      } catch (e) {
+        console.info('[OaxIntegra] no pude preparar el modo fuera de línea:', e.message);
+      }
+    }
+  })();
+
+
+  /* ---------------------------------------------------------
+     B · GUARDAR COMO IMAGEN (Canvas)
+     Dibuja la respuesta en un lienzo y la descarga en .png,
+     lista para mandar por WhatsApp. Todo a mano, sin librerías.
+     --------------------------------------------------------- */
+  function guardarComoImagen(caja) {
+    var texto = textoPlano(caja);
+    if (!texto) { avisar('No encontré texto que guardar.'); return; }
+
+    var ANCHO = 1080, MARGEN = 72, ESCALA = 2;
+    var lienzo = document.createElement('canvas');
+    var g = lienzo.getContext('2d');
+    if (!g) { avisar('Tu navegador no puede crear la imagen.'); return; }
+
+    /* 1. medir: se parte el texto en renglones que quepan */
+    var anchoUtil = ANCHO - MARGEN * 2;
+    g.font = '30px "Plus Jakarta Sans", system-ui, sans-serif';
+
+    function repartir(txt, ancho) {
+      var out = [];
+      txt.split('\n').forEach(function (parrafo) {
+        if (!parrafo.trim()) { out.push(''); return; }
+        var linea = '';
+        parrafo.split(' ').forEach(function (palabra) {
+          var prueba = linea ? linea + ' ' + palabra : palabra;
+          if (g.measureText(prueba).width > ancho && linea) { out.push(linea); linea = palabra; }
+          else { linea = prueba; }
+        });
+        if (linea) { out.push(linea); }
+      });
+      return out;
+    }
+
+    var renglones = repartir(texto, anchoUtil);
+    var ALTO_LINEA = 46;
+    var alto = MARGEN + 132 + renglones.length * ALTO_LINEA + MARGEN + 64;
+
+    lienzo.width = ANCHO * ESCALA;
+    lienzo.height = alto * ESCALA;
+    lienzo.style.width = ANCHO + 'px';
+    g.scale(ESCALA, ESCALA);
+
+    /* 2. fondo papel */
+    g.fillStyle = '#FFFDF8';
+    g.fillRect(0, 0, ANCHO, alto);
+
+    /* 3. franja de greca arriba, como firma de la casa */
+    g.fillStyle = '#9A6B08';
+    for (var x = 0; x < ANCHO; x += 28) {
+      g.fillRect(x, 0, 14, 10);
+      g.fillRect(x + 14, 10, 14, 10);
+    }
+
+    /* 4. membrete */
+    g.fillStyle = '#0B7C84';
+    g.font = '600 44px Georgia, "Playfair Display", serif';
+    g.fillText('OaxIntegra IA', MARGEN, 92);
+
+    g.fillStyle = '#4A3F32';
+    g.font = '22px "Plus Jakarta Sans", system-ui, sans-serif';
+    var quien = sesion ? (sesion.usuario || sesion.nombre) : '';
+    g.fillText(quien ? 'Para ' + quien : 'Hecho en Oaxaca', MARGEN, 126);
+
+    g.strokeStyle = '#C9B48F';
+    g.lineWidth = 2;
+    g.beginPath(); g.moveTo(MARGEN, 152); g.lineTo(ANCHO - MARGEN, 152); g.stroke();
+
+    /* 5. el texto */
+    g.fillStyle = '#241C13';
+    g.font = '30px "Plus Jakarta Sans", system-ui, sans-serif';
+    var y = MARGEN + 132;
+    renglones.forEach(function (r) { g.fillText(r, MARGEN, y); y += ALTO_LINEA; });
+
+    /* 6. pie */
+    g.fillStyle = '#4A3F32';
+    g.font = '20px "Plus Jakarta Sans", system-ui, sans-serif';
+    g.fillText('Hecho con OaxIntegra IA · Hub de Innovación de Oaxaca', MARGEN, alto - 44);
+
+    /* 7. descargar */
+    try {
+      lienzo.toBlob(function (blob) {
+        if (!blob) { avisar('No pude crear la imagen.'); return; }
+        var a = document.createElement('a');
+        var url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = 'oaxintegra-' + Date.now() + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        avisar('Imagen guardada. Ya puedes mandarla por WhatsApp.');
+      }, 'image/png');
+    } catch (e) {
+      avisar('No pude guardar la imagen en este navegador.');
+    }
+  }
+
+
+  /* ---------------------------------------------------------
+     C · GLOSARIO SIN TECNICISMOS
+     Si en una respuesta se cuela una palabra rara, se subraya
+     y al tocarla se explica con un ejemplo del mercado.
+     --------------------------------------------------------- */
+  var GLOSARIO = {
+    'marketing': 'Es todo lo que haces para que la gente sepa que existes y quiera comprarte. ' +
+                 'Poner tu puesto en la esquina más transitada del mercado ya es marketing.',
+    'roi': 'Es saber si lo que gastaste te regresó ganancia. Si compras 200 pesos de hilo y ' +
+           'vendes el rebozo en 900, tu ROI es lo que te quedó: bueno.',
+    'lead': 'Es alguien que preguntó por tu producto pero todavía no te compra. ' +
+            'La persona que se para en tu puesto, pregunta el precio y dice «ahorita vengo».',
+    'engagement': 'Es qué tanto te responde la gente: si te dan like, si comentan, si preguntan. ' +
+                  'Como cuando alguien se detiene a platicar en tu puesto en vez de pasar de largo.',
+    'branding': 'Es lo que la gente piensa cuando oye tu nombre. Tu marca es tu fama, ' +
+                'la que ya te ganaste con años de trabajo bien hecho.',
+    'algoritmo': 'Es la manera en que Facebook o Instagram deciden a quién le enseñan tus fotos. ' +
+                 'Como el encargado del mercado que decide qué puesto va adelante.',
+    'target': 'Es a quién le quieres vender. No es lo mismo el turista que viene de fuera ' +
+              'que la señora del pueblo: a cada uno le hablas distinto.',
+    'ecommerce': 'Es vender por internet. Tu mismo puesto, pero abierto a todas horas ' +
+                 'y para gente de cualquier parte.',
+    'kpi': 'Es el número que decides vigilar para saber si vas bien. ' +
+           'Por ejemplo: cuántas piezas vendiste esta semana.',
+    'feedback': 'Es lo que tus clientes te dicen de tu producto. ' +
+                'La opinión de quien ya te compró, que es la que más sirve.',
+    'prompt': 'Es simplemente lo que le escribes al asistente. Tu mensaje, tu petición.',
+    'input': 'Es lo que tú le das o le escribes a la máquina.',
+    'output': 'Es lo que la máquina te devuelve: su respuesta.'
+  };
+
+  /* Recorre solo los nodos de texto: así nunca se rompe el HTML que ya
+     armó la respuesta (imágenes, enlaces, negritas). */
+  function marcarTecnicismos(raiz) {
+    if (!raiz) { return; }
+    var llaves = Object.keys(GLOSARIO);
+    if (!llaves.length) { return; }
+    var patron = new RegExp('\\b(' + llaves.join('|') + ')\\b', 'gi');
+
+    var porRevisar = [];
+    var caminante = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, null, false);
+    var n;
+    while ((n = caminante.nextNode())) {
+      if (n.parentNode && n.parentNode.closest('.termino, button, a, script, style')) { continue; }
+      if (patron.test(n.nodeValue)) { porRevisar.push(n); }
+      patron.lastIndex = 0;
+    }
+
+    porRevisar.forEach(function (nodo) {
+      var partes = nodo.nodeValue.split(patron);
+      if (partes.length < 2) { return; }
+      var frag = document.createDocumentFragment();
+      partes.forEach(function (parte) {
+        var clave = parte ? parte.toLowerCase() : '';
+        if (GLOSARIO[clave]) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'termino';
+          b.textContent = parte;
+          b.setAttribute('aria-label', 'Qué quiere decir ' + parte);
+          b.dataset.clave = clave;
+          frag.appendChild(b);
+        } else if (parte) {
+          frag.appendChild(document.createTextNode(parte));
+        }
+      });
+      nodo.parentNode.replaceChild(frag, nodo);
+    });
+  }
+
+  /* un solo globo para toda la página, se reposiciona al vuelo */
+  var globo = null;
+  function cerrarGlobo() { if (globo) { globo.remove(); globo = null; } }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('.termino') : null;
+    if (!t) { if (!e.target.closest('.globo-termino')) { cerrarGlobo(); } return; }
+    e.preventDefault();
+    cerrarGlobo();
+
+    globo = document.createElement('div');
+    globo.className = 'globo-termino';
+    globo.setAttribute('role', 'dialog');
+    globo.innerHTML = '<p class="globo-palabra">' + esc(t.textContent) + '</p>' +
+                      '<p class="globo-texto">' + esc(GLOSARIO[t.dataset.clave] || '') + '</p>';
+    document.body.appendChild(globo);
+
+    var r = t.getBoundingClientRect();
+    var ancho = Math.min(300, window.innerWidth - 24);
+    globo.style.width = ancho + 'px';
+    var izq = Math.min(Math.max(12, r.left + r.width / 2 - ancho / 2), window.innerWidth - ancho - 12);
+    globo.style.left = izq + 'px';
+    /* si no cabe abajo, se pone arriba */
+    var alto = globo.offsetHeight;
+    var abajo = r.bottom + 10 + alto < window.innerHeight;
+    globo.style.top = (abajo ? r.bottom + 10 : Math.max(12, r.top - alto - 10)) + window.scrollY + 'px';
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { cerrarGlobo(); } });
+  window.addEventListener('resize', cerrarGlobo);
+
+
+  /* ---------------------------------------------------------
+     D · CALCULADORA DE PRECIOS
+     Se inyecta sola debajo de la respuesta cuando el asistente
+     habló de precios.
+     --------------------------------------------------------- */
+  /* Se mira lo que contestó el asistente Y lo que preguntó la persona: si
+     alguien pregunta por precios, la calculadora le sirve aunque la respuesta
+     no repita esas palabras. */
+  var ultimaPregunta = '';
+  function pareceDePrecios(res) {
+    var t = ((res && res.texto) || '') + ' ' +
+            ((res && res.publicacion && res.publicacion.cuerpo) || '') + ' ' +
+            ((res && res.pasos && res.pasos.titulo) || '') + ' ' +
+            ultimaPregunta;
+    return /precio|precios|cobrar|cuánto vale|cuanto vale|cuánto cobro|costo|costos|ganancia|margen|barato|caro/i.test(t);
+  }
+
+  function calculadoraPrecios() {
+    var caja = document.createElement('div');
+    caja.className = 'calc-precio';
+    caja.innerHTML =
+      '<p class="rotulo mb-1" style="color:rgb(var(--cian))">Saca tu precio</p>' +
+      '<p class="calc-ayuda">Mueve las tres barras con tus números reales. El precio se ajusta solo.</p>' +
+
+      '<label class="calc-fila"><span>Lo que te costó el material</span>' +
+      '<b class="calc-val" data-eco="costo">$150</b></label>' +
+      '<input type="range" class="calc-barra" data-campo="costo" min="0" max="3000" step="25" value="150">' +
+
+      '<label class="calc-fila"><span>Horas que le metiste</span>' +
+      '<b class="calc-val" data-eco="horas">6 h</b></label>' +
+      '<input type="range" class="calc-barra" data-campo="horas" min="1" max="80" step="1" value="6">' +
+
+      '<label class="calc-fila"><span>Cuánto quieres ganar encima</span>' +
+      '<b class="calc-val" data-eco="margen">40%</b></label>' +
+      '<input type="range" class="calc-barra" data-campo="margen" min="0" max="200" step="5" value="40">' +
+
+      '<div class="calc-salida">' +
+        '<div><p class="calc-cifra" data-eco="final">$0</p>' +
+        '<p class="calc-etiqueta">precio sugerido</p></div>' +
+        '<div><p class="calc-cifra calc-cifra--chica" data-eco="base">$0</p>' +
+        '<p class="calc-etiqueta">lo que te cuesta hacerla</p></div>' +
+      '</div>' +
+      '<p class="calc-nota" data-eco="nota"></p>';
+
+    var VALOR_HORA = 150;   /* pesos por hora de trabajo */
+    var EXTRAS = 0.18;      /* transporte, luz, empaque, merma */
+
+    function eco(nombre) { return caja.querySelector('[data-eco="' + nombre + '"]'); }
+    function valor(campo) { return Number(caja.querySelector('[data-campo="' + campo + '"]').value); }
+
+    function recalcular() {
+      var costo = valor('costo'), horas = valor('horas'), margen = valor('margen');
+      var trabajo = horas * VALOR_HORA;
+      var base = Math.round((costo + trabajo) * (1 + EXTRAS));
+      var final = Math.round(base * (1 + margen / 100));
+
+      eco('costo').textContent = '$' + costo;
+      eco('horas').textContent = horas + ' h';
+      eco('margen').textContent = margen + '%';
+      eco('base').textContent = '$' + base;
+      eco('final').textContent = '$' + final;
+      eco('nota').textContent =
+        'Tu tiempo va contado a ' + VALOR_HORA + ' pesos la hora (' + horas + ' h = $' + trabajo +
+        ') y se suma un ' + Math.round(EXTRAS * 100) + '% por lo que no se ve: transporte, luz, ' +
+        'empaque y lo que se echa a perder. De ahí sale tu ganancia de ' + margen + '%.';
+    }
+
+    Array.prototype.forEach.call(caja.querySelectorAll('.calc-barra'), function (b) {
+      b.addEventListener('input', recalcular);
+    });
+    recalcular();
+    return caja;
+  }
+
+
+  /* ---------------------------------------------------------
+     E · MEDALLAS
+     Reconocimientos que se ganan usando la app. Se guardan por
+     cuenta, para que cada quien tenga las suyas.
+     --------------------------------------------------------- */
+  var MEDALLAS = [
+    { id: 'explorador',  preguntas: 3,  nombre: 'Explorador Digital',
+      texto: 'Le hiciste tus primeras tres preguntas al asistente.' },
+    { id: 'constante',   preguntas: 10, nombre: 'Mano Constante',
+      texto: 'Diez preguntas. Ya le agarraste el modo.' },
+    { id: 'maestro',     preguntas: 25, nombre: 'Maestro del Oficio Digital',
+      texto: 'Veinticinco preguntas. Esto ya es parte de tu trabajo.' }
+  ];
+
+  function claveMedallas() {
+    return 'oaxintegra.medallas.' + (sesion ? sesion.usuario.toLowerCase() : 'invitado');
+  }
+  function leerMedallas() {
+    try { return JSON.parse(almacen.leer(claveMedallas()) || '{"preguntas":0,"ganadas":[]}'); }
+    catch (e) { return { preguntas: 0, ganadas: [] }; }
+  }
+  function guardarMedallas(m) { almacen.guardar(claveMedallas(), JSON.stringify(m)); }
+
+  function sumarPregunta() {
+    var m = leerMedallas();
+    m.preguntas = (m.preguntas || 0) + 1;
+    m.ganadas = m.ganadas || [];
+    MEDALLAS.forEach(function (med) {
+      if (m.preguntas >= med.preguntas && m.ganadas.indexOf(med.id) === -1) {
+        m.ganadas.push(med.id);
+        setTimeout(function () { celebrarMedalla(med); }, 700);
+      }
+    });
+    guardarMedallas(m);
+    pintarMedallas();
+  }
+
+  function celebrarMedalla(med) {
+    var c = document.createElement('div');
+    c.className = 'medalla-aviso';
+    c.setAttribute('role', 'status');
+    c.innerHTML =
+      '<span class="medalla-ico" aria-hidden="true">' +
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.5 13.5L7 22l5-3 5 3-1.5-8.5"/></svg>' +
+      '</span>' +
+      '<span><b>¡Medalla obtenida: ' + esc(med.nombre) + '!</b><br>' + esc(med.texto) + '</span>';
+    document.body.appendChild(c);
+    setTimeout(function () { c.dataset.visible = 'si'; }, 20);
+    setTimeout(function () {
+      c.dataset.visible = 'no';
+      setTimeout(function () { if (c.parentNode) { c.parentNode.removeChild(c); } }, 400);
+    }, 5200);
+  }
+
+  function pintarMedallas() {
+    var zona = $('#mis-medallas');
+    if (!zona) { return; }
+    var m = leerMedallas();
+    var ganadas = m.ganadas || [];
+    zona.innerHTML = '';
+    MEDALLAS.forEach(function (med) {
+      var tiene = ganadas.indexOf(med.id) !== -1;
+      var d = document.createElement('div');
+      d.className = 'medalla';
+      d.dataset.ganada = tiene ? 'si' : 'no';
+      d.title = tiene ? med.texto : 'Se abre con ' + med.preguntas + ' preguntas al asistente.';
+      d.innerHTML =
+        '<span class="medalla-ico" aria-hidden="true">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.5 13.5L7 22l5-3 5 3-1.5-8.5"/></svg>' +
+        '</span>' +
+        '<span class="medalla-txt">' + esc(med.nombre) + '</span>';
+      zona.appendChild(d);
+    });
+    var falta = MEDALLAS.length - ganadas.length;
+    var pie = $('#medallas-pie');
+    if (pie) {
+      pie.textContent = ganadas.length === 0
+        ? 'Hazle tres preguntas al asistente para abrir la primera.'
+        : (falta === 0 ? 'Las tienes todas. Bien hecho.'
+                       : 'Llevas ' + ganadas.length + ' de ' + MEDALLAS.length + '. Sigue preguntando.');
+    }
+  }
+
 
   /* =========================================================
      12. ARRANQUE

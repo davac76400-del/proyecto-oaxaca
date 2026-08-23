@@ -170,13 +170,24 @@ def main():
     # Verificar marcadores antes de sustituir
     n_tw = src.count('/*__TAILWIND__*/')
     n_ch = src.count('__CHAPULIN__')
+    # El chapulín se incrusta UNA sola vez (en la variable CSS --chapulin) y
+    # se usa en sus 4 lugares con la clase .chapulin-img. Antes iba 4 veces en
+    # base64 y por eso el archivo pesaba casi 1 MB. Ver BUG-20.
+    n_usos = src.count('chapulin-img')
     print(f'  marcador Tailwind: {n_tw} (esperado 1)')
-    print(f'  marcador chapulín: {n_ch} (esperado 4)')
+    print(f'  marcador chapulín: {n_ch} (esperado 1)')
+    print(f'  apariciones del chapulín: {n_usos} (esperado 4 + 1 regla CSS)')
     if n_tw != 1:
         print('✗ El marcador /*__TAILWIND__*/ debe aparecer exactamente 1 vez')
         sys.exit(1)
-    if n_ch < 1:
-        print('✗ Falta el marcador __CHAPULIN__'); sys.exit(1)
+    if n_ch != 1:
+        print('✗ El marcador __CHAPULIN__ debe aparecer exactamente 1 vez'); sys.exit(1)
+    # BUG-01: el chapulín es la identidad de la marca. Si alguien lo borra de
+    # alguno de sus 4 lugares, la construcción se detiene.
+    if n_usos < 5:
+        print('✗ Falta el chapulín en alguno de sus 4 lugares (clase .chapulin-img).')
+        print('  Es la identidad de la marca y no se sustituye. Ver BUG-01.')
+        sys.exit(1)
 
     # Antes de nada: que no haya llaves en el fuente.
     revisar_llaves(src, 'app.src.html')

@@ -61,13 +61,9 @@ Convertirlo a SVG permitiría:
 
 Herramientas: `potrace`, `vtracer`, o redibujarlo a mano en Figma/Illustrator.
 
-### Reducir el peso del archivo
-Hoy ~900 KB porque el chapulín va incrustado 4 veces en base64.
-Opciones:
-- Incrustarlo **una sola vez** como `<symbol>` SVG o como CSS custom property,
-  y referenciarlo 4 veces
-- Servir la imagen como archivo aparte (rompe el "un solo archivo", consultar
-  con el autor primero)
+### ✅ Reducir el peso del archivo — HECHO (23 ago 2026)
+Se incrustó el chapulín **una sola vez** en la variable CSS `--chapulin`.
+De 975 KB a 440 KB. Ver BUG-20.
 
 ### Seguridad real de las cuentas
 Los códigos de acceso siguen en texto plano en localStorage. Cualquiera con
@@ -90,8 +86,8 @@ todo el chat con su barra lateral y las 6 casillas del código.
 
 ## 💡 Ideas mencionadas, sin implementar
 
-- Modo sin conexión con Service Worker (útil donde la señal es mala)
-- Exportar las publicaciones guardadas a PDF o imagen
+- ✅ Modo sin conexión con Service Worker — HECHO (23 ago 2026), ver docs/07
+- ✅ Exportar a PDF o imagen — HECHO (23 ago 2026), ver docs/07
 - Plantillas por giro (mezcal, textil, barro…) con ejemplos precargados
 - Panel para ver cuántos emprendedores usan la plataforma
 - Traducción a lenguas originarias de Oaxaca (zapoteco, mixteco) — encajaría

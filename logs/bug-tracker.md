@@ -490,6 +490,112 @@ cabe en una línea y nada se sale.
 
 ---
 
+## BUG-20 · La página tardaba 13 segundos en aparecer ✅ RESUELTO (23 ago 2026)
+
+**Cómo se detectó:** midiendo con el navegador y la CPU frenada 6 veces, para
+imitar un celular económico. La primera pintura ocurría a los **13 004 ms**.
+Trece segundos de pantalla en blanco.
+
+**Primera sospecha (parcialmente cierta):** el peso. El chapulín iba incrustado
+en base64 **cuatro veces**: 714 KB de los 975 que pesaba el archivo.
+
+Se corrigió incrustándolo **una sola vez** en una variable de CSS
+(`--chapulin`) y usándolo como fondo en sus 4 lugares con `.chapulin-img`.
+El archivo pasó de **975 KB a 440 KB**. El chapulín sigue en los 4 sitios: es
+la identidad de la marca (BUG-01), y ahora el `build.py` **se detiene** si
+alguien lo quita de alguno.
+
+**Pero eso no arregló el tiempo:** seguía en 13 s. La causa real era otra.
+
+**Causa real:** la hoja de tipografías de Google se cargaba de la forma normal,
+y esa forma **detiene el pintado hasta que llega**. Con la red caída tardó
+12 549 ms en fallar, y la página esperó todo ese rato en blanco. Para el
+público de esta app —señal mala en muchos pueblos— eso es exactamente el
+peor caso.
+
+**Solución:**
+```html
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="…">
+<noscript><link rel="stylesheet" href="…"></noscript>
+```
+Con `media="print"` el navegador la baja sin frenar nada y el `onload` la
+activa al llegar. Mientras tanto se lee con las letras del propio teléfono.
+
+**Resultado medido, misma CPU frenada 6x:**
+
+| | Antes | Después |
+|---|---|---|
+| Primera pintura | 13 004 ms | **112 ms** |
+| Primer texto a la vista | 13 004 ms | **536 ms** |
+| Página utilizable | 13 130 ms | **672 ms** |
+| Peso del archivo | 975 KB | **440 KB** |
+
+**Lección:** el peso importaba, pero lo que tenía la página en blanco era un
+recurso externo que bloquea el pintado. Antes de optimizar a ciegas, medir.
+
+---
+
+## BUG-21 · Copiar o guardar una respuesta normal reventaba ✅ RESUELTO (23 ago 2026)
+
+**Síntoma:** al pulsar «Copiar el texto», «Descargar en PDF» o «Guardar como
+imagen» en una respuesta que no fuera una tarjeta de publicación, no pasaba
+nada y la consola tiraba `Cannot read properties of null (reading 'innerText')`.
+
+**Causa:** `textoPlano()` daba por hecho que siempre venía una tarjeta de
+publicación y hacía `$('.js-cuerpo', caja).innerText` sin comprobar. En una
+guía de trámites o un consejo de precios ese elemento no existe.
+
+**Solución:** `textoPlano()` ahora comprueba; si no hay tarjeta, toma el texto
+de la respuesta quitando botones y la calculadora.
+
+**De paso:** los tres botones estaban solo en las tarjetas de publicación.
+Ahora salen en **todas** las respuestas: una guía de trámites también se
+quiere llevar en papel.
+
+---
+
+## BUG-22 · La insignia "IA" era ilegible en modo noche ✅ RESUELTO (23 ago 2026)
+
+**Síntoma:** el cuadrito "IA" junto al logo no se leía con el tema oscuro.
+
+**Causa:** `.insignia-ia` tenía el color de texto horneado en crema
+(`#FBF6EE`) sobre `rgb(var(--cian))`. En modo noche el cian es neón brillante
+(`#22F5FF`), y crema sobre neón da **1.25:1** — muy por debajo del 4.5:1
+que pide WCAG AA.
+
+**Solución:** usar `var(--tinta-inversa)`, que ya cambia con el tema:
+**14.92:1** en noche y 4.61:1 en día. El mismo arreglo se aplicó al girador
+de carga, que giraba sobre un botón cian.
+
+**Es el mismo patrón del BUG-08, BUG-09 y BUG-14:** un color escrito fijo que
+no sigue el tema. Ya van cuatro.
+
+---
+
+## BUG-23 · Textos pequeños por debajo del contraste mínimo ✅ RESUELTO (23 ago 2026)
+
+**Cómo se detectó:** midiendo el contraste real de cada texto con la fórmula
+de WCAG, no a ojo.
+
+| Color | Dónde | Antes | Ahora |
+|---|---|---|---|
+| `--verde` | texto de 18 px sobre el fondo | 4.21:1 🔴 | **4.90:1** ✅ |
+| `--ambar` | etiquetas dentro de tarjetas | 4.13:1 🔴 | **4.93:1** ✅ |
+| `--cian` | textos chicos en tarjetas | 4.38:1 🔴 | **5.22:1** ✅ |
+
+Se oscurecieron los tres alrededor de un 10 %: siguen siendo el mismo color,
+ahora se leen. AA pide 4.5:1 en texto normal y 3:1 en texto grande (24 px o
+18.66 px en negrita).
+
+**Aviso para quien audite después:** un detector que busca el fondo subiendo
+por el DOM **se equivoca** cuando el fondo es un degradado, porque
+`backgroundColor` sale transparente y sigue subiendo hasta la página. Varios
+avisos de «contraste bajo» eran falsos: el texto estaba sobre una tarjeta
+clara, no sobre el fondo. Conviene comprobar sobre qué superficie cae de
+verdad antes de cambiar un color.
+
+---
+
 ## Resumen
 
 | # | Problema | Estado |
@@ -513,3 +619,7 @@ cabe en una línea y nada se sale.
 | 17 | Hoja de impresión en blanco | ✅ |
 | 18 | Bloque de CSS que no se aplicaba | ✅ |
 | 19 | Cabecera desbordada | ✅ |
+| 20 | **13 s de pantalla en blanco en celular lento** | ✅ resuelto — 112 ms |
+| 21 | Copiar/guardar respuesta normal reventaba | ✅ |
+| 22 | Insignia "IA" ilegible en modo noche | ✅ |
+| 23 | Contraste bajo en verde, ámbar y cian | ✅ |

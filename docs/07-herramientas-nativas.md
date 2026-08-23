@@ -136,3 +136,102 @@ Todo se probó con un navegador de verdad (Playwright), en 360, 390, 768, 900,
 - El simulador recalcula al mover la barra
 - El PDF sale con membrete, sin botones, y legible aun imprimiendo de noche
 - Cero errores de JavaScript
+
+
+---
+
+# SEGUNDA TANDA (23 de agosto de 2026)
+
+## 6 · Sin conexión
+
+Barra ámbar arriba del todo: **«Estás sin conexión. Tus pláticas siguen aquí»**.
+Aparece y desaparece sola con los eventos `online` / `offline`.
+
+Como el archivo es autocontenido y las pláticas viven en el mismo navegador,
+al perder la señal **no hay nada que recargar**: lo suyo sigue ahí y se puede
+seguir leyendo. Lo único que deja de funcionar es pedirle algo nuevo al
+asistente.
+
+El Service Worker se arma al vuelo desde un `Blob`, sin archivo aparte, para
+no romper la regla de «un solo archivo». Guarda la página para que abra aunque
+no haya señal, y **nunca guarda las llamadas a `/api/`**: una respuesta de la
+IA guardada sería una respuesta vieja disfrazada de nueva. Solo se registra
+cuando la app se sirve desde un servidor; con doble clic no se puede, y no
+pasa nada.
+
+## 7 · Guardar como imagen
+
+Botón **«Guardar como imagen»** en cada respuesta. Dibuja el texto en un
+`<canvas>` a doble resolución y lo descarga en `.png`, listo para WhatsApp.
+
+Lleva la greca dorada arriba, el nombre de la app, para quién es, y el pie
+«Hecho con OaxIntegra IA». El texto se reparte en renglones midiendo con
+`measureText`, así que nunca se sale de la hoja.
+
+## 8 · Glosario sin tecnicismos
+
+Si en una respuesta se cuela una palabra rara —*marketing*, *ROI*, *lead*,
+*engagement*, *branding*, *algoritmo*, *target*, *ecommerce*, *KPI*,
+*feedback*, *prompt*, *input*, *output*— se subraya en turquesa. Al tocarla
+sale un globo con la explicación **y una comparación del mercado**:
+
+> **ROI** — Es saber si lo que gastaste te regresó ganancia. Si compras 200
+> pesos de hilo y vendes el rebozo en 900, tu ROI es lo que te quedó: bueno.
+
+Se recorre solo los nodos de texto con un `TreeWalker`, así que **nunca rompe
+el HTML** que ya armó la respuesta (imágenes, enlaces, negritas). El globo se
+coloca solo arriba o abajo según dónde quepa, y cierra con Escape o clic fuera.
+
+Para agregar palabras: el objeto `GLOSARIO` en `app.src.html`.
+
+## 9 · Calculadora de precios
+
+Cuando la plática va de precios, debajo de la respuesta aparece sola una
+calculadora con tres barras: **material**, **horas** y **cuánto quieres ganar**.
+
+```
+base  = (material + horas × 150) × 1.18
+precio = base × (1 + margen/100)
+```
+
+El 150 es el valor de la hora y el 18 % son los gastos que no se ven
+(transporte, luz, empaque, merma). Los dos están escritos a la vista, debajo
+del resultado, y se cambian en `calculadoraPrecios()`.
+
+Se dispara mirando **lo que contestó el asistente y lo que preguntó la
+persona**: si alguien pregunta por precios, la calculadora le sirve aunque la
+respuesta no repita esas palabras.
+
+## 10 · Medallas
+
+Tres reconocimientos que se ganan usando la app:
+
+| Medalla | Se abre con |
+|---|---|
+| Explorador Digital | 3 preguntas |
+| Mano Constante | 10 preguntas |
+| Maestro del Oficio Digital | 25 preguntas |
+
+Al ganarse sale un aviso abajo. Se guardan en `localStorage` **por cuenta**
+(`oaxintegra.medallas.<usuario>`), y se ven siempre en el panel «Tus
+reconocimientos», arriba del chat: las que faltan salen apagadas, con la
+pista de cómo abrirlas.
+
+---
+
+## Sobre las fotos de huipiles
+
+La sección «Lo que se gana vendiendo directo» usa `<img>` con **patrones de
+textil dibujados en SVG**, no fotografías.
+
+**Por qué:** no puedo verificar que una dirección de internet apunte de verdad
+a un huipil oaxaqueño auténtico, y poner una foto equivocada en una página que
+habla justo de autenticidad cultural sería peor que no poner ninguna. Además,
+una foto de fuera rompería el «un solo archivo»: la página dejaría de abrir
+sin internet.
+
+**Cómo poner las tuyas** (que además serán más auténticas que cualquier foto
+de banco de imágenes): en `app.src.html`, busca `lienzo-huipil` y cambia el
+`src` de cada `<img>` por la ruta de tu foto. **Deja el `width`, el `height` y
+el `loading="lazy"`**: son los que evitan que la página brinque y los que la
+hacen cargar rápido en celulares modestos.
