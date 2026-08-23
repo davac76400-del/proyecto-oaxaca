@@ -49,7 +49,7 @@ Ejecutar: `cd frontend && python3 build.py`
 | Lógica | JavaScript vanilla ES5 | sin frameworks, sin build de JS |
 | Tipografías | Playfair Display + Plus Jakarta Sans | via Google Fonts |
 | Persistencia | localStorage | sin backend |
-| IA | fetch directo: Llama 3.2 → Gemini Flash | sin n8n · ver `06-ia-directa.md` |
+| IA | backend propio: Llama 3.2 → Gemini Flash | llaves en `.env` · ver `06-ia-directa.md` |
 | Imágenes | WebP en base64 | incrustadas |
 
 **Por qué ES5 y no ES6+:** compatibilidad con navegadores viejos, que el
@@ -104,40 +104,54 @@ código principal.
 
 ## Contrato con la IA (desde el 23 ago 2026)
 
-**Ya no hay webhook de n8n en el chat.** El navegador llama directo, en este
-orden, y se detiene en el primero que conteste:
+**Ya no hay webhook de n8n en el chat, y el navegador tampoco llama a los
+proveedores.** Las llaves estarían a la vista de cualquiera en un HTML, así que
+viven en un backend.
 
-1. **Llama 3.2** — `POST` a `CONFIG_IA.LLAMA.URL` (OpenRouter, formato OpenAI):
+```
+navegador ──POST /api/ia──► backend ──► Llama 3.2 ──(si falla)──► Gemini Flash
+(sin llaves)                (lee .env)                                  │
+                                                          (si falla) ──► motor local
+```
+
+**El navegador envía:**
 ```json
 {
-  "model": "meta-llama/llama-3.2-3b-instruct:free",
-  "max_tokens": 900,
-  "temperature": 0.7,
-  "messages": [
-    { "role": "system", "content": "…promptMaestroChat()…" },
-    { "role": "user",   "content": "…últimas 6 vueltas de la plática…" },
-    { "role": "user",   "content": "Escríbeme una publicación para mis rebozos" }
-  ]
+  "message": "Escríbeme una publicación para vender mis rebozos",
+  "username": "MariaTelar23",
+  "businessType": "Textil y telar de pedal",
+  "historial": [ { "rol": "user", "texto": "…" } ]
 }
 ```
-Cabecera: `Authorization: Bearer <CONFIG_IA.LLAMA.CLAVE>`
 
-2. **Gemini Flash** — solo si Llama falló. `POST` a
-`generativelanguage.googleapis.com/v1beta/models/<modelo>:generateContent?key=…`
-con `system_instruction` + `contents` (roles `user` / `model`).
+**El backend responde:**
+```json
+{ "output": "…texto de la IA…", "origen": "llama", "fallos": {} }
+```
+`origen` es `"llama"`, `"gemini"` o `""`. Si `output` viene vacío, el navegador
+usa su motor local.
 
-3. **Motor local** — si ninguno contestó.
+**También hay `GET /api/estado`**, que dice si el servidor tiene llaves
+(`{ listo: true }`) sin revelarlas nunca. La insignia lo usa al cargar.
 
-**Extracción de la respuesta:** `extraerTextoProveedor()` entiende los tres
-formatos (`choices[0].message.content` de OpenAI, `content[].text` de
-Anthropic, `candidates[0].content.parts[].text` de Gemini) y, si no reconoce
-ninguno, cae al extractor genérico por llaves (`output`, `respuesta`, `reply`…).
+**Dónde vive cada pieza:**
 
-**Timeout:** 20 segundos por ayudante (`CONFIG.LIMITE_MS`) con
-`AbortController`. Si se agota, se intenta el siguiente. La app nunca se cuelga.
+| Archivo | Papel |
+|---|---|
+| `backend/ia-core.js` | La cadena completa. El único que lee las llaves. |
+| `backend/servidor.js` | Desarrollo local: sirve `dist/` y `/api/ia` en el puerto 3000 |
+| `netlify/functions/ia.js` | Envoltorio para Netlify |
+| `api/ia.js` | Envoltorio para Vercel |
 
-**Las llaves** las pone el autor en `CONFIG_IA`; al usuario final jamás se le
-piden. Guía completa: `docs/06-ia-directa.md`.
+**Timeout:** 20 s por ayudante (`IA_TIMEOUT_MS`), con `AbortController`.
+
+**Defensas del backend:** mensaje topado a 4000 caracteres, historial a 6
+turnos con roles validados, cuerpo de la petición a 256 KB, y un filtro que
+tacha cualquier llave antes de devolver un mensaje de error.
+
+**Candado del build:** `build.py` se detiene si encuentra algo con forma de
+llave en `app.src.html`, para que no se pueda volver a hornear un secreto en el
+entregable.
 
 **Lo que sí sigue usando n8n:** las altas de cuenta (`WEBHOOK_REGISTRO`) y el
 formulario de contacto (`WEBHOOK_CONTACTO`). Eso es aparte del chat.

@@ -779,7 +779,7 @@
                 <span class="hidden md:inline-block w-2.5 h-2.5 rounded-full bg-verde/70 shrink-0"></span>
                 <span class="ml-2 text-[0.85rem] text-tenue truncate" id="titulo-conv">OaxIntegra IA · Asistente</span>
               </div>
-              <button type="button" id="estado-conexion" class="rotulo !text-[0.6rem] border border-borde px-2 py-1 rounded-[2px] shrink-0 cursor-pointer hover:border-cian transition-colors" title="Toca para revisar la conexión con n8n">Modo local</button>
+              <button type="button" id="estado-conexion" class="rotulo !text-[0.6rem] border border-borde px-2 py-1 rounded-[2px] shrink-0 cursor-pointer hover:border-cian transition-colors" title="Toca para revisar si el asistente está conectado">Modo local</button>
             </div>
 
             <div id="hilo" class="hilo p-5 sm:p-8 space-y-6" role="log" aria-live="polite" aria-label="Conversación con el asistente"></div>
@@ -1348,49 +1348,30 @@
   };
 
   /* =========================================================
-     0-B. LA INTELIGENCIA ARTIFICIAL  ·  conexión DIRECTA
+     0-B. LA INTELIGENCIA ARTIFICIAL
      ---------------------------------------------------------
-     El chat NO pasa por n8n, ni por conectores, ni por nada
-     intermedio: le habla directo a la IA desde el navegador.
+     AQUÍ NO HAY NINGUNA LLAVE, NI DEBE HABERLA NUNCA.
 
-     Son dos ayudantes, y se intentan en este orden:
-       1) LLAMA    · Llama 3.2, gratuito. Es el que contesta casi siempre.
-       2) GEMINI   · Gemini Flash, gratuito. Entra solo si Llama no pudo.
-       3) Si ninguno contesta, responde el motor local de este archivo,
-          para que el emprendedor NUNCA se quede sin respuesta.
+     Este archivo lo puede leer cualquiera que abra la página, así
+     que las llaves viven en el servidor, en un archivo .env que
+     nunca se sube. El navegador solo le pregunta a NUESTRO backend,
+     y el backend es quien le habla a la IA:
 
-     AL USUARIO JAMÁS SE LE PIDE UNA CLAVE. Las dos claves de abajo las
-     pones tú una sola vez, aquí, y ya funciona para toda la gente.
+        navegador  →  /api/ia  →  Llama 3.2  →  Gemini Flash
+                                       ↓ si ninguno pudo
+                                  motor local de este archivo
 
-     ⚠️ IMPORTANTE, léelo: cuando pegas una clave aquí, queda escrita
-     dentro del archivo HTML. Cualquiera que abra tu página y mire el
-     código fuente puede verla y gastarla. Como las dos son gratuitas, el
-     riesgo es que te consuman el límite, no que te cobren. Si algún día
-     quieres esconderlas de verdad, llena PROXY (ver docs/06-ia-directa.md).
+     El backend está en backend/ia-core.js. Se levanta con:
+        node backend/servidor.js
+
+     Guía completa: docs/06-ia-directa.md
      ========================================================= */
   var CONFIG_IA = {
-
-    /* ---- 1. LLAMA 3.2 · el ayudante principal, gratis -------------------
-       Saca tu clave gratis en https://openrouter.ai/keys (empieza con
-       "sk-or-v1-..."). El modelo termina en ":free", así nunca te cobra. */
-    LLAMA: {
-      CLAVE:  '',
-      URL:    'https://openrouter.ai/api/v1/chat/completions',
-      MODELO: 'meta-llama/llama-3.2-3b-instruct:free'
-    },
-
-    /* ---- 2. GEMINI FLASH · el respaldo, gratis --------------------------
-       Saca tu clave gratis en https://aistudio.google.com/apikey */
-    GEMINI: {
-      CLAVE:  '',
-      MODELO: 'gemini-2.0-flash'
-    },
-
-    /* ---- 3. Opcional: tu propio servidor intermedio ---------------------
-       Si algún día no quieres que las claves se vean en el HTML, monta el
-       proxy de backend/ai_service_directo.js y pon aquí su dirección.
-       Si esto tiene algo escrito, se usa ESTO y se ignora todo lo de arriba. */
-    PROXY: ''
+    /* Dirección de nuestro backend. Relativa a propósito: así funciona
+       igual en tu computadora, en Netlify y en Vercel, sin cambiar nada.
+       Si algún día pones el backend en otro dominio, aquí va su dirección
+       completa (o se inyecta al construir con OAXINTEGRA_API_URL). */
+    ENDPOINT: '/api/ia'
   };
 
   /* =========================================================
@@ -2165,16 +2146,21 @@
   }
 
   /* =========================================================
-     7-B. LA IA, DIRECTA  ·  Llama 3.2 → Gemini Flash → motor local
+     7-B. LA IA  ·  se le pregunta a NUESTRO backend
      ---------------------------------------------------------
-     Sin n8n, sin conectores, sin intermediarios: el navegador le
-     habla directo a la IA. Ver docs/06-ia-directa.md.
+     El navegador no conoce ninguna llave y no habla con ningún
+     proveedor de IA. Solo llama a CONFIG_IA.ENDPOINT y recibe
+     { output, origen, fallos }. La cadena Llama → Gemini ocurre
+     del lado del servidor, en backend/ia-core.js.
      ========================================================= */
 
-  /* ¿hay al menos un ayudante configurado? */
-  function hayLlama()  { return !!CONFIG_IA.LLAMA.CLAVE; }
-  function hayGemini() { return !!CONFIG_IA.GEMINI.CLAVE; }
-  function hayIA()     { return !!CONFIG_IA.PROXY || hayLlama() || hayGemini(); }
+  /* ¿el servidor tiene la IA lista? Lo pregunta /api/estado al arrancar.
+     Se empieza en null = "todavía no sé", y así la insignia no miente. */
+  var estadoServidor = null;
+  function hayIA() { return estadoServidor ? !!estadoServidor.listo : false; }
+
+  /* Lo que el servidor reportó del último intento, para poder explicarlo. */
+  var ultimoFallo = {};
 
   function promptMaestroChat() {
     var giro = sesion ? sesion.giroTexto : 'un negocio pequeño';
@@ -2193,8 +2179,8 @@
     var c = convActiva();
     if (!c || !c.mensajes.length) { return []; }
     /* La pregunta de ahorita ya la guardó mensajeYo() antes de llamarnos, y
-       quien arma la petición la agrega aparte. Si no la quitamos aquí, se
-       enviaría dos veces. */
+       el servidor la recibe aparte. Si no la quitamos aquí, se enviaría
+       dos veces. */
     var todos = c.mensajes.slice();
     if (todos[todos.length - 1] && todos[todos.length - 1].rol === 'yo') { todos.pop(); }
     var ultimos = todos.slice(-6), turnos = [];
@@ -2211,144 +2197,71 @@
     return turnos;
   }
 
-  /* --- 1. Llama 3.2 (formato OpenAI, que es el que usa OpenRouter) ------- */
-  function armarLlama(consulta) {
-    var mensajes = [{ role: 'system', content: promptMaestroChat() }];
-    var previos = historialReciente();
-    for (var i = 0; i < previos.length; i++) {
-      mensajes.push({ role: previos[i].rol, content: previos[i].texto });
-    }
-    mensajes.push({ role: 'user', content: consulta });
-    return {
-      url: CONFIG_IA.LLAMA.URL,
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + CONFIG_IA.LLAMA.CLAVE },
-      body: { model: CONFIG_IA.LLAMA.MODELO, max_tokens: 900, temperature: 0.7, messages: mensajes }
-    };
+  /* Le pregunta al servidor si tiene las llaves puestas. Sin esto, la
+     insignia no sabría qué decir hasta la primera pregunta. */
+  function consultarEstadoServidor() {
+    var base = CONFIG_IA.ENDPOINT.replace(/\/ia$/, '');
+    return fetch(base + '/estado', { method: 'GET' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (e) { estadoServidor = e || { listo: false }; return estadoServidor; })
+      .catch(function () { estadoServidor = { listo: false }; return estadoServidor; });
   }
 
-  /* --- 2. Gemini Flash (formato propio de Google) ------------------------ */
-  function armarGemini(consulta) {
-    var contenidos = [], previos = historialReciente();
-    /* Gemini no acepta que la plática empiece hablando el modelo (el saludo
-       de bienvenida es justo eso), así que esos turnos de arranque se quitan. */
-    while (previos.length && previos[0].rol !== 'user') { previos.shift(); }
-    for (var i = 0; i < previos.length; i++) {
-      contenidos.push({
-        role: previos[i].rol === 'user' ? 'user' : 'model',
-        parts: [{ text: previos[i].texto }]
-      });
-    }
-    contenidos.push({ role: 'user', parts: [{ text: consulta }] });
-    return {
-      url: 'https://generativelanguage.googleapis.com/v1beta/models/' +
-           CONFIG_IA.GEMINI.MODELO + ':generateContent?key=' + encodeURIComponent(CONFIG_IA.GEMINI.CLAVE),
-      headers: { 'Content-Type': 'application/json' },
-      body: {
-        system_instruction: { parts: [{ text: promptMaestroChat() }] },
-        contents: contenidos,
-        generationConfig: { maxOutputTokens: 900, temperature: 0.7 }
-      }
-    };
-  }
+  /* La única llamada de red del chat: a nuestro propio backend. */
+  function pedirALaIA(consulta) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    /* un poco más que el límite del servidor, para que él conteste primero */
+    var corte = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, CONFIG.LIMITE_MS * 2 + 2000);
 
-  /* --- 3. Tu propio servidor intermedio, si lo configuraste -------------- */
-  function armarProxy(consulta) {
-    return {
-      url: CONFIG_IA.PROXY,
+    var opc = {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: {
+      body: JSON.stringify({
         message: consulta,
         username: sesion ? (sesion.usuario || sesion.nombre) : 'invitado',
         businessType: sesion ? sesion.giroTexto : '',
-        system: promptMaestroChat(),
         historial: historialReciente()
-      }
+      })
     };
-  }
-
-  function extraerTextoProveedor(d) {
-    if (!d) { return ''; }
-    if (d.choices && d.choices[0] && d.choices[0].message) { return d.choices[0].message.content || ''; }
-    if (d.content && d.content.length) {
-      var t = '';
-      for (var i = 0; i < d.content.length; i++) { if (d.content[i].type === 'text') { t += d.content[i].text; } }
-      if (t) { return t; }
-    }
-    if (d.candidates && d.candidates[0] && d.candidates[0].content) {
-      var partes = d.candidates[0].content.parts || [];
-      if (partes.length) { return partes[0].text || ''; }
-    }
-    return extraerTexto(d);
-  }
-
-  /* Guarda por qué falló el último intento, para poder explicarlo en pantalla
-     con palabras normales cuando el usuario toque la insignia. */
-  var ultimoFallo = { llama: '', gemini: '' };
-
-  /* Una llamada. Devuelve el texto, o cadena vacía si no se pudo. */
-  function llamarIA(peticion, cualEs) {
-    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    var corte = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, CONFIG.LIMITE_MS);
-    var opc = { method: 'POST', headers: peticion.headers, body: JSON.stringify(peticion.body) };
     if (ctrl) { opc.signal = ctrl.signal; }
 
-    return fetch(peticion.url, opc)
+    return fetch(CONFIG_IA.ENDPOINT, opc)
       .then(function (r) {
         clearTimeout(corte);
-        if (!r.ok) {
-          return r.text().then(function (cuerpo) {
-            throw new Error('HTTP ' + r.status + (cuerpo ? ' · ' + cuerpo.slice(0, 200) : ''));
-          });
-        }
+        if (!r.ok) { throw new Error('HTTP ' + r.status); }
         return r.json();
       })
-      .then(function (d) { ultimoFallo[cualEs] = ''; return extraerTextoProveedor(d); })
+      .then(function (d) {
+        ultimoFallo = (d && d.fallos) || {};
+        /* si el servidor contestó, ya sabemos que está vivo */
+        if (d && d.origen) { estadoServidor = estadoServidor || {}; estadoServidor.listo = true; }
+        return { texto: (d && d.output) || '', origen: (d && d.origen) || '' };
+      })
       .catch(function (err) {
         clearTimeout(corte);
         var motivo = (err && err.name === 'AbortError')
-          ? 'tardó más de ' + (CONFIG.LIMITE_MS / 1000) + ' segundos'
-          : (err && err.message) || 'no respondió';
-        ultimoFallo[cualEs] = motivo;
-        console.info('[OaxIntegra] ' + cualEs + ': ' + motivo);
-        return '';
+          ? 'el asistente tardó demasiado'
+          : 'no pude comunicarme con el servidor';
+        ultimoFallo = { general: motivo };
+        console.info('[OaxIntegra] ' + motivo, err && err.message);
+        return { texto: '', origen: '' };
       });
   }
 
-  /* La cadena completa: Llama 3.2 primero, Gemini Flash si Llama no pudo. */
-  function pedirALaIA(consulta) {
-    if (CONFIG_IA.PROXY) {
-      return llamarIA(armarProxy(consulta), 'llama').then(function (t) {
-        return { texto: t, origen: t ? 'proxy' : '' };
-      });
-    }
-
-    var intentoLlama = hayLlama()
-      ? llamarIA(armarLlama(consulta), 'llama')
-      : Promise.resolve('');
-
-    return intentoLlama.then(function (texto) {
-      if (texto) { return { texto: texto, origen: 'llama' }; }
-      if (!hayGemini()) { return { texto: '', origen: '' }; }
-      return llamarIA(armarGemini(consulta), 'gemini').then(function (t2) {
-        return { texto: t2, origen: t2 ? 'gemini' : '' };
-      });
-    });
-  }
-
-  /* nota amable cuando ningún ayudante contestó */
+  /* nota amable cuando no hubo respuesta del asistente */
   function respuestaSinIA(local) {
     local.__origen = '';
-    if (!hayIA()) {
-      local.nota = 'Esta respuesta la armé aquí mismo en tu equipo, sin internet. ' +
-                   'Funciona bien, pero es más limitada que el asistente completo.';
+    if (estadoServidor && !estadoServidor.listo) {
+      local.nota = 'Esta respuesta la armé aquí mismo en tu equipo. Funciona bien, ' +
+                   'pero es más limitada que el asistente completo.';
       return local;
     }
     local.nota = 'Ahora mismo no logré comunicarme con el asistente, así que esta respuesta ' +
                  'la armé aquí en tu equipo para no dejarte esperando. Toca la insignia de ' +
                  'arriba y te digo qué está pasando.';
     if (typeof location !== 'undefined' && location.protocol === 'file:') {
-      local.nota += ' Un motivo frecuente: abriste este archivo con doble clic. Súbelo a un ' +
-                    'hospedaje real (Netlify, Vercel, GitHub Pages) y vuelve a probar.';
+      local.nota += ' Un motivo frecuente: abriste este archivo con doble clic, y así no hay ' +
+                    'servidor que responda. Ábrelo con "node backend/servidor.js".';
     }
     return local;
   }
@@ -2367,11 +2280,13 @@
   /* Estrategia: el motor local siempre arma la estructura (tarjeta de publicación,
      pasos, sugerencias). Si la IA responde, su texto entra DENTRO de esa estructura,
      así la redacción es de la IA real pero se conservan la imagen generada y los
-     botones de acción. Orden: Llama 3.2 → Gemini Flash → motor local. */
+     botones de acción. El servidor intenta Llama 3.2 y luego Gemini Flash; si
+     ninguno pudo, queda el motor local. */
   function consultarIA(consulta) {
     var local = motorLocal(consulta);
 
-    if (!hayIA()) {
+    /* Si ya sabemos que el servidor no tiene llaves, ni molestamos a la red. */
+    if (estadoServidor && !estadoServidor.listo) {
       return new Promise(function (res) {
         setTimeout(function () { res(respuestaSinIA(local)); }, 600 + Math.random() * 500);
       });
@@ -2389,12 +2304,19 @@
   var hilo = $('#hilo'), formChat = $('#form-chat'), entrada = $('#entrada-chat');
   var sugerencias = $('#sugerencias'), contadorPub = 0, ocupado = false;
 
-  if (hayIA()) {
-    $('#estado-conexion').textContent = 'Asistente listo';
-    $('#estado-conexion').style.color = '#8CDB2B';
-  } else {
-    $('#estado-conexion').textContent = 'Modo local';
-  }
+  /* Se le pregunta al servidor si tiene la IA lista. Mientras contesta, la
+     insignia queda neutral: más vale no decir nada que decir algo falso. */
+  $('#estado-conexion').textContent = 'Revisando…';
+  consultarEstadoServidor().then(function (e) {
+    if (e && e.listo) {
+      $('#estado-conexion').textContent = 'Asistente listo';
+      $('#estado-conexion').style.color = '#8CDB2B';
+      $('#estado-conexion').style.borderColor = 'rgba(140,219,43,.5)';
+    } else {
+      $('#estado-conexion').textContent = 'Modo local';
+      $('#estado-conexion').style.color = '';
+    }
+  });
 
   function irAlFinal() { hilo.scrollTop = hilo.scrollHeight; }
 
@@ -2836,71 +2758,74 @@
   });
 
   /* La insignia dice de dónde salió la última respuesta, sin alarmar.
-     Al tocarla, prueba de verdad los dos ayudantes y explica qué pasa
-     en palabras normales, sin tecnicismos. */
+     Al tocarla, hace una prueba real contra el servidor y explica qué
+     pasa en palabras normales, sin tecnicismos. */
   function diagnosticarConexion() {
-    if (!hayIA()) {
-      mensajeIA({ texto:
-        'Ahorita el asistente está trabajando solo con lo que trae adentro este archivo, ' +
-        'sin conectarse a internet. Responde bien, pero es más limitado.\n\n' +
-        'Si tú eres quien administra la página: falta poner las llaves de acceso en el ' +
-        'apartado CONFIG_IA del archivo. Vienen las instrucciones en docs/06-ia-directa.md.' }, true);
-      return;
-    }
-
     mensajeIA({ texto: 'Voy a probar el asistente. Deme un momento…' }, true);
 
     if (typeof location !== 'undefined' && location.protocol === 'file:') {
       mensajeIA({ texto:
-        '⚠️ Ojo: abriste este archivo con doble clic. Así, algunos servicios no dejan pasar ' +
-        'la respuesta. Si la prueba falla, sube la página a un hospedaje (Netlify, Vercel, ' +
-        'GitHub Pages) y vuelve a intentarlo. Sigo con la prueba…' }, true);
+        '⚠️ Abriste este archivo con doble clic, así que no hay servidor que pueda ' +
+        'responder. Para que funcione el asistente, ábrelo con el servidor:\n\n' +
+        '   node backend/servidor.js\n\n' +
+        'y entra a http://localhost:3000 . O súbelo a Netlify o Vercel.' }, true);
+      marcarOrigen('');
+      return;
     }
 
     var t0 = Date.now();
-    pedirALaIA('Responde solamente con la palabra: listo').then(function (r) {
-      var ms = Date.now() - t0;
-
-      if (r.texto && r.origen === 'llama') {
+    consultarEstadoServidor().then(function (e) {
+      /* 1. ¿existe el servidor? */
+      if (!e || (!e.llama && !e.gemini)) {
         mensajeIA({ texto:
-          '✅ Todo bien. El asistente principal (Llama 3.2) contestó en ' + ms +
-          ' milisegundos. Ya puedes escribirle con confianza.' }, true);
-        marcarOrigen('llama');
-        return;
-      }
-      if (r.texto && r.origen === 'gemini') {
-        mensajeIA({ texto:
-          '🟡 El asistente sí funciona, pero contestó el de respaldo (Gemini Flash), en ' + ms +
-          ' milisegundos.\n\nEl principal (Llama 3.2) no pudo: ' + (ultimoFallo.llama || 'no respondió') +
-          '.\n\nPuedes usar la página con normalidad; el respaldo hace el mismo trabajo.' }, true);
-        marcarOrigen('gemini');
-        return;
-      }
-      if (r.texto && r.origen === 'proxy') {
-        mensajeIA({ texto:
-          '✅ Todo bien. Tu servidor propio contestó en ' + ms + ' milisegundos.' }, true);
-        marcarOrigen('proxy');
+          'Ahorita el asistente responde solo con lo que trae adentro este archivo. ' +
+          'Funciona, pero es más limitado.\n\n' +
+          'Si tú administras la página: el servidor no tiene las llaves puestas. ' +
+          'Cópialas en el archivo .env (mira .env.example) o en el panel de Netlify o ' +
+          'Vercel. El paso a paso está en docs/06-ia-directa.md.' }, true);
+        marcarOrigen('');
         return;
       }
 
-      /* ninguno contestó: explicar cada uno por separado */
-      var detalle = '🔴 No logré comunicarme con ningún asistente.\n\n';
-      if (hayLlama())  { detalle += '· Llama 3.2 (el principal): ' + (ultimoFallo.llama || 'no respondió') + '\n'; }
-      else             { detalle += '· Llama 3.2: no tiene llave de acceso configurada.\n'; }
-      if (hayGemini()) { detalle += '· Gemini Flash (el respaldo): ' + (ultimoFallo.gemini || 'no respondió') + '\n'; }
-      else             { detalle += '· Gemini Flash: no tiene llave de acceso configurada.\n'; }
-      detalle += '\nLo más común es que la llave esté mal copiada, o que se haya acabado el ' +
-                 'límite gratuito del día. Mientras tanto sigo respondiendo con lo que traigo ' +
-                 'adentro, para no dejarte esperando.';
-      mensajeIA({ texto: detalle }, true);
-      marcarOrigen('');
+      /* 2. el servidor está listo: probarlo de verdad */
+      return pedirALaIA('Responde solamente con la palabra: listo').then(function (r) {
+        var ms = Date.now() - t0;
+
+        if (r.texto && r.origen === 'llama') {
+          mensajeIA({ texto:
+            '✅ Todo bien. El asistente principal (Llama 3.2) contestó en ' + ms +
+            ' milisegundos. Ya puedes escribirle con confianza.' }, true);
+          marcarOrigen('llama');
+          return;
+        }
+        if (r.texto && r.origen === 'gemini') {
+          mensajeIA({ texto:
+            '🟡 El asistente sí funciona, pero contestó el de respaldo (Gemini Flash), en ' + ms +
+            ' milisegundos.\n\nEl principal (Llama 3.2) no pudo: ' + (ultimoFallo.llama || 'no respondió') +
+            '.\n\nPuedes usar la página con normalidad; el respaldo hace el mismo trabajo.' }, true);
+          marcarOrigen('gemini');
+          return;
+        }
+
+        var detalle = '🔴 No logré comunicarme con ningún asistente.\n\n';
+        if (ultimoFallo.general) {
+          detalle += '· ' + ultimoFallo.general + '\n';
+        } else {
+          detalle += '· Llama 3.2 (el principal): ' + (ultimoFallo.llama || 'no respondió') + '\n';
+          detalle += '· Gemini Flash (el respaldo): ' + (ultimoFallo.gemini || 'no respondió') + '\n';
+        }
+        detalle += '\nLo más común es que la llave esté mal copiada, o que se haya acabado el ' +
+                   'límite gratuito del día. Mientras tanto sigo respondiendo con lo que traigo ' +
+                   'adentro, para no dejarte esperando.';
+        mensajeIA({ texto: detalle }, true);
+        marcarOrigen('');
+      });
     });
   }
 
   function marcarOrigen(origen) {
     var b = $('#estado-conexion');
-    if (!hayIA()) { return; }
-    var nombres = { llama: 'Asistente listo', gemini: 'Asistente listo · respaldo', proxy: 'Asistente listo' };
+    var nombres = { llama: 'Asistente listo', gemini: 'Asistente listo · respaldo' };
     if (nombres[origen]) {
       b.textContent = nombres[origen];
       b.style.color = '#8CDB2B';

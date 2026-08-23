@@ -89,6 +89,16 @@ También reporta que en modo noche "se ve medio con la luz en la parte de
 arriba": era un crema horneado en `.encabezado` (BUG-14), del mismo tipo que
 el BUG-08. Todo verificado con Playwright.
 
+**19 · Revisión de seguridad (23 ago 2026).** El autor revisa la entrega y
+señala que las llaves no pueden ir en el frontend. Tiene razón: se refactoriza
+a un backend (`backend/ia-core.js`) con las llaves en `.env`, más tres
+envoltorios (servidor local, Netlify, Vercel). El frontend se queda solo con
+`ENDPOINT`. Se añaden tres defensas: candado de llaves en `build.py`, tachado
+de secretos en los mensajes de error, y `/api/estado` que informa sin revelar.
+También pide un servidor local para no tener que publicar en cada prueba:
+`node backend/servidor.js` sirve la app y el asistente en el mismo origen, con
+lo que caen de golpe el problema de CORS y el del `file://`.
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

@@ -332,6 +332,71 @@ reconstruya. Instrucciones paso a paso en `docs/06-ia-directa.md`.
 
 ---
 
+## BUG-15 · Las llaves de la IA quedaban a la vista ✅ RESUELTO (23 ago 2026)
+
+**Cómo se detectó:** revisión de seguridad del autor sobre la entrega anterior.
+
+**El problema:** la primera versión de la IA directa ponía las llaves en
+`CONFIG_IA`, dentro de `app.src.html`. Eso las hornea en el HTML que se publica,
+así que **cualquiera que abriera la página y viera el código fuente podía
+leerlas y gastarlas**. Se había documentado como "riesgo aceptable por ser
+llaves gratuitas", pero es un patrón que no debe quedar en el proyecto.
+
+**La solución — las llaves se van al servidor:**
+
+```
+navegador  ──POST /api/ia──►  backend (lee .env)  ──►  Llama 3.2 → Gemini Flash
+(sin llaves)
+```
+
+1. Nace `backend/ia-core.js`: toda la lógica de la IA y **el único lugar que
+   lee `process.env`**. Nunca llega al navegador.
+2. Tres envoltorios comparten ese núcleo: `backend/servidor.js` (local),
+   `netlify/functions/ia.js` y `api/ia.js`.
+3. En el frontend, `CONFIG_IA` se queda con **un solo campo**: `ENDPOINT`.
+   Cero llaves, cero nombres de proveedor.
+4. `.env` (ignorado por git) + `.env.example` (plantilla, se sube vacía).
+
+**Tres defensas para que no vuelva a pasar:**
+
+- **Candado en `build.py`:** si aparece algo con forma de llave en
+  `app.src.html`, la construcción se detiene con un mensaje explicando dónde
+  va. Cubre OpenRouter, Gemini, OpenAI, Anthropic, Groq, GitHub y Slack.
+  Verificado a propósito pegando una llave falsa: el build falla con código 1.
+- **Tachado de errores:** los avisos de fallo viajan al navegador para poder
+  explicarle al usuario qué pasó. Antes de salir pasan por `tacharSecretos()`.
+  Probado con un proveedor falso que devolvía la llave dentro de su error:
+  llega como «llave oculta».
+- **`/api/estado`** informa si hay llaves, nunca cuáles.
+
+**Nota sobre `backend/ai_service_directo.js`:** ese archivo enseñaba justo el
+patrón inseguro. Se vació y quedó solo un aviso que apunta a `ia-core.js`, para
+que nadie lo copie por error. El historial sigue en git.
+
+**Verificado en el navegador:** con el servidor y proveedores simulados, el
+HTML servido no contiene ninguna llave ni nombre de variable de entorno, y las
+únicas peticiones que salen son a nuestro `/api/ia`.
+
+---
+
+## BUG-16 · No se podía probar sin publicar ✅ RESUELTO (23 ago 2026)
+
+**Síntoma:** para probar cualquier cambio había que subir el archivo a Netlify.
+Abrirlo con doble clic daba origen `null` y no había forma de llamar a un
+backend.
+
+**Solución:** `backend/servidor.js`, que sirve la app y el asistente **en la
+misma dirección** (`http://localhost:3000`). Al venir todo del mismo origen,
+desaparecen a la vez el problema de CORS y el de `file://`.
+
+No necesita `npm install`: solo usa lo que trae Node (18+), incluido el lector
+de `.env`, escrito a mano para no añadir dependencias.
+
+**Detalle de seguridad:** el servidor no deja salir de `dist/`. Comprobado con
+rutas crudas (`--path-as-is`) y codificadas (`%2e%2e%2f`): responde 404.
+
+---
+
 ## BUG-14 · La barra de arriba se quedaba clara en modo noche ✅ RESUELTO (23 ago 2026)
 
 **Síntoma:** al pasar a modo noche y bajar un poco la página, la barra
@@ -374,3 +439,5 @@ Día `#F7F0E2` (casi idéntico al crema anterior, no cambia el diseño), noche
 | 12 | Fosforescente persistente | ✅ |
 | 13 | Modo local / IA no responde | ✅ resuelto — n8n fuera del chat, IA directa |
 | 14 | Barra superior clara en modo noche | ✅ |
+| 15 | **Llaves de la IA visibles en el HTML** | ✅ resuelto — se movieron al backend |
+| 16 | No se podía probar sin publicar | ✅ resuelto — servidor local |

@@ -22,6 +22,7 @@ REGLA DE ORO: nunca edites dist/. Edita app.src.html y reconstruye.
 
 import base64
 import os
+import re
 import subprocess
 import sys
 from html.parser import HTMLParser
@@ -92,6 +93,64 @@ def validar_js(html):
     print('  JavaScript: sintaxis correcta')
 
 
+# ---------------------------------------------------------------------------
+# CANDADO DE SEGURIDAD
+# ---------------------------------------------------------------------------
+# Las llaves de la IA viven en el servidor (.env), nunca en el HTML, porque el
+# HTML lo puede leer cualquiera que abra la página. Este candado existe para
+# que nadie —ni una IA que edite el archivo, ni un despiste— pueda volver a
+# hornear una llave en el entregable: si aparece algo con forma de llave, la
+# construcción se detiene.
+LLAVES_PROHIBIDAS = [
+    (r'sk-or-v1-[A-Za-z0-9_\-]{12,}',  'una llave de OpenRouter'),
+    (r'sk-ant-[A-Za-z0-9_\-]{12,}',    'una llave de Anthropic'),
+    (r'sk-[A-Za-z0-9]{32,}',           'una llave de OpenAI'),
+    (r'AIza[A-Za-z0-9_\-]{30,}',       'una llave de Google/Gemini'),
+    (r'gsk_[A-Za-z0-9]{20,}',          'una llave de Groq'),
+    (r'xox[baprs]-[A-Za-z0-9\-]{10,}', 'un token de Slack'),
+    (r'ghp_[A-Za-z0-9]{30,}',          'un token de GitHub'),
+]
+
+
+def revisar_llaves(texto, de_donde):
+    """Se detiene si encuentra algo con forma de llave de acceso."""
+    hallazgos = []
+    for patron, descripcion in LLAVES_PROHIBIDAS:
+        for m in re.finditer(patron, texto):
+            trozo = m.group(0)
+            hallazgos.append((descripcion, trozo[:12] + '…'))
+    if hallazgos:
+        print('')
+        print('✗ ALTO. Encontré ' + str(len(hallazgos)) + ' posible(s) llave(s) en ' + de_donde + ':')
+        for descripcion, muestra in hallazgos:
+            print('    · ' + descripcion + '  (' + muestra + ')')
+        print('')
+        print('  Las llaves NUNCA van en el HTML: cualquiera que abra la página')
+        print('  puede leerlas. Quítala del código y ponla en el archivo .env')
+        print('  (mira .env.example). El servidor es quien debe usarla.')
+        print('')
+        print('  Guía: docs/06-ia-directa.md')
+        sys.exit(1)
+    print('  Seguridad: sin llaves en el código ✓')
+
+
+def resolver_endpoint(src):
+    """Permite apuntar el frontend a otro backend sin editar el código:
+           OAXINTEGRA_API_URL=https://mi-api.com/api/ia python3 build.py
+       Si no se define, se queda con la ruta relativa /api/ia, que funciona
+       igual en local, en Netlify y en Vercel."""
+    url = os.environ.get('OAXINTEGRA_API_URL', '').strip()
+    if not url:
+        return src
+    if "'" in url or '\\' in url or '\n' in url:
+        print('✗ OAXINTEGRA_API_URL tiene caracteres no válidos'); sys.exit(1)
+    nuevo, n = re.subn(r"(ENDPOINT:\s*)'[^']*'", lambda m: m.group(1) + "'" + url + "'", src, count=1)
+    if n != 1:
+        print('✗ No encontré ENDPOINT en CONFIG_IA para sustituirlo'); sys.exit(1)
+    print('  Endpoint del asistente: ' + url)
+    return nuevo
+
+
 def main():
     if not os.path.exists(FUENTE):
         print('✗ No encuentro', FUENTE); sys.exit(1)
@@ -118,6 +177,10 @@ def main():
         sys.exit(1)
     if n_ch < 1:
         print('✗ Falta el marcador __CHAPULIN__'); sys.exit(1)
+
+    # Antes de nada: que no haya llaves en el fuente.
+    revisar_llaves(src, 'app.src.html')
+    src = resolver_endpoint(src)
 
     print('→ Ensamblando…')
     final = src.replace('/*__TAILWIND__*/', css).replace('__CHAPULIN__', uri)

@@ -1,95 +1,131 @@
-# La inteligencia artificial del asistente (conexión directa)
+# La inteligencia artificial del asistente
 
-**Desde el 23 de agosto de 2026 el chat ya no pasa por n8n.**
-El navegador le habla directo a la IA. Sin conectores, sin MCP, sin
-intermediarios. Esto cierra el BUG-13, que llevaba abierto todo el proyecto.
+**Actualizado el 23 de agosto de 2026 — las llaves ya no viven en el HTML.**
 
----
-
-## Los dos ayudantes, en orden
-
-| # | Quién | Para qué | Cuesta |
-|---|---|---|---|
-| 1 | **Llama 3.2** (vía OpenRouter) | Contesta casi siempre | Gratis |
-| 2 | **Gemini Flash** (Google) | Entra solo si Llama no pudo | Gratis |
-| 3 | **Motor local** (dentro del archivo) | Si no hay internet o fallan los dos | Gratis |
-
-El paso 3 ya existía y **no se quitó**: garantiza que el emprendedor nunca se
-quede sin respuesta, aunque se caiga todo.
+El chat no pasa por n8n, ni por conectores, ni por MCP. Pero tampoco llama a la
+IA desde el navegador: **las llaves viven en el servidor**, porque cualquiera
+puede leer el código de una página web.
 
 ---
 
-## Cómo encenderla (una sola vez, lo haces tú)
+## Cómo funciona ahora
 
-Al usuario final **nunca** se le pide una llave. Las pones tú aquí y ya
-funciona para toda la gente que entre a la página.
-
-### 1 · Saca las dos llaves (gratis, 2 minutos)
-
-- **Llama 3.2** → https://openrouter.ai/keys
-  Te da una llave que empieza con `sk-or-v1-...`
-- **Gemini Flash** → https://aistudio.google.com/apikey
-  Te da una llave que empieza con `AIza...`
-
-### 2 · Pégalas en el archivo fuente
-
-Abre `frontend/app.src.html`, busca `CONFIG_IA` (está cerca del inicio del
-`<script>`) y llena las dos líneas que dicen `CLAVE`:
-
-```js
-var CONFIG_IA = {
-  LLAMA: {
-    CLAVE:  'sk-or-v1-loquetehayandado',
-    URL:    'https://openrouter.ai/api/v1/chat/completions',
-    MODELO: 'meta-llama/llama-3.2-3b-instruct:free'
-  },
-  GEMINI: {
-    CLAVE:  'AIzaloquetehayandado',
-    MODELO: 'gemini-2.0-flash'
-  },
-  PROXY: ''
-};
+```
+  navegador  ──POST──►  /api/ia  ──►  Llama 3.2   (gratis, el principal)
+  (sin llaves)          (backend)      └─ si falla ─►  Gemini Flash (gratis)
+                                                        └─ si falla ─►  motor local
 ```
 
-### 3 · Reconstruye la app
+- El **navegador** no conoce ninguna llave. Solo sabe pedirle a `/api/ia`.
+- El **backend** guarda las llaves en variables de entorno y hace la cadena.
+- El **motor local** (dentro del HTML) sigue ahí como último recurso: si no hay
+  internet o el servidor no contesta, el emprendedor igual recibe algo útil.
+
+| Archivo | Para qué |
+|---|---|
+| `backend/ia-core.js` | Toda la lógica y el único lugar que lee las llaves |
+| `backend/servidor.js` | Servidor para tu computadora (app + `/api/ia`) |
+| `netlify/functions/ia.js` | Envoltorio si publicas en Netlify |
+| `api/ia.js` | Envoltorio si publicas en Vercel |
+| `.env` | Tus llaves. **Nunca se sube a GitHub.** |
+| `.env.example` | La plantilla, sin llaves, que sí se sube |
+
+---
+
+## 1 · Trabajar en tu computadora
+
+Ya no hace falta subir nada a Netlify para probar un cambio.
 
 ```bash
-cd frontend && python3 build.py
+# una sola vez: crea tu archivo de llaves
+cp .env.example .env
+# abre .env y pega tus dos llaves
+
+# construye la app
+cd frontend && python3 build.py && cd ..
+
+# arranca todo
+node backend/servidor.js
 ```
 
-Eso regenera `dist/OaxIntegra-IA-app.html`. **Nunca edites `dist/` a mano.**
+Y abres **http://localhost:3000**
 
-### 4 · Súbela a un hospedaje real
+Eso levanta la app y el asistente juntos, en la misma dirección. Como todo sale
+del mismo sitio, **no hay problemas de CORS** y **no existe el problema del
+`file://`** del doble clic.
 
-Netlify Drop, Vercel o GitHub Pages. **No la pruebes con doble clic:** abrir el
-archivo así hace que algunos servicios rechacen la respuesta (fue una de las
-causas sospechadas del BUG-13). Para probar en tu compu:
+No necesitas `npm install`: el servidor solo usa lo que ya trae Node (versión 18
+o más nueva).
+
+Para detenerlo: `Control + C`.
+
+### Las dos llaves (gratis, 2 minutos)
+
+- **Llama 3.2** → https://openrouter.ai/keys — empieza con `sk-or-v1-`
+- **Gemini Flash** → https://aistudio.google.com/apikey — empieza con `AIza`
+
+Van en tu `.env` así:
 
 ```bash
-cd dist && python3 -m http.server 3000
-# y entras a http://localhost:3000/OaxIntegra-IA-app.html
+OPENROUTER_API_KEY=sk-or-v1-loquetehayandado
+GEMINI_API_KEY=AIzaloquetehayandado
+```
+
+Puedes poner solo una si quieres; funciona igual, nada más sin respaldo.
+
+---
+
+## 2 · Publicar
+
+### En Netlify
+
+1. Sube el proyecto (el `netlify.toml` ya está configurado).
+2. **Site settings → Environment variables**, y agregas:
+   - `OPENROUTER_API_KEY`
+   - `GEMINI_API_KEY`
+3. Listo. El `netlify.toml` ya manda `/api/ia` hacia la función.
+
+### En Vercel
+
+1. Sube el proyecto.
+2. **Project Settings → Environment Variables**, las mismas dos.
+3. `api/ia.js` queda publicado solo en `/api/ia`.
+
+En los dos casos **las llaves se escriben en el panel del servicio, nunca en el
+código**. Si cambias una llave, no hace falta reconstruir la app.
+
+---
+
+## 3 · El candado del build
+
+`frontend/build.py` ahora **se niega a construir** si encuentra algo con forma
+de llave dentro de `app.src.html`:
+
+```
+✗ ALTO. Encontré 1 posible(s) llave(s) en app.src.html:
+    · una llave de OpenRouter  (sk-or-v1-abc…)
+
+  Las llaves NUNCA van en el HTML: cualquiera que abra la página
+  puede leerlas. Quítala del código y ponla en el archivo .env
+```
+
+Detecta llaves de OpenRouter, Gemini/Google, OpenAI, Anthropic, Groq, GitHub y
+Slack. Está ahí para que ni un despiste ni otra IA que edite el archivo puedan
+volver a hornear una llave en el entregable.
+
+### Si tu backend está en otro dominio
+
+Por defecto la app llama a `/api/ia`, una dirección relativa que funciona igual
+en tu computadora, en Netlify y en Vercel. Si algún día pones el backend
+aparte, se lo dices al construir, sin editar el código:
+
+```bash
+OAXINTEGRA_API_URL=https://mi-api.com/api/ia python3 build.py
 ```
 
 ---
 
-## ⚠️ Lo que tienes que saber de las llaves
-
-Cuando pegas una llave en el archivo, **queda escrita dentro del HTML**.
-Cualquiera que abra tu página y mire el código fuente puede verla.
-
-Como las dos son gratuitas, el riesgo **no es que te cobren**: es que alguien
-te consuma el límite gratuito del día. Para un proyecto como este es un
-intercambio aceptable, y es la única forma de que funcione sin pedirle nada al
-emprendedor.
-
-**Si algún día quieres esconderlas de verdad,** monta el proxy que está al
-final de `backend/ai_service_directo.js` (es una función de Netlify, se
-despliega en minutos) y pon su dirección en `CONFIG_IA.PROXY`. Cuando `PROXY`
-tiene algo escrito, se usa eso y se ignoran las llaves de arriba.
-
----
-
-## Cómo saber si está funcionando
+## 4 · Cómo saber si está funcionando
 
 Arriba a la derecha del chat hay una insignia:
 
@@ -97,37 +133,69 @@ Arriba a la derecha del chat hay una insignia:
 |---|---|
 | **Asistente listo** | Contestó Llama 3.2, todo normal |
 | **Asistente listo · respaldo** | Llama no pudo, contestó Gemini |
-| **Sin conexión · modo local** | Ninguno contestó; responde el motor de adentro |
-| **Modo local** | Todavía no has puesto ninguna llave |
+| **Sin conexión · modo local** | No hubo respuesta; contesta el motor de adentro |
+| **Modo local** | El servidor no tiene llaves puestas |
 
-**Tócala** y hace una prueba real: te dice cuál de los dos falló y por qué, en
-español normal.
+**Tócala** y hace una prueba real contra el servidor: te dice cuál de los dos
+falló y por qué, en español normal. Los avisos de error pasan por un filtro que
+**tacha cualquier llave** antes de mostrarlos, por si el proveedor la repitiera
+dentro de su mensaje.
 
 ---
 
-## Si algún día deja de funcionar
+## 5 · Si algún día deja de funcionar
 
-El nombre del modelo puede cambiar si el proveedor lo retira. Si la insignia
-dice que Llama falla con un aviso tipo "modelo no encontrado", entra a
-https://openrouter.ai/models?q=llama+3.2 y copia el nombre exacto de un modelo
-que termine en `:free`, y pégalo en `CONFIG_IA.LLAMA.MODELO`.
+El nombre del modelo puede cambiar si el proveedor lo retira. **No hace falta
+tocar el código:** se cambia en el `.env` (o en el panel de Netlify/Vercel).
+
+```bash
+# busca uno que termine en :free en https://openrouter.ai/models?q=llama
+OPENROUTER_MODEL=meta-llama/llama-3.2-3b-instruct:free
+GEMINI_MODEL=gemini-2.0-flash
+```
 
 Mientras eso pasa, **Gemini sigue contestando** y la página no se rompe: para
 eso está la cadena.
 
 ---
 
-## Detalles técnicos
+## 6 · Detalles técnicos
 
-- **Memoria de la plática:** se mandan las últimas 6 vueltas de la
-  conversación, para que el usuario pueda decir "más corto" o "cámbiale el
-  final" sin repetir todo (el tutorial de la app le pide justo eso).
-- **Tiempo de espera:** 20 segundos por ayudante (`CONFIG.LIMITE_MS`), con
-  `AbortController`. Si se pasa, se intenta el siguiente.
-- **La personalidad** vive en `promptMaestroChat()`: español mexicano cálido,
-  cero tecnicismos, material listo para usar, respeto al oficio artesanal.
+- **Contrato de `/api/ia`** — recibe:
+  ```json
+  { "message": "…", "username": "…", "businessType": "…",
+    "historial": [ { "rol": "user", "texto": "…" } ] }
+  ```
+  y devuelve:
+  ```json
+  { "output": "…", "origen": "llama" | "gemini" | "", "fallos": { } }
+  ```
+  Si `output` viene vacío, el navegador usa su motor local.
+
+- **`/api/estado`** — dice si el servidor tiene llaves (`true`/`false`),
+  **nunca las llaves**. Sirve para que la insignia no mienta al cargar.
+
+- **No se confía en lo que manda el navegador:** el mensaje se recorta a 4000
+  caracteres, el historial a 6 turnos, y se descarta cualquier rol inventado.
+  El cuerpo de la petición está topado a 256 KB.
+
+- **Memoria de la plática:** se mandan las últimas 6 vueltas, para que el
+  usuario pueda decir "más corto" sin repetir todo (el tutorial de la app le
+  pide justo eso).
+
+- **Tiempo de espera:** 20 segundos por ayudante (`IA_TIMEOUT_MS`).
+
+- **La personalidad** vive en `promptMaestro()` dentro de `ia-core.js`: español
+  mexicano cálido, cero tecnicismos, material listo para usar, respeto al
+  oficio artesanal.
+
 - **La estructura de la respuesta** (tarjeta de publicación, imagen, botones)
   la sigue armando el motor local; el texto de la IA se mete *dentro*. Así la
   redacción es de la IA real pero no se pierde el formato.
-- **n8n sigue usándose para las altas de cuenta** (`WEBHOOK_REGISTRO`) y para
-  el formulario de contacto. Eso es aparte del chat y no se tocó.
+
+- **n8n sigue usándose** para las altas de cuenta (`WEBHOOK_REGISTRO`) y el
+  formulario de contacto. Eso es aparte del chat y no se tocó.
+
+- **Si abres el HTML con doble clic** (sin servidor), no hay `/api/ia` que
+  responda y el chat usa el motor local. Es lo esperado: para la IA real,
+  usa `node backend/servidor.js`.

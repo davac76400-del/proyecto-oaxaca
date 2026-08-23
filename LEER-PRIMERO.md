@@ -2,9 +2,10 @@
 
 **Autor:** David Alfredo Romero Rendón (Oaxaca, México)
 **Fecha de exportación:** 22 de agosto de 2026
-**Estado:** funcional. La IA quedó conectada de forma directa el 23 ago 2026
-(Llama 3.2 → Gemini Flash → motor local). Solo falta que el autor pegue sus dos
-llaves gratuitas: ver `docs/06-ia-directa.md`.
+**Estado:** funcional. La IA quedó conectada el 23 ago 2026 con un backend
+propio (Llama 3.2 → Gemini Flash → motor local) y las llaves fuera del
+navegador. Solo falta que el autor pegue sus dos llaves gratuitas en `.env`:
+ver `docs/06-ia-directa.md`.
 
 ---
 
@@ -50,10 +51,17 @@ OaxIntegra-Export/
 │   ├── 05-arquitectura-tecnica.md
 │   └── 06-ia-directa.md              ← CÓMO ENCENDER LA IA
 │
+├── .env.example                     ← plantilla de llaves (cópiala a .env)
+├── netlify.toml                     ← configuración de Netlify
+├── api/ia.js                        ← el asistente, para Vercel
+├── netlify/functions/ia.js          ← el asistente, para Netlify
+│
 ├── backend/                         ← IA, webhooks, base de datos
+│   ├── ia-core.js                   ← EL CEREBRO. Aquí viven las llaves.
+│   ├── servidor.js                  ← servidor local (app + asistente)
 │   ├── n8n-webhooks.md              ← URLs reales y configuración
-│   ├── ai_service_directo.js        ← alternativa SIN n8n (recomendada)
-│   ├── ai_service_directo.py        ← lo mismo en Python
+│   ├── ai_service_directo.js        ← RETIRADO (exponía la llave)
+│   ├── ai_service_directo.py        ← alternativa opcional en Python
 │   ├── schema.sql                   ← esquema para migrar de localStorage
 │   └── n8n-flujo-ejemplo.json       ← flujo n8n importable
 │
@@ -83,15 +91,27 @@ cd frontend
 npm install
 python3 build.py        # regenera dist/OaxIntegra-IA-app.html
 ```
+
+**Para probarla con la IA de verdad:**
+```bash
+node backend/servidor.js    # y abre http://localhost:3000
+```
 Nunca edites `dist/`. Edita `frontend/app.src.html` y reconstruye.
 
 ---
 
 ## La IA: qué falta para encenderla
 
-Ya está conectada de forma directa, sin n8n: **Llama 3.2 (gratis) → Gemini
-Flash (gratis) → motor local**. Falta un paso de 5 minutos que solo tú puedes
-hacer: sacar las dos llaves gratuitas y pegarlas en `CONFIG_IA`.
+Ya está conectada, sin n8n: **Llama 3.2 (gratis) → Gemini Flash (gratis) →
+motor local**. Las llaves viven en el servidor, nunca en el HTML.
+
+Falta un paso de 5 minutos que solo tú puedes hacer:
+
+```bash
+cp .env.example .env        # y pega tus dos llaves gratuitas adentro
+cd frontend && python3 build.py && cd ..
+node backend/servidor.js    # abre http://localhost:3000
+```
 
 Paso a paso en **`docs/06-ia-directa.md`**.
 

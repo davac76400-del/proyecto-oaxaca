@@ -8,13 +8,14 @@ Hecho. Se sacó n8n del chat y ahora la IA es directa:
 Ver `logs/bug-tracker.md` → BUG-13 y la guía completa en
 `docs/06-ia-directa.md`.
 
+Las llaves viven en el servidor (`.env`), nunca en el HTML.
+
 **Lo único que falta, y te toca a ti (5 minutos):**
 1. Saca tu llave gratis de Llama en https://openrouter.ai/keys
 2. Saca tu llave gratis de Gemini en https://aistudio.google.com/apikey
-3. Pégalas en `CONFIG_IA` dentro de `frontend/app.src.html`
-4. `cd frontend && python3 build.py`
-5. Sube `dist/OaxIntegra-IA-app.html` a Netlify Drop (no la pruebes con
-   doble clic)
+3. `cp .env.example .env` y pégalas ahí
+4. `cd frontend && python3 build.py && cd ..`
+5. `node backend/servidor.js` y abre http://localhost:3000
 
 Mientras no pongas las llaves, la app funciona igual pero con el motor
 local, y la insignia dice "Modo local".
@@ -68,9 +69,13 @@ Opciones:
 - Servir la imagen como archivo aparte (rompe el "un solo archivo", consultar
   con el autor primero)
 
-### Seguridad real
-Los códigos están en texto plano en localStorage. Cualquiera con acceso al
-navegador los ve. Para producción: backend + bcrypt. Ver `backend/schema.sql`.
+### Seguridad real de las cuentas
+Los códigos de acceso siguen en texto plano en localStorage. Cualquiera con
+acceso al navegador los ve. Para producción: backend + bcrypt. Ver
+`backend/schema.sql`.
+
+(Las llaves de la IA **ya no** tienen este problema: se movieron al servidor
+el 23 ago 2026. Ver BUG-15.)
 
 ### Accesibilidad
 - Revisar contraste con herramienta automática (WCAG AA)

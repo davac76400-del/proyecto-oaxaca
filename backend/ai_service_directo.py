@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-OaxIntegra IA — Servicio de IA en Python
-=========================================
+OaxIntegra IA — Servicio de IA en Python (ALTERNATIVA OPCIONAL)
+================================================================
+NOTA (23 ago 2026): el backend oficial del proyecto es ahora
+`backend/ia-core.js` (Node), que es el que usan el servidor local, Netlify y
+Vercel, y el que implementa la cadena Llama 3.2 → Gemini Flash.
+
+Este archivo se conserva como alternativa por si algún día prefieres levantar
+el backend en Python. Es seguro (la clave vive en el servidor, no en el
+navegador), pero usa otros proveedores y no comparte la lógica con el resto.
+Si lo usas, apunta `CONFIG_IA.ENDPOINT` de la app a esta dirección.
+
 Backend mínimo con FastAPI que sirve de puente entre la página y la IA.
 Mantiene la clave de API en el servidor (segura, no expuesta al navegador)
 y resuelve CORS de una vez por todas.

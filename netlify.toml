@@ -1,0 +1,21 @@
+# OaxIntegra IA — configuración de Netlify
+#
+# Las llaves NO van aquí. Se ponen en:
+#   Site settings → Environment variables
+
+[build]
+  # La app ya viene construida en dist/ (se hace con: cd frontend && python3 build.py)
+  publish   = "dist"
+  functions = "netlify/functions"
+
+# Que la app se abra sola al entrar al sitio
+[[redirects]]
+  from = "/"
+  to   = "/OaxIntegra-IA-app.html"
+  status = 200
+
+# Para que el navegador pueda llamar a /api/ia igual que en tu computadora
+[[redirects]]
+  from = "/api/ia"
+  to   = "/.netlify/functions/ia"
+  status = 200
