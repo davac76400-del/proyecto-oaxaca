@@ -99,6 +99,19 @@ También pide un servidor local para no tener que publicar en cada prueba:
 `node backend/servidor.js` sirve la app y el asistente en el mismo origen, con
 lo que caen de golpe el problema de CORS y el del `file://`.
 
+**20 · Rediseño prístino y herramientas nativas (23 ago 2026).** El autor pide
+un cambio grande: blanco puro y contraste alto, relieve 3D tipo claymorphism,
+textil oaxaqueño de fondo al 4 %, tipografía Inter, y acentos vivos de alebrije
+solo en detalles. Se conserva Playfair para los títulos (es la marca) y el modo
+noche completo. El tutorial sale de la caja del chat y pasa a una «Guía
+Interactiva» de seis tarjetas deslizables en su propia ventana. Se agregan
+tres herramientas hechas solo con lo que trae el navegador: dictado por voz
+(Web Speech API), simulador de ganancias con barra deslizante, y exportación de
+la respuesta a PDF con membrete (`window.print()` + `@media print`). Además,
+«¿Sabías qué?» rotando solo, la insignia pasa a decir «IA ACTIVA», se quitan
+las cajas amarillas de alarma y el pie ya no menciona n8n. Tres bugs salieron
+durante la propia verificación: BUG-17, BUG-18 y BUG-19.
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

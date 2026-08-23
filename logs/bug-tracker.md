@@ -421,6 +421,75 @@ Día `#F7F0E2` (casi idéntico al crema anterior, no cambia el diseño), noche
 
 ---
 
+## BUG-17 · La hoja de impresión salía en blanco ✅ RESUELTO (23 ago 2026)
+
+**Síntoma:** al pulsar «Descargar en PDF», la vista de impresión salía
+completamente vacía.
+
+**Causa:** el CSS marcaba la tarjeta con `position:absolute; left:0; top:0`
+esperando mandarla al inicio de la hoja. Pero `absolute` posiciona respecto al
+**ancestro posicionado más cercano**, no respecto a la página: la tarjeta del
+chat vive dentro de varios contenedores ya posicionados, así que acababa fuera
+de la primera página.
+
+**Solución:** no imprimir la tarjeta en su sitio. Hay un `<div id="hoja-print">`
+vacío colgando directo de `<body>`; al exportar se **copia** ahí la tarjeta
+(copia, no se mueve, para no dejar la original sin botones), y el papel oculta
+todo lo demás con `body > *{ display:none }`.
+
+**Segundo problema encontrado en la misma prueba:** imprimir desde el modo
+noche daba **texto blanco sobre papel blanco**. Se resolvió redefiniendo las
+variables de color a la paleta clara dentro de `@media print #hoja-print{…}`,
+en vez de forzar colores fijos.
+
+**Lección:** para imprimir un elemento suelto, muévelo (o cópialo) a la raíz
+del `<body>`. Posicionarlo donde está es pelearse con el árbol de contenedores.
+
+---
+
+## BUG-18 · Un bloque de CSS nuevo no se aplicaba ✅ RESUELTO (23 ago 2026)
+
+**Síntoma:** el carrusel de la guía salía con las seis tarjetas apiladas una
+debajo de otra, sin estilos, aunque el CSS estaba escrito.
+
+**Causa:** el bloque se insertó con un `replace` que buscaba
+`"  /*__TAILWIND__*/"` **con dos espacios de sangría**. En el archivo el
+marcador está en su propia línea, sin sangría:
+`<style>/*__TAILWIND__*/</style>`. El `replace` no encontró nada, devolvió el
+texto igual y **el script imprimió "listo" de todos modos**.
+
+**Solución:** insertar el CSS al final del bloque `<style>` propio (el que va
+después de Tailwind, para que gane en especificidad).
+
+**Lección para quien edite con scripts:** todo `replace` sobre este archivo
+debe ir con `assert`. Un `replace` que no encuentra su objetivo **no falla**:
+se queda callado y te deja creyendo que funcionó.
+
+---
+
+## BUG-19 · La cabecera se desbordaba ✅ RESUELTO (23 ago 2026)
+
+**Síntoma:** al agregar el botón «Guía Interactiva», el contenido de la
+cabecera medía 1445 px dentro de un contenedor de 1280 px. El chip con el
+nombre de la cuenta y el botón de salir quedaban **fuera de la pantalla**.
+
+**Solución, en tres partes:**
+1. Se quitó del escritorio el botón largo «Contáctanos si hay un problema»:
+   duplicaba el enlace «Contacto» que tenía justo al lado, y sigue estando en
+   el menú del celular y en la sección de contacto.
+2. El menú de escritorio ahora aparece a partir de **1024 px** (antes 768),
+   que es donde de verdad cabe.
+3. `white-space:nowrap` en los enlaces, para que no se partan en dos líneas.
+
+**Efecto secundario que hubo que atender:** al subir el corte a 1024 px, entre
+768 y 1023 se pasó a usar el menú desplegable, **que no tenía selector de
+tema**. Se le agregó uno.
+
+**Verificado** en 360, 390, 768, 900, 1100, 1280, 1440 y 1600 px: la cabecera
+cabe en una línea y nada se sale.
+
+---
+
 ## Resumen
 
 | # | Problema | Estado |
@@ -441,3 +510,6 @@ Día `#F7F0E2` (casi idéntico al crema anterior, no cambia el diseño), noche
 | 14 | Barra superior clara en modo noche | ✅ |
 | 15 | **Llaves de la IA visibles en el HTML** | ✅ resuelto — se movieron al backend |
 | 16 | No se podía probar sin publicar | ✅ resuelto — servidor local |
+| 17 | Hoja de impresión en blanco | ✅ |
+| 18 | Bloque de CSS que no se aplicaba | ✅ |
+| 19 | Cabecera desbordada | ✅ |

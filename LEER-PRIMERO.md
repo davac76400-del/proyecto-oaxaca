@@ -49,7 +49,8 @@ OaxIntegra-Export/
 │   ├── 03-assets-chapulin.md
 │   ├── 04-auth-flow.md
 │   ├── 05-arquitectura-tecnica.md
-│   └── 06-ia-directa.md              ← CÓMO ENCENDER LA IA
+│   ├── 06-ia-directa.md              ← CÓMO ENCENDER LA IA
+│   └── 07-herramientas-nativas.md    ← guía, voz, simulador, PDF
 │
 ├── .env.example                     ← plantilla de llaves (cópiala a .env)
 ├── netlify.toml                     ← configuración de Netlify

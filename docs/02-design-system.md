@@ -1,5 +1,11 @@
 # Sistema de diseño — OaxIntegra IA
 
+> **ACTUALIZADO EL 23 DE AGOSTO DE 2026.** El modo día pasó a una paleta
+> **blanca prístina de alto contraste** y los componentes tomaron un relieve
+> 3D suave (claymorphism). La arquitectura de variables RGB **no cambió**:
+> sigue siendo la misma y sigue siendo obligatoria. El modo noche se conserva
+> tal cual. Los cambios están al final, en «Actualización 2026».
+
 ## Filosofía: "Futurismo Raíz"
 
 Fusión de artesanía oaxaqueña con estética de interfaz de IA moderna.
@@ -199,3 +205,102 @@ fijos y no seguían el tema**. Fue el BUG-08. No las reemplaces por utilidades.
 - `.revela`: `opacity 0→1` + `translateY(22px)→0` en `.8s ease`
 - El chapulín conserva su animación de vuelo/lucecita — **elemento protegido,
   el autor pidió repetidamente que nunca se elimine ni se sustituya**
+
+
+---
+
+# ACTUALIZACIÓN 2026 · Blanco prístino, 3D y textil
+
+## Paleta MODO DÍA (reemplaza a la tabla de arriba)
+
+Estética: papel blanco, contraste alto, cero difuminado.
+Cada acento se eligió para leerse sobre blanco con al menos **4.5:1 (WCAG AA)**.
+
+| Variable | Canales RGB | Hex | Contraste sobre blanco | Uso |
+|---|---|---|---|---|
+| `--obsidiana` | `248 249 250` | `#F8F9FA` | — | Fondo general |
+| `--barro` | `255 255 255` | `#FFFFFF` | — | Tarjetas |
+| `--barroalto` | `255 255 255` | `#FFFFFF` | — | Cabecera y superficies elevadas |
+| `--borde` | `226 232 240` | `#E2E8F0` | — | Bordes |
+| `--texto` | `17 24 39` | `#111827` | 16.9:1 | Texto principal |
+| `--tenue` | `71 85 105` | `#475569` | 7.4:1 | Texto secundario |
+| `--cian` | `14 116 144` | `#0E7490` | 4.9:1 | Acento principal |
+| `--rosa` | `190 24 93` | `#BE185D` | 6.4:1 | Magenta alebrije |
+| `--violeta` | `109 40 217` | `#6D28D9` | 6.9:1 | Acento secundario |
+| `--verde` | `21 128 61` | `#15803D` | 4.6:1 | Confirmaciones |
+| `--ambar` | `161 98 7` | `#A16207` | 4.8:1 | Mostaza alebrije |
+| `--naranja` | `194 65 12` | `#C2410C` | 4.9:1 | Terracota |
+
+**Los colores vivos de alebrije** (`--cian-vivo` `#06B6D4`, magenta, mostaza)
+se usan **solo en detalles**: bordes al pasar el cursor, resplandores, iconos
+con degradado. Nunca como fondo de un texto largo.
+
+## Tokens nuevos
+
+```css
+--sombra-suave:0 10px 25px rgba(17,24,39,.05);   /* reposo */
+--sombra-media:0 14px 34px rgba(17,24,39,.09);   /* al pasar el cursor */
+--sombra-alta:0 22px 48px rgba(17,24,39,.14);    /* elevado */
+--radio:14px;        /* botones y campos */
+--radio-card:20px;   /* tarjetas y ventanas */
+```
+
+El modo noche define **los mismos tokens** con sombras más oscuras. Por eso
+todo el relieve funciona igual en los dos temas sin escribir un solo color fijo.
+
+## Tipografía
+
+```css
+--sans:    'Inter', system-ui, sans-serif;         /* cuerpo e interfaz */
+--display: 'Playfair Display', Georgia, serif;     /* títulos — sigue siendo la marca */
+```
+
+`Plus Jakarta Sans` se sustituyó por **Inter** en todo el cuerpo. Playfair
+Display se conservó en los títulos grandes: es parte de la identidad y no se
+pidió quitarla.
+
+## Relieve 3D (claymorphism)
+
+Todos los botones y tarjetas comparten el mismo lenguaje:
+
+```css
+box-shadow: var(--sombra-media), inset 0 1px 0 rgba(255,255,255,.22);
+/* al pasar el cursor: */
+transform: translateY(-3px);
+box-shadow: var(--sombra-alta), 0 0 0 3px color-mix(in srgb, var(--cian-vivo) 26%, transparent);
+```
+
+La luz interior de arriba (`inset`) es lo que da la sensación táctil; la sombra
+proyectada da la altura.
+
+## Textil oaxaqueño de fondo
+
+Se reutilizan las máscaras de greca que ya existían, a **opacidad 4%**:
+
+```css
+.sabias::before, .tarjeta::before{
+  background-color: rgb(var(--violeta));
+  mask-image: var(--greca-fondo); mask-repeat: repeat;
+  opacity: .04;          /* sube a .09 al pasar el cursor en las tarjetas */
+}
+```
+
+Acompaña sin estorbar la lectura, que era la condición.
+
+## Componentes nuevos
+
+| Clase | Qué es |
+|---|---|
+| `.btn-guia` | Botón "Guía Interactiva" (degradado violeta→magenta, 3D) |
+| `.boton-enviar` / `.boton-micro` | Botones del chat; el micrófono late en magenta al escuchar |
+| `.guia-pista` / `.guia-riel` / `.guia-tarjeta` | Carrusel de la guía |
+| `.guia-puntos` / `.guia-punto` | Indicadores de posición (los reusa "¿Sabías qué?") |
+| `.sabias` / `.sabias-dato` / `.sabias-cifra` | Tarjeta de datos que rota sola |
+| `.simulador` / `.sim-caja` / `.sim-cifra` | Simulador de ganancias |
+| `#hoja-print` / `.membrete-print` | Hoja de impresión y su membrete |
+
+## Regla que no cambia
+
+Sigue prohibido escribir un color fijo. Todo va con `rgb(var(--x))` o
+`color-mix` sobre una variable. Fue el BUG-08, el BUG-09 y el BUG-14; los tres
+por lo mismo.
