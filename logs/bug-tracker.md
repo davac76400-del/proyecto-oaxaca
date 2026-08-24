@@ -724,6 +724,62 @@ mal; al mirarlo de verdad, la prueba tenía razón.
 
 ---
 
+## BUG-30 · En celular, los botones debajo de un campo vacío no respondían ✅ RESUELTO (24 ago 2026)
+
+**Síntoma:** en un teléfono, tocas «Olvidé mi código» y no pasa nada. Lo tocas
+otra vez y ahí sí. En computadora funcionaba siempre.
+
+**Causa, y costó encontrarla.** Midiendo la posición del botón en cada evento
+del toque salió esto:
+
+```
+pointerdown  →  botón en y=684,  página de 811 px
+touchend     →  botón en y=684
+click        →  botón en y=711,  página de 837 px   ← creció 26px
+```
+
+Al tocar el botón, el campo del correo pierde el foco. El `blur` lo valida,
+está vacío, y aparece el mensaje de error. Ese mensaje **añade 26 px de alto**
+justo entre el `touchend` y el `click`. Para cuando el navegador decide sobre
+qué elemento se hizo clic, el botón ya se movió 27 px hacia abajo y el dedo
+cae en el margen de arriba: el `click` llega al `<div>` contenedor.
+
+El segundo toque sí funciona porque el error ya está puesto y nada se mueve.
+
+**Arreglo, por los dos lados:**
+
+1. El `blur` ya no valida un campo que está vacío y que nadie llegó a tocar.
+   Además de arreglar esto, es mejor trato: nadie quiere que le reclamen un
+   campo que ni escribió.
+2. `.error-campo` reserva su renglón siempre (`min-height` y, cuando está
+   oculto, `visibility:hidden` en vez de `display:none`). Aunque el mensaje
+   aparezca, nada se mueve.
+
+**Por qué casi se me escapa.** Al principio parecía cosa de la herramienta de
+pruebas: `elementFromPoint` decía que el botón estaba ahí, y un clic disparado
+por JavaScript funcionaba. Lo que lo destapó fue probar con **un toque de
+verdad** (`devices['Pixel 5']` con pantalla táctil): también fallaba. Ahí quedó
+claro que era la app, no la prueba.
+
+---
+
+## BUG-31 · La portada no cabía en una pantalla de celular ✅ RESUELTO (24 ago 2026)
+
+**Síntoma:** en un teléfono de 844 px de alto, la portada medía 1148. Los
+botones de abajo quedaban fuera de la vista. Se podía desplazar, pero la
+tarjeta se ve completa y nadie lo intenta.
+
+**Causa:** el bloque de la marca (el chapulín en su tarjeta, el título grande y
+el párrafo) ocupaba casi la mitad, y al apilarse encima del formulario en
+pantallas angostas empujaba todo hacia abajo. Además, ocho casillas en 390 px
+salen a 33 px cada una y la letra de 1.6rem no cabía.
+
+**Arreglo:** en pantallas cortas y angostas el bloque de la marca se aprieta
+(chapulín más chico, sin el párrafo) y las casillas de ocho usan letra más
+pequeña. La portada pasó de 1148 px a 844: cabe justa, sin desplazar.
+
+---
+
 ## Resumen
 
 | # | Problema | Estado |
@@ -757,3 +813,5 @@ mal; al mirarlo de verdad, la prueba tenía razón.
 | 27 | En celular no se podía cerrar sesión | ✅ |
 | 28 | El enlace no servía con la app ya abierta | ✅ |
 | 29 | «Mi perfil» era inalcanzable estando dentro | ✅ |
+| 30 | En celular, los botones bajo un campo vacío eran intocables | ✅ |
+| 31 | La portada no cabía en pantalla de celular | ✅ |

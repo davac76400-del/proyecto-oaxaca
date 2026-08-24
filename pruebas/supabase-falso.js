@@ -1,21 +1,20 @@
 /* Supabase de mentiras, para probar el acceso sin tocar el de verdad.
-   Responde a lo que usa la app: pedir código, verificarlo, leer el perfil,
-   y las tres funciones de 001_perfiles.sql. */
+   Imita lo que usa la app: mandar el código, verificarlo, fijar la
+   contraseña, entrar con ella, y las funciones de las migraciones. */
 const http = require('http');
+const { randomInt } = require('crypto');
 
 const ANON = process.argv[2] || 'anon';
 const PUERTO = Number(process.env.PUERTO_FALSO || 54321);
+const LARGO = 8;                    // Email OTP Length en Supabase
+const MINIMO_CONTRASENA = 6;
 
-let ultimoCodigo = null, ultimoEnlace = null;
-/* Todos los códigos que se han emitido, para poder comprobar en la prueba
-   que nunca se repiten y que los viejos dejan de servir. */
+let ultimoCodigo = null;
 const CODIGOS_EMITIDOS = [];
 
-/* Como el de verdad: uno nuevo, al azar, cada vez que se pide.
-   Supabase usa un generador criptográfico; aquí basta con que cambie. */
+/* Como el de verdad: uno nuevo, al azar, cada vez que se pide. */
 function nuevoCodigo() {
-  const { randomInt } = require('crypto');
-  return String(randomInt(0, 1000000)).padStart(6, '0');
+  return String(randomInt(0, Math.pow(10, LARGO))).padStart(LARGO, '0');
 }
 
 const USUARIO = {
@@ -24,13 +23,13 @@ const USUARIO = {
   created_at: '2026-01-15T10:00:00Z',
   user_metadata: {}
 };
-/* La "tabla" perfiles: id -> { usuario, giro, giro_texto, tiene_codigo } */
-let PERFILES = {};
-/* La "contraseña" (el código de seguridad). En Supabase va cifrada con
-   bcrypt en auth.users; aquí, para probar, basta con guardarla tal cual. */
-let CONTRASENA = null;
-const MINIMO_CONTRASENA = 6;   // el mínimo que trae Supabase de fábrica
-/* Usuarios ya tomados por OTRA gente, para probar el choque de nombres. */
+
+let PERFILES = {};          // id -> { usuario, giro, giro_texto, tiene_recuperacion }
+let CONTRASENA = null;      // el código de entrada, ya fijado
+let RECUPERACION = null;    // el código de recuperación (en Supabase iría cifrado)
+let FALLOS_REC = 0;
+
+/* Usuarios que ya tiene otra gente, para probar el choque de nombres. */
 const TOMADOS = new Set(['MariaTelar23']);
 
 function json(res, codigo, datos) {
@@ -57,30 +56,34 @@ http.createServer((req, res) => {
     /* --- ayudas solo para la prueba (no existen en Supabase) --- */
     if (url.pathname === '/__ultimo') {
       return json(res, 200, {
-        codigo: ultimoCodigo, enlace: ultimoEnlace, correo: USUARIO.email,
+        codigo: ultimoCodigo, correo: USUARIO.email,
         emitidos: CODIGOS_EMITIDOS.slice(),
         hayContrasena: CONTRASENA !== null,
-        /* Solo para la prueba: comprobar que NUNCA se guarda en claro
-           en el navegador. En Supabase esto no existe. */
-        largoContrasena: CONTRASENA ? CONTRASENA.length : 0
+        hayRecuperacion: RECUPERACION !== null,
+        /* Solo para comprobar que nada de esto acaba en el navegador. */
+        contrasena: CONTRASENA, recuperacion: RECUPERACION
       });
     }
     if (url.pathname === '/__reset') {
-      ultimoCodigo = null; ultimoEnlace = null; CODIGOS_EMITIDOS.length = 0;
+      ultimoCodigo = null; CODIGOS_EMITIDOS.length = 0;
       USUARIO.email = ''; USUARIO.user_metadata = {};
-      PERFILES = {}; CONTRASENA = null;
+      PERFILES = {}; CONTRASENA = null; RECUPERACION = null; FALLOS_REC = 0;
       return json(res, 200, { ok: true });
     }
 
-    const apikey = req.headers['apikey'];
-    if (apikey !== ANON) return json(res, 401, { msg: 'No API key found in request' });
+    if (req.headers['apikey'] !== ANON) return json(res, 401, { msg: 'No API key found in request' });
 
     const aut = req.headers['authorization'] || '';
     const conSesion = aut === 'Bearer TOKEN_BUENO' || aut === 'Bearer TOKEN_NUEVO';
     let datos = {};
     try { datos = cuerpo ? JSON.parse(cuerpo) : {}; } catch (e) { datos = {}; }
 
-    /* ---------------- 1. pedir el código ---------------- */
+    const sesionNueva = () => ({
+      access_token: 'TOKEN_BUENO', refresh_token: 'REFRESCO',
+      expires_in: 3600, token_type: 'bearer', user: USUARIO
+    });
+
+    /* ---------------- pedir el código ---------------- */
     if (url.pathname === '/auth/v1/otp' && req.method === 'POST') {
       if (!datos.email || datos.email.indexOf('@') === -1) {
         return json(res, 400, { msg: 'Unable to validate email address: invalid format' });
@@ -91,35 +94,26 @@ http.createServer((req, res) => {
       USUARIO.email = datos.email;
       ultimoCodigo = nuevoCodigo();
       CODIGOS_EMITIDOS.push(ultimoCodigo);
-      ultimoEnlace = (url.searchParams.get('redirect_to') || '') +
-        '#access_token=TOKEN_BUENO&refresh_token=REFRESCO&expires_in=3600&token_type=bearer&type=magiclink';
       console.log('[falso] código para ' + datos.email + ' → ' + ultimoCodigo);
       return json(res, 200, {});
     }
 
-    /* ---------------- 2. comprobar el código ---------------- */
+    /* ---------------- comprobar el código ---------------- */
     if (url.pathname === '/auth/v1/verify' && req.method === 'POST') {
-      /* Solo vale el ÚLTIMO. Pedir otro código invalida el anterior, igual
-         que en Supabase: si no, un código viejo seguiría abriendo la cuenta. */
-      if (datos.token !== ultimoCodigo) {
+      /* Solo vale el último, como en Supabase. */
+      if (datos.token !== ultimoCodigo || datos.email !== USUARIO.email) {
         return json(res, 403, { msg: 'Token has expired or is invalid' });
       }
-      if (datos.email !== USUARIO.email) {
-        return json(res, 403, { msg: 'Token has expired or is invalid' });
-      }
-      return json(res, 200, {
-        access_token: 'TOKEN_BUENO', refresh_token: 'REFRESCO',
-        expires_in: 3600, token_type: 'bearer', user: USUARIO
-      });
+      return json(res, 200, sesionNueva());
     }
 
-    /* ---------------- 3. quién soy ---------------- */
+    /* ---------------- quién soy ---------------- */
     if (url.pathname === '/auth/v1/user' && req.method === 'GET') {
       if (!conSesion) return json(res, 401, { msg: 'invalid claim: missing sub claim' });
       return json(res, 200, USUARIO);
     }
 
-    /* ---------------- 3b. poner o cambiar la contraseña ---------------- */
+    /* ---------------- fijar la contraseña ---------------- */
     if (url.pathname === '/auth/v1/user' && req.method === 'PUT') {
       if (!conSesion) return json(res, 401, { msg: 'invalid claim: missing sub claim' });
       if (typeof datos.password === 'string') {
@@ -127,40 +121,32 @@ http.createServer((req, res) => {
           return json(res, 422, { msg: 'Password should be at least ' + MINIMO_CONTRASENA + ' characters' });
         }
         CONTRASENA = datos.password;
-        console.log('[falso] código de seguridad guardado (' + datos.password.length + ' números)');
+        console.log('[falso] código de entrada fijado (' + datos.password.length + ' números)');
       }
       if (datos.data) { USUARIO.user_metadata = Object.assign({}, USUARIO.user_metadata, datos.data); }
       return json(res, 200, USUARIO);
     }
 
-    /* ---------------- 4. renovar, o entrar con contraseña ---------------- */
+    /* ---------------- entrar con contraseña, o renovar ---------------- */
     if (url.pathname === '/auth/v1/token' && req.method === 'POST') {
-      const tipo = url.searchParams.get('grant_type');
-
-      if (tipo === 'password') {
-        /* Igual que Supabase: si el correo o la contraseña no cuadran, el
-           mismo error para los dos. Distinguirlos diría si esa cuenta existe. */
+      if (url.searchParams.get('grant_type') === 'password') {
+        /* El mismo error para correo malo y código malo: distinguirlos diría
+           si esa cuenta existe. */
         if (!CONTRASENA || datos.email !== USUARIO.email || datos.password !== CONTRASENA) {
           return json(res, 400, { error: 'invalid_grant', error_description: 'Invalid login credentials' });
         }
-        return json(res, 200, {
-          access_token: 'TOKEN_BUENO', refresh_token: 'REFRESCO',
-          expires_in: 3600, token_type: 'bearer', user: USUARIO
-        });
+        return json(res, 200, sesionNueva());
       }
-
       if (datos.refresh_token !== 'REFRESCO') return json(res, 401, { msg: 'Invalid Refresh Token' });
       return json(res, 200, { access_token: 'TOKEN_NUEVO', refresh_token: 'REFRESCO', expires_in: 3600 });
     }
 
     if (url.pathname === '/auth/v1/logout') return json(res, 204, {});
 
-    /* ---------------- 5. leer el perfil (RLS: solo el suyo) ---------------- */
+    /* ---------------- leer el perfil (RLS: solo el suyo) ---------------- */
     if (url.pathname === '/rest/v1/perfiles' && req.method === 'GET') {
       if (!conSesion) return json(res, 401, { message: 'JWT expired' });
       const p = PERFILES[USUARIO.id] || null;
-      /* Con Accept: application/vnd.pgrst.object+json devuelve el objeto solo,
-         y 406 si no hay fila. La app trata eso como «todavía no hay perfil». */
       if ((req.headers['accept'] || '').indexOf('pgrst.object') !== -1) {
         if (!p) return json(res, 406, { message: 'JSON object requested, multiple (or no) rows returned' });
         return json(res, 200, p);
@@ -168,16 +154,13 @@ http.createServer((req, res) => {
       return json(res, 200, p ? [p] : []);
     }
 
-    /* ---------------- 6. las funciones de la base ---------------- */
+    /* ---------------- las funciones de la base ---------------- */
+    // usuario_libre: se puede sin sesión, porque al registrarse todavía no hay
     if (url.pathname === '/rest/v1/rpc/usuario_libre' && req.method === 'POST') {
-      if (!conSesion) return json(res, 401, { message: 'JWT expired' });
       const n = datos.nombre;
       if (!reglaUsuario(n)) return json(res, 200, false);
       const mio = (PERFILES[USUARIO.id] || {}).usuario;
-      const chocado = TOMADOS.has(n) ||
-        Object.keys(PERFILES).some(k => k !== USUARIO.id &&
-          String(PERFILES[k].usuario || '').toLowerCase() === n.toLowerCase());
-      return json(res, 200, !chocado || (mio && mio.toLowerCase() === n.toLowerCase()));
+      return json(res, 200, !TOMADOS.has(n) || (mio && mio.toLowerCase() === n.toLowerCase()));
     }
 
     if (url.pathname === '/rest/v1/rpc/fijar_usuario' && req.method === 'POST') {
@@ -186,14 +169,8 @@ http.createServer((req, res) => {
       if (!reglaUsuario(n)) return json(res, 200, { ok: false, motivo: 'formato' });
       if (TOMADOS.has(n)) return json(res, 200, { ok: false, motivo: 'ocupado' });
       PERFILES[USUARIO.id] = Object.assign({}, PERFILES[USUARIO.id], { usuario: n });
-      console.log('[falso] usuario fijado → ' + n);
+      console.log('[falso] usuario → ' + n);
       return json(res, 200, { ok: true, usuario: n });
-    }
-
-    if (url.pathname === '/rest/v1/rpc/marcar_codigo' && req.method === 'POST') {
-      if (!conSesion) return json(res, 401, { message: 'JWT expired' });
-      PERFILES[USUARIO.id] = Object.assign({}, PERFILES[USUARIO.id], { tiene_codigo: !!datos.puesto });
-      return json(res, 200, { ok: true, tiene_codigo: !!datos.puesto });
     }
 
     if (url.pathname === '/rest/v1/rpc/fijar_giro' && req.method === 'POST') {
@@ -201,7 +178,36 @@ http.createServer((req, res) => {
       PERFILES[USUARIO.id] = Object.assign({}, PERFILES[USUARIO.id], {
         giro: datos.clave, giro_texto: datos.texto
       });
-      console.log('[falso] giro → ' + datos.clave);
+      return json(res, 200, { ok: true });
+    }
+
+    if (url.pathname === '/rest/v1/rpc/fijar_recuperacion' && req.method === 'POST') {
+      if (!conSesion) return json(res, 401, { message: 'JWT expired' });
+      if (!/^[0-9]{8}$/.test(String(datos.codigo || ''))) {
+        return json(res, 200, { ok: false, motivo: 'formato' });
+      }
+      RECUPERACION = datos.codigo;    // en Supabase esto va cifrado con bcrypt
+      FALLOS_REC = 0;
+      PERFILES[USUARIO.id] = Object.assign({}, PERFILES[USUARIO.id], { tiene_recuperacion: true });
+      console.log('[falso] código de recuperación guardado');
+      return json(res, 200, { ok: true });
+    }
+
+    // usar_recuperacion: la única sin sesión, porque la usa quien no puede entrar
+    if (url.pathname === '/rest/v1/rpc/usar_recuperacion' && req.method === 'POST') {
+      if (!/^[0-9]{8}$/.test(String(datos.codigo || ''))) {
+        return json(res, 200, { ok: false, motivo: 'no_coincide' });
+      }
+      if (FALLOS_REC >= 5) {
+        return json(res, 200, { ok: false, motivo: 'espera', minutos: 15 });
+      }
+      const mismoCorreo = String(datos.correo || '').toLowerCase() === String(USUARIO.email).toLowerCase();
+      if (!RECUPERACION || !mismoCorreo || datos.codigo !== RECUPERACION) {
+        FALLOS_REC++;
+        return json(res, 200, { ok: false, motivo: 'no_coincide',
+                                restantes: Math.max(0, 5 - FALLOS_REC) });
+      }
+      FALLOS_REC = 0;
       return json(res, 200, { ok: true });
     }
 

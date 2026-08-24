@@ -202,6 +202,30 @@ los tres que cualquiera probaría (todos iguales, en orden, dos repetidos).
 La prueba sube de 46 a 60 comprobaciones, y una de ellas mira el localStorage
 entero para confirmar que el código nunca queda guardado en el navegador.
 
+**26 · Un solo camino para entrar (24 ago 2026).** El autor corrige el diseño
+anterior: no quiere dos opciones de inicio de sesión, sino lo de siempre —
+botón de entrar y botón de registrarse. El código que llega por correo al
+registrarse **es** la contraseña, y el que se elige dentro de la app pasa a ser
+el de **recuperación**, no una segunda puerta.
+
+Lo que no se podía hacer literal: los códigos que manda Supabase son de un solo
+uso y vencen. Se resuelve fijando ese mismo número como contraseña en cuanto se
+comprueba, así que el número que llegó al correo es el que sirve siempre.
+
+Como en Supabase cada cuenta tiene una sola contraseña —ocupada por el código
+de entrada—, el de recuperación se guarda cifrado en `perfiles` con el bcrypt
+de Postgres, y se comprueba dentro de `usar_recuperacion()`, la única función
+que puede llamarse sin sesión: justo la usa quien no puede entrar. Lleva freno
+de 5 intentos y 15 minutos, y contesta lo mismo para un correo que no existe
+que para un código malo, para que no sirva de detector de cuentas.
+
+Probando el flujo salieron **dos bugs de celular** que llevaban ahí sin
+detectarse: BUG-30 (los botones bajo un campo vacío eran intocables porque el
+mensaje de error empujaba el diseño entre el touchend y el click) y BUG-31 (la
+portada medía 1148px contra 844 de pantalla). El primero casi se descarta como
+cosa de la herramienta de pruebas; lo que lo destapó fue probar con un toque de
+verdad, emulando un Pixel 5.
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

@@ -11,11 +11,22 @@ node revisar.js
 
 ---
 
-## ⚠️ 1 · La plantilla del correo — SIN ESTO NO LLEGA NINGÚN CÓDIGO
+## ⚠️ 1 · Que el código sea de 8 números
 
-Supabase manda un **enlace**, no un código, hasta que le digas lo contrario.
+**Authentication → Sign In / Providers → Email:**
 
-**Authentication → Emails → Magic Link**. Ahí se cambian las dos cosas:
+| Ajuste | Ponlo en |
+|---|---|
+| **Email OTP Length** | **8** |
+| **Email OTP Expiration** | **600** (10 minutos) |
+
+Si esto queda en 6, llegarán 6 números y la pantalla pedirá 8.
+
+---
+
+## ⚠️ 2 · La plantilla del correo — SIN ESTO NO LLEGA NINGÚN CÓDIGO
+
+**Authentication → Emails → Magic Link.** Ahí se cambian las dos cosas:
 
 **Asunto:**
 
@@ -26,62 +37,33 @@ Tu código para entrar a OaxIntegra IA
 **Cuerpo:**
 
 ```html
-<p>Hola, somos de OaxIntegra IA y te enviamos este enlace de acceso para entrar a tu cuenta.</p>
+<p>Hola, somos de OaxIntegra IA y te enviamos tu código de acceso.</p>
 
-<p style="font-size:15px">Escribe estos 6 números en la página:</p>
+<p style="font-size:15px">Escribe estos 8 números en la página:</p>
 
 <p style="font-size:34px; font-weight:bold; letter-spacing:8px; margin:18px 0">{{ .Token }}</p>
 
-<p style="font-size:14px">O si prefieres, <a href="{{ .ConfirmationURL }}">entra directo con este enlace</a>.</p>
+<p style="font-size:14px"><b>Guarda este número.</b> Con tu correo y estos 8 números entras siempre.</p>
 
-<p style="font-size:13px; color:#666">
-El código sirve una sola vez y vence en una hora.<br>
-Si no pediste entrar, no hagas nada.
-</p>
+<p style="font-size:13px; color:#666">Si no pediste entrar, no hagas nada.</p>
 ```
 
-`{{ .Token }}` son los 6 números. **Es lo único imprescindible.**
+`{{ .Token }}` son los números. **Es lo único imprescindible.**
 
-> **Ojo, que es importante:** `{{ .Token }}` **no es un número fijo.** Es un
-> hueco que Supabase rellena, al mandar cada correo, con un número recién
-> generado al azar para esa persona. María recibe uno, Pedro otro, y si María
-> pide otro el suyo anterior deja de servir en ese instante.
->
-> Está comprobado en `pruebas/acceso.mjs`: seis peticiones dan seis códigos
-> distintos, y el viejo devuelve 403 en cuanto se pide uno nuevo.
->
-> Y aunque alguien adivinara un código, no le serviría: **el número va al
-> correo de esa persona**, no al de quien lo pide. Aquí no hay «correos
-> secundarios» — la cuenta *es* el correo.
-
-> El nombre va tal cual: **OaxIntegra IA**. (Confirmado el 24 de agosto: lo
-> de «Wax, integra IA» era la marca dictada en voz alta y partida en dos.)
-
----
-
-## 2 · A dónde puede regresar el enlace
-
-**Authentication → URL Configuration → Redirect URLs**, agrega:
-
-```
-http://localhost:3000/**
-```
-
-Y cuando lo publiques, también la dirección real de tu sitio.
+> `{{ .Token }}` **no es un número fijo**: es un hueco que Supabase rellena con
+> uno recién generado al azar para cada persona y cada petición.
 
 ---
 
 ## 3 · Las tablas de la base
 
-Si no las apliqué yo con el conector, pega en el **SQL Editor** de Supabase, **en este orden**, y dale a *Run* a
-cada uno:
+En el **SQL Editor** de Supabase, **en este orden**, dándole a *Run* a cada uno:
 
 1. `backend/migraciones/001_perfiles.sql`
 2. `backend/migraciones/002_codigo_seguridad.sql`
+3. `backend/migraciones/003_recuperacion.sql`
 
-Es copiar y pegar, no hay que entenderlo.
-
-Para comprobar que quedó: **Table Editor** debe mostrar una tabla `perfiles`.
+El 003 depende del 002, y el 002 del 001.
 
 ---
 

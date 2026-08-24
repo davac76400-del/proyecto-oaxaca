@@ -11,22 +11,21 @@
 
 ## Cómo es ahora
 
+Dos botones y **una sola forma de entrar**: correo + un código de 8 números.
+
 ```
-Paso 1 · tu correo   →   Paso 2 · código de 6 números   →   Paso 3 · tu usuario
-   [ correo ]                  ▢ ▢ ▢ ▢ ▢ ▢                  ⚠️ RECUERDA TU USUARIO
-                                                              [ MariaTelar23 ]
+[ Iniciar sesión ]   →   correo + 8 números   →   dentro
+[ Registrarme    ]   →   usuario + correo → te llegan 8 números
+                          → los escribes → ⚠️ GUÁRDALOS → dentro
 ```
 
-No hay contraseña. No hay teléfono. No hay pestañas de «Regístrate» / «Iniciar
-sesión»: **es el mismo camino**. Si el correo no existía, la cuenta se crea sola.
+El código llega por correo al registrarse y **se queda fijado**: no cambia, no
+vence, y con él se entra siempre sin esperar más correos.
 
-El **paso 3 sale solo la primera vez**, y es obligatorio: sin usuario no se
-entra.
+Si se pierde, «Olvidé mi código» pide el **código de recuperación** (8 números
+que la persona eligió dentro de la app) y manda uno de entrada nuevo.
 
-**El código no es una contraseña fija.** Cada vez que entras se manda uno nuevo,
-sirve una sola vez y vence en una hora. Para quien lo usa se siente igual —
-escribe el número que le llegó — pero uno que no cambiara y viajara por correo
-sin cifrar se adivinaría en un rato.
+Todo el detalle en `docs/08-acceso-por-codigo.md`.
 
 ## Por qué se cambió
 

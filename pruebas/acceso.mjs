@@ -1,9 +1,9 @@
 import { chromium } from 'playwright';
 
-const APP   = process.env.APP_URL   || 'http://localhost:3000/';
-const FALSO = process.env.FALSO_URL || 'http://localhost:54321';
+const APP    = process.env.APP_URL   || 'http://localhost:3000/';
+const FALSO  = process.env.FALSO_URL || 'http://localhost:54321';
 const CHROME = process.env.CHROME_PATH || undefined;
-const ANON  = process.env.ANON_KEY || 'anon';
+const ANON   = process.env.ANON_KEY || 'anon';
 
 let fallos = 0, pasos = 0;
 const ok   = t => { pasos++; console.log('  ✓ ' + t); };
@@ -22,9 +22,8 @@ pag.on('console', m => { if (m.type() === 'error') errores.push('[consola] ' + m
 
 const ultimo = async () => (await (await fetch(FALSO + '/__ultimo')).json());
 
-/* Esperar a que algo TENGA texto, en vez de dormir un rato fijo. Con sleeps
-   la prueba fallaba de vez en cuando: si el servidor tardaba más de la cuenta,
-   se leía la caja del error antes de que se escribiera. */
+/* Esperar a que algo tenga texto, en vez de dormir un rato fijo: con sleeps
+   la prueba fallaba cuando el servidor tardaba más que el reloj. */
 const esperarTexto = async (sel, ms = 9000) => {
   await pag.waitForFunction(
     s => { const e = document.querySelector(s); return e && e.textContent.trim().length > 0; },
@@ -33,236 +32,217 @@ const esperarTexto = async (sel, ms = 9000) => {
 };
 
 /* La pista del usuario pasa por «Comprobando si está libre…» antes del
-   veredicto, así que aquí hay que esperar al veredicto, no al primer texto. */
+   veredicto. Y ojo: ese texto TAMBIÉN contiene «libre», así que buscar esa
+   palabra se cumplía sola. El veredicto es lo único que empieza con ✓ o ✗. */
 const esperarPista = async (ms = 9000) => {
   await pag.waitForFunction(() => {
     const e = document.querySelector('#pista-usuario');
-    /* Ojo: «Comprobando si está libre…» también contiene «libre», así que
-       buscar esa palabra se cumplía sola. El veredicto es lo único que
-       empieza con la palomita o la cruz. */
-    return e && !e.hidden && /^[\u2713\u2717]/.test(e.textContent.trim());
+    return e && !e.hidden && /^[✓✗]/.test(e.textContent.trim());
   }, null, { timeout: ms });
   return (await pag.textContent('#pista-usuario')).trim();
 };
 
-// ═══════════════════════════════════════════════ 1
-console.log('\n1 · LA PORTADA');
+const escribir = async (rejilla, codigo) => {
+  for (let i = 0; i < codigo.length; i++) {
+    await pag.fill(`${rejilla} .casilla >> nth=${i}`, codigo[i]);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════ 1
+console.log('\n1 · LA PORTADA: DOS BOTONES, NO DOS FORMAS DE ENTRAR');
 await pag.goto(APP, { waitUntil: 'networkidle' });
 comprobar(await pag.isVisible('#portada'), 'la portada bloquea la entrada');
-comprobar(await pag.isVisible('#correo-acceso'), 'pide el correo');
-comprobar((await pag.textContent('#vista-correo')).includes('Paso 1 de 3'), 'dice «Paso 1 de 3»');
-comprobar(await pag.isVisible('#btn-olvide'), 'hay salida para «Olvidé mi usuario»');
-for (const viejo of ['#reg-telefono', '#reg-lada', '#casillas-wa', '#tab-registro']) {
-  comprobar(await pag.locator(viejo).count() === 0, `ya no existe ${viejo}`);
-}
+comprobar(await pag.isVisible('#btn-ir-entrar'), 'hay «Iniciar sesión»');
+comprobar(await pag.isVisible('#btn-ir-registro'), 'hay «Registrarme»');
+comprobar(await pag.locator('#vista-entrar').isHidden(), 'no se ve el formulario de entrar todavía');
+comprobar(await pag.locator('#vista-registro').isHidden(), 'ni el de registro');
 
-// ═══════════════════════════════════════════════ 2
-console.log('\n2 · CORREO MAL ESCRITO');
-await pag.fill('#correo-acceso', 'no-es-correo');
-await pag.click('#btn-acceso');
-await esperarTexto('#error-correo-acceso');
-comprobar(await pag.isVisible('#error-correo-acceso'), 'avisa que está mal');
-comprobar(await pag.isVisible('#vista-correo'), 'no avanza');
+// ═══════════════════════════════════════════════════════════ 2
+console.log('\n2 · REGISTRARSE');
+await pag.click('#btn-ir-registro');
+await pag.waitForSelector('#vista-registro:not([hidden])', { timeout: 5000 });
+comprobar((await pag.textContent('#vista-registro')).includes('Paso 1 de 3'), 'dice «Paso 1 de 3»');
 
-// ═══════════════════════════════════════════════ 3
-console.log('\n3 · PEDIR EL CÓDIGO');
-await pag.fill('#correo-acceso', 'maria@ejemplo.com');
-await pag.click('#btn-acceso');
-await pag.waitForSelector('#vista-codigo:not([hidden])', { timeout: 6000 });
-ok('pasa a la pantalla del código');
-comprobar((await pag.textContent('#correo-enviado')) === 'maria@ejemplo.com', 'muestra a qué correo se mandó');
-comprobar(await pag.locator('#casillas-codigo .casilla').count() === 6, 'hay 6 casillas');
+await pag.fill('#reg-usuario', 'MariaTelar23');        // ya lo tiene alguien
+const pistaMal = await esperarPista();
+comprobar(/ya lo tiene/i.test(pistaMal), `avisa sin sesión: «${pistaMal.slice(0, 40)}»`);
+
+await pag.fill('#reg-usuario', 'RosaBarro77');
+const pistaOk = await esperarPista();
+comprobar(/libre/i.test(pistaOk), 'y dice cuál sí está libre');
+
+await pag.fill('#reg-correo', 'rosa@ejemplo.com');
+await pag.click('#btn-registro');
+await pag.waitForSelector('#vista-codigo:not([hidden])', { timeout: 8000 });
+ok('pasa a escribir el código');
+comprobar((await pag.textContent('#correo-enviado')) === 'rosa@ejemplo.com', 'muestra a qué correo se mandó');
+comprobar(await pag.locator('#casillas-codigo .casilla').count() === 8, 'son 8 casillas');
+
 const { codigo } = await ultimo();
-comprobar(/^\d{6}$/.test(codigo || ''), `el servidor generó un código de 6 números: ${codigo}`);
+comprobar(/^\d{8}$/.test(codigo || ''), `llegó un código de 8 números: ${codigo}`);
 
-// ═══════════════════════════════════════════════ 3b
-console.log('\n3b · CADA CÓDIGO ES DISTINTO (nadie recibe el mismo)');
-// El miedo legítimo: si el número fuera fijo, cualquiera que lo supiera
-// entraría a la cuenta de cualquiera. Aquí se comprueba que no lo es.
+// ═══════════════════════════════════════════════════════════ 3
+console.log('\n3 · CADA QUIEN RECIBE EL SUYO');
 const vistos = new Set([codigo]);
 for (let i = 0; i < 5; i++) {
   await fetch(`${FALSO}/auth/v1/otp`, {
-    method: 'POST',
-    headers: { apikey: ANON, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: `persona${i}@ejemplo.com`, create_user: true })
+    method: 'POST', headers: { apikey: ANON, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: `otra${i}@ejemplo.com`, create_user: true })
   });
   vistos.add((await ultimo()).codigo);
 }
 comprobar(vistos.size === 6, `6 peticiones → ${vistos.size} códigos distintos`);
-comprobar(![...vistos].some(c => c === '482913'), 'ninguno es un número fijo del código fuente');
 
-// Y el viejo deja de valer en cuanto se pide otro.
-const codigoViejo = codigo;
+// Volver a dejar el correo bueno como el vigente.
 await pag.click('#btn-reenviar');
 await pag.waitForTimeout(1200);
-const codigoNuevo = (await ultimo()).codigo;
-comprobar(codigoNuevo !== codigoViejo, 'al pedir otro, el anterior cambia');
-const rViejo = await fetch(`${FALSO}/auth/v1/verify`, {
-  method: 'POST',
-  headers: { apikey: ANON, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email: 'maria@ejemplo.com', token: codigoViejo, type: 'email' })
-});
-comprobar(rViejo.status === 403, `el código viejo ya no abre nada (HTTP ${rViejo.status})`);
+const CLAVE = (await ultimo()).codigo;
+comprobar(/^\d{8}$/.test(CLAVE), 'se pide otro y llega uno nuevo');
 
-// ═══════════════════════════════════════════════ 4
+// ═══════════════════════════════════════════════════════════ 4
 console.log('\n4 · CÓDIGO EQUIVOCADO');
-await pag.fill('#casillas-codigo .casilla >> nth=0', '0');
-for (let i = 1; i < 6; i++) await pag.fill(`#casillas-codigo .casilla >> nth=${i}`, '0');
+await escribir('#casillas-codigo', '00000000');
 const errMal = await esperarTexto('#error-codigo');
-comprobar(/no coincide|venció|nuevo/i.test(errMal || ''), `lo explica en español: «${(errMal||'').slice(0,46)}…»`);
-comprobar(await pag.isVisible('#vista-codigo'), 'no deja pasar');
+comprobar(/no coincide|venció/i.test(errMal), `lo explica: «${errMal.slice(0, 44)}…»`);
+comprobar(await pag.isVisible('#vista-codigo'), 'y no deja pasar');
 
-// ═══════════════════════════════════════════════ 5
-console.log('\n5 · CÓDIGO CORRECTO → PEDIR USUARIO');
-await pag.waitForTimeout(900);   // el marcarMal limpia solo a los 700ms
-const vigente = (await ultimo()).codigo;   // el de ahora, no el de hace rato
-for (let i = 0; i < 6; i++) await pag.fill(`#casillas-codigo .casilla >> nth=${i}`, vigente[i]);
-await pag.waitForSelector('#vista-usuario:not([hidden])', { timeout: 8000 });
-ok('entra y pide elegir usuario (obligatorio la 1ª vez)');
-comprobar((await pag.textContent('#vista-usuario')).includes('Paso 3 de 3'), 'dice «Paso 3 de 3»');
-const aviso = await pag.textContent('#aviso-recuerda');
-comprobar(/RECUERDA TU USUARIO/.test(aviso), 'el aviso grande dice RECUERDA TU USUARIO');
-comprobar(await pag.isVisible('#portada'), 'todavía NO deja entrar sin usuario');
-
-// ═══════════════════════════════════════════════ 6
-console.log('\n6 · LAS REGLAS DEL USUARIO');
-await pag.fill('#reg-usuario', 'ana');            // corto y sin mayúscula
-await pag.click('#btn-guardar-usuario');
-await esperarTexto('#error-reg-usuario');
-comprobar(await pag.isVisible('#error-reg-usuario'), 'rechaza uno que no cumple');
-comprobar(await pag.isVisible('#vista-usuario'), 'sigue sin dejar pasar');
-
-await pag.fill('#reg-usuario', 'MariaTelar23');   // ya lo tiene alguien
-const pista = await esperarPista();
-comprobar(/ya lo tiene|ocupado/i.test(pista || ''), `avisa mientras escribe: «${(pista||'').slice(0,42)}»`);
-
-await pag.click('#btn-guardar-usuario');
-const errOcupado = await esperarTexto('#error-reg-usuario');
-comprobar(/ya lo tiene/i.test(errOcupado || ''), 'y también al intentar guardarlo');
-
-// ═══════════════════════════════════════════════ 7
-console.log('\n7 · USUARIO BUENO → ADENTRO');
-await pag.fill('#reg-usuario', 'RosaBarro77');
-const pistaOk = await esperarPista();
-comprobar(/libre/i.test(pistaOk || ''), 'dice que está libre');
-await pag.click('#btn-guardar-usuario');
-await pag.waitForSelector('#vista-crear-seguridad:not([hidden])', { timeout: 8000 });
-ok('ofrece poner el código de seguridad');
-
-// ═══════════════════════════════════════════════ 7b
-console.log('\n7b · EL CÓDIGO DE SEGURIDAD (respaldo)');
-comprobar(await pag.locator('#casillas-crear .casilla').count() === 8, 'son 8 casillas, no 6');
-comprobar(/ANÓTALO DONDE NO SE TE PIERDA/.test(await pag.textContent('#vista-crear-seguridad')),
+// ═══════════════════════════════════════════════════════════ 5
+console.log('\n5 · CÓDIGO BUENO → «GUÁRDALO»');
+await pag.waitForTimeout(900);          // marcarMal limpia a los 700ms
+await escribir('#casillas-codigo', CLAVE);
+await pag.waitForSelector('#vista-guardalo:not([hidden])', { timeout: 9000 });
+ok('llega a la pantalla de guardar el código');
+const mostrado = (await pag.textContent('#codigo-guardalo')).replace(/\s/g, '');
+comprobar(mostrado === CLAVE, `enseña el código: ${mostrado}`);
+comprobar(/ANÓTALO DONDE NO SE TE PIERDA/.test(await pag.textContent('#vista-guardalo')),
           'avisa en grande que hay que anotarlo');
+comprobar((await ultimo()).hayContrasena === true,
+          'el código quedó FIJADO como contraseña (si no, mañana no serviría)');
+comprobar((await ultimo()).contrasena === CLAVE, 'y es exactamente el que le llegó al correo');
 
-// Los códigos fáciles se rechazan.
+// ═══════════════════════════════════════════════════════════ 6
+console.log('\n6 · EL CÓDIGO DE RECUPERACIÓN');
+await pag.click('#btn-ya-lo-anote');
+await pag.waitForSelector('#vista-crear-recuperacion:not([hidden])', { timeout: 6000 });
+ok('después de guardarlo, ofrece el de recuperación');
+comprobar(await pag.locator('#casillas-crear-rec .casilla').count() === 8, 'son 8 casillas');
+
 for (const [flojo, porque] of [['11111111', 'todo el mismo número'],
                                ['12345678', 'en orden'],
-                               ['12121212', 'dos números repetidos']]) {
-  for (let i = 0; i < 8; i++) await pag.fill(`#casillas-crear .casilla >> nth=${i}`, flojo[i]);
-  await pag.click('#btn-guardar-seguridad');
-  const e = await esperarTexto('#error-crear-seguridad');
+                               ['12121212', 'dos repetidos']]) {
+  await escribir('#casillas-crear-rec', flojo);
+  await pag.click('#btn-guardar-rec');
+  const e = await esperarTexto('#error-crear-rec');
   comprobar(e.length > 0, `rechaza ${flojo} (${porque})`);
-  await pag.waitForTimeout(850);   // marcarMal limpia a los 700ms
+  await pag.waitForTimeout(850);
 }
 
-// Uno bueno sí pasa.
-const SEGURO = '73920486';
-for (let i = 0; i < 8; i++) await pag.fill(`#casillas-crear .casilla >> nth=${i}`, SEGURO[i]);
-await pag.click('#btn-guardar-seguridad');
+const RECU = '48207391';
+await escribir('#casillas-crear-rec', RECU);
+await pag.click('#btn-guardar-rec');
 await pag.waitForSelector('#portada', { state: 'hidden', timeout: 9000 });
-ok('guarda el código bueno y entra');
-comprobar((await ultimo()).hayContrasena === true, 'quedó guardado en el servidor, no en la app');
-const enNavegador = await pag.evaluate(() => JSON.stringify(localStorage));
-comprobar(!enNavegador.includes(SEGURO), 'y NO quedó guardado en el navegador');
+ok('guarda el bueno y entra');
 comprobar((await pag.textContent('#sesion-nombre')) === 'RosaBarro77', 'lo saluda por su usuario');
+comprobar((await ultimo()).hayRecuperacion === true, 'quedó guardado en el servidor');
 
-// ═══════════════════════════════════════════════ 8
-console.log('\n8 · EL GIRO, YA ADENTRO');
-comprobar(await pag.isVisible('#tira-giro'), 'la tira aparece dentro, no en el acceso');
-await pag.selectOption('#giro-rapido', 'barro');
-await pag.waitForTimeout(800);
-comprobar(await pag.locator('#tira-giro').isHidden(), 'al elegir se va');
+const enNavegador = await pag.evaluate(() => JSON.stringify(localStorage));
+comprobar(!enNavegador.includes(CLAVE), 'el código de entrada NO queda en el navegador');
+comprobar(!enNavegador.includes(RECU), 'el de recuperación tampoco');
 
-// ═══════════════════════════════════════════════ 9
-console.log('\n9 · RECARGAR');
+// ═══════════════════════════════════════════════════════════ 7
+console.log('\n7 · RECARGAR');
 await pag.reload({ waitUntil: 'networkidle' });
 await pag.waitForTimeout(1500);
 comprobar(await pag.locator('#portada').isHidden(), 'sigue dentro');
-comprobar((await pag.textContent('#sesion-nombre')) === 'RosaBarro77', 'y se acuerda del usuario');
-const perfil = await pag.evaluate(() => JSON.parse(localStorage.getItem('oaxintegra.sesion')));
-comprobar(perfil.giroTexto === 'Barro, talla de madera y alebrijes', `el giro viajó con la cuenta: «${perfil.giroTexto}»`);
+comprobar((await pag.textContent('#sesion-nombre')) === 'RosaBarro77', 'y se acuerda de quién es');
 
-// ═══════════════════════════════════════════════ 10
-console.log('\n10 · TOKEN INVÁLIDO');
-await pag.evaluate(() => {
-  const t = JSON.parse(localStorage.getItem('oaxintegra.tokens'));
-  t.access_token = 'PODRIDO'; t.refresh_token = 'PODRIDO'; t.vence = Date.now() + 3600000;
-  localStorage.setItem('oaxintegra.tokens', JSON.stringify(t));
-});
-await pag.reload({ waitUntil: 'networkidle' });
-await pag.waitForTimeout(1800);
-comprobar(await pag.isVisible('#portada'), 'con un token falso NO deja entrar');
-comprobar(await pag.isVisible('#vista-correo'), 'vuelve limpio al paso 1');
-comprobar(await pag.evaluate(() => localStorage.getItem('oaxintegra.sesion')) === null, 'y borra la sesión de mentiras');
-
-// ═══════════════════════════════════════════════ 11
-console.log('\n11 · EL ENLACE DEL CORREO TAMBIÉN SIRVE');
-const { enlace } = await ultimo();
-await pag.goto('about:blank');
-await pag.goto(enlace, { waitUntil: 'networkidle' });
-await pag.waitForSelector('#portada', { state: 'hidden', timeout: 9000 });
-ok('quien prefiera darle clic al enlace, entra igual');
-comprobar(!pag.url().includes('access_token'), 'y el token se borra de la barra de direcciones');
-
-// ═══════════════════════════════════════════════ 12
-console.log('\n12 · VER MI USUARIO CUANDO SE OLVIDA');
-await pag.click('#btn-menu');
-await pag.waitForTimeout(300);
-comprobar(await pag.isVisible('#sesion-chip-movil'), 'en celular la sesión está en el menú');
-await pag.click('#sesion-nombre-movil');
-await pag.waitForTimeout(600);
-const modal = await pag.textContent('body');
-comprobar(/Tu usuario es RosaBarro77/.test(modal), 'desde «Mi perfil» ve su usuario otra vez');
-
-// ═══════════════════════════════════════════════ 12b
-console.log('\n12b · ENTRAR CON EL CÓDIGO DE SEGURIDAD');
+// ═══════════════════════════════════════════════════════════ 8
+console.log('\n8 · ENTRAR CON EL CÓDIGO, SIN CORREO DE POR MEDIO');
 await pag.evaluate(() => localStorage.clear());        // como en otro teléfono
 await pag.goto(APP, { waitUntil: 'networkidle' });
 await pag.waitForTimeout(800);
-comprobar(await pag.isVisible('#btn-usar-seguridad'), 'hay salida «No me llega el correo»');
-await pag.click('#btn-usar-seguridad');
-await pag.waitForSelector('#vista-seguridad:not([hidden])', { timeout: 5000 });
-ok('lleva a la pantalla del código de seguridad');
+await pag.click('#btn-ir-entrar');
+await pag.waitForSelector('#vista-entrar:not([hidden])', { timeout: 5000 });
 
-// Primero uno equivocado.
-await pag.fill('#correo-seguridad', 'maria@ejemplo.com');
-for (let i = 0; i < 8; i++) await pag.fill(`#casillas-seguridad .casilla >> nth=${i}`, '9');
-const errSeg = await esperarTexto('#error-seguridad');
-comprobar(/no coinciden|no pude/i.test(errSeg), `código malo → «${errSeg.slice(0, 44)}…»`);
-comprobar(await pag.isVisible('#portada'), 'y no deja pasar');
+await pag.fill('#correo-entrar', 'rosa@ejemplo.com');
+await escribir('#casillas-entrar', '99999999');
+const errEntrar = await esperarTexto('#error-entrar');
+comprobar(/no coinciden/i.test(errEntrar), `código malo → «${errEntrar.slice(0, 40)}…»`);
 
-// Ahora el bueno.
 await pag.waitForTimeout(900);
-for (let i = 0; i < 8; i++) await pag.fill(`#casillas-seguridad .casilla >> nth=${i}`, SEGURO[i]);
+await escribir('#casillas-entrar', CLAVE);
 await pag.waitForSelector('#portada', { state: 'hidden', timeout: 9000 });
-ok('con el código bueno entra, sin tocar el correo');
+ok('con el código bueno entra directo, sin pedir correo');
 comprobar((await pag.textContent('#sesion-nombre')) === 'RosaBarro77', 'y es la misma cuenta');
 
-// ═══════════════════════════════════════════════ 13
-console.log('\n13 · CERRAR SESIÓN');
+// ═══════════════════════════════════════════════════════════ 9
+console.log('\n9 · OLVIDÉ MI CÓDIGO');
+await pag.evaluate(() => localStorage.clear());
+await pag.goto(APP, { waitUntil: 'networkidle' });
+await pag.waitForTimeout(800);
+await pag.click('#btn-ir-entrar');
+await pag.click('#btn-olvide-codigo');
+await pag.waitForSelector('#vista-recuperar:not([hidden])', { timeout: 5000 });
+ok('hay salida «Olvidé mi código»');
+
+// Recuperación equivocada.
+await pag.fill('#correo-recuperar', 'rosa@ejemplo.com');
+await escribir('#casillas-recuperar', '55555550');
+const errRec = await esperarTexto('#error-recuperar');
+comprobar(/no coinciden/i.test(errRec), `recuperación mala → «${errRec.slice(0, 42)}…»`);
+comprobar(/quedan \d+ intentos/i.test(errRec), 'y avisa cuántos intentos quedan');
+
+// La buena → llega un código nuevo.
+await pag.waitForTimeout(900);
+await escribir('#casillas-recuperar', RECU);
+await pag.waitForSelector('#vista-codigo:not([hidden])', { timeout: 9000 });
+ok('con la recuperación buena, manda un código nuevo al correo');
+
+const NUEVA = (await ultimo()).codigo;
+comprobar(NUEVA !== CLAVE, 'y el nuevo es distinto del anterior');
+
+await escribir('#casillas-codigo', NUEVA);
+await pag.waitForSelector('#vista-guardalo:not([hidden])', { timeout: 9000 });
+ok('lo escribe y le enseña su código nuevo');
+comprobar((await ultimo()).contrasena === NUEVA, 'el nuevo quedó fijado como contraseña');
+
+await pag.click('#btn-ya-lo-anote');
+await pag.waitForSelector('#portada', { state: 'hidden', timeout: 9000 });
+ok('y entra');
+
+// El viejo ya no debe servir.
+const rViejo = await fetch(`${FALSO}/auth/v1/token?grant_type=password`, {
+  method: 'POST', headers: { apikey: ANON, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: 'rosa@ejemplo.com', password: CLAVE })
+});
+comprobar(rViejo.status === 400, `el código viejo ya no abre nada (HTTP ${rViejo.status})`);
+
+// ═══════════════════════════════════════════════════════════ 10
+console.log('\n10 · MI CUENTA');
+await pag.click('#btn-menu');
+await pag.waitForTimeout(300);
+await pag.click('#sesion-nombre-movil');
+await pag.waitForTimeout(700);
+const cuenta = await pag.textContent('body');
+comprobar(/Tu usuario es RosaBarro77/.test(cuenta), 'enseña el usuario');
+comprobar(/código de recuperación puesto/i.test(cuenta), 'y dice que sí tiene recuperación');
+
+// ═══════════════════════════════════════════════════════════ 11
+console.log('\n11 · CERRAR SESIÓN');
 await pag.setViewportSize({ width: 1280, height: 900 });
 await pag.goto(APP, { waitUntil: 'networkidle' });
 await pag.waitForTimeout(1500);
 await pag.click('#btn-salir');
 await pag.waitForTimeout(1000);
 comprobar(await pag.isVisible('#portada'), 'vuelve a la portada');
-comprobar(await pag.evaluate(() => localStorage.getItem('oaxintegra.tokens')) === null, 'los tokens se borraron');
+comprobar(await pag.isVisible('#vista-inicio'), 'y a los dos botones del principio');
+comprobar(await pag.evaluate(() => localStorage.getItem('oaxintegra.tokens')) === null,
+          'los tokens se borraron');
 
-// ═══════════════════════════════════════════════ 14
-console.log('\n14 · ERRORES DE JAVASCRIPT');
-// No son fallos de la app: la red de esta máquina bloquea Google Fonts, y la
-// propia prueba provoca a posta un 400/403/429 y un token podrido.
+// ═══════════════════════════════════════════════════════════ 12
+console.log('\n12 · ERRORES DE JAVASCRIPT');
+// No son de la app: esta máquina bloquea Google Fonts, y la propia prueba
+// provoca a posta un 400/403/406/429 y un token podrido.
 const ruido = /favicon|manifest|fonts\.googleapis|ERR_CONNECTION_RESET|ERR_TUNNEL_CONNECTION_FAILED|status of (400|401|403|406|429)|net::ERR_FAILED.*api\/ia/i;
 const reales = errores.filter(e => !ruido.test(e));
 comprobar(reales.length === 0, reales.length ? `hay ${reales.length}: ${reales[0].slice(0, 120)}` : 'ninguno en toda la prueba');

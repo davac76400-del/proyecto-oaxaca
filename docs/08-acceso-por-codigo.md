@@ -1,42 +1,107 @@
-# Entrar con un código al correo
+# Cómo se entra a OaxIntegra IA
 
-Tres pasos: **correo → código de 6 números → elegir usuario**. Lo lleva
-Supabase, que es quien manda el correo y quien recuerda quién es quién.
-
-Y una segunda puerta por si el correo falla: un **código de seguridad de 8
-números** que la persona elige dentro de la app. Está más abajo.
+**Una sola forma de entrar:** tu correo y un código de 8 números.
 
 ```
-┌───────────────────────────┐
-│ Paso 1 · tu correo        │
-│ [ tucorreo@ejemplo.com ]  │
-│ [ Mándame mi código     ] │
-└───────────────────────────┘
-             │
-             ▼
-┌───────────────────────────┐
-│ Paso 2 · el código        │
-│  ▢ ▢ ▢ ▢ ▢ ▢              │
-│ [ Entrar ]                │
-└───────────────────────────┘
-             │
-             ▼
-┌───────────────────────────┐
-│ Paso 3 · tu usuario       │   ← solo la primera vez, y es OBLIGATORIO
-│ ⚠️ RECUERDA TU USUARIO     │
-│ [ MariaTelar23 ]          │
-└───────────────────────────┘
+        ┌──────────────────────────────┐
+        │  [ Iniciar sesión ]          │
+        │  [ Registrarme    ]          │
+        └──────────────────────────────┘
+              │                    │
+    ┌─────────┘                    └──────────┐
+    ▼                                         ▼
+REGISTRARSE                            INICIAR SESIÓN
+ 1. usuario + correo                    correo + 8 números  →  dentro
+ 2. te llegan 8 números al correo             │
+ 3. los escribes                              └─ «Olvidé mi código»
+ 4. ⚠️ GUÁRDALOS: son tu código
+ 5. (opcional) código de recuperación
 ```
 
 ---
 
-## ⚠️ EL PASO QUE HAY QUE HACER SÍ O SÍ
+## El código de entrada
 
-**Supabase manda un enlace, no un código, hasta que cambies la plantilla del
-correo.** Si te saltas esto, la gente recibe un correo sin ningún número y la
-pantalla del código se queda esperando algo que nunca llegó.
+Llega por correo **al registrarte**, y **ese mismo número se queda como tu
+contraseña**. No cambia. Con tu correo y esos 8 números entras siempre, sin
+volver a esperar ningún correo.
 
-**Authentication → Emails → Magic Link**. Ahí se cambian las dos cosas:
+### Por qué hay que fijarlo, y no basta con el que manda Supabase
+
+Los códigos que manda Supabase son **de un solo uso y vencen**. Si la app no
+hiciera nada más, el número dejaría de servir al día siguiente y la persona se
+quedaría fuera.
+
+Lo que hace la app: en cuanto el código se comprueba, lo **fija como la
+contraseña** de esa cuenta (`PUT /auth/v1/user`). Supabase la cifra con bcrypt
+y no la devuelve nunca. Así el número que llegó al correo es el mismo con el
+que se entra siempre.
+
+**Comprobado en la prueba:** después del registro se mira que la contraseña
+guardada en el servidor sea exactamente el código que llegó, y que **no quede
+en el navegador**.
+
+### Cada quien recibe el suyo
+
+`{{ .Token }}` no es un número: es un hueco que Supabase rellena, al mandar
+cada correo, con uno recién generado al azar. Seis peticiones dan seis códigos
+distintos — está en la prueba.
+
+---
+
+## Si se te olvida: «Olvidé mi código»
+
+```
+correo + código de recuperación  →  ✓  →  te llega un código NUEVO al correo
+                                          →  lo escribes  →  dentro
+```
+
+El **código de recuperación** son 8 números que la persona elige dentro de la
+app, en **Mi cuenta** (tocando su nombre en la barra de arriba). Se ofrece
+también justo después de registrarse.
+
+No es una segunda forma de entrar: **solo sirve para pedir un código de entrada
+nuevo**. Con él, el viejo deja de valer al instante.
+
+### Dónde se guarda cada cosa
+
+| | Dónde | Cómo |
+|---|---|---|
+| Código de **entrada** | `auth.users` de Supabase | bcrypt, no se puede leer |
+| Código de **recuperación** | `perfiles.recuperacion_hash` | bcrypt de Postgres (pgcrypto) |
+| En el navegador | **nada de esto** | comprobado en la prueba |
+
+En Supabase cada cuenta tiene **una sola** contraseña, y esa la ocupa el código
+de entrada. Por eso el de recuperación se guarda aparte, cifrado, y se
+comprueba dentro de una función que nadie puede leer por fuera
+(`usar_recuperacion`, en `003_recuperacion.sql`).
+
+### Contra quien pruebe códigos a lo tonto
+
+- **5 intentos** y luego **15 minutos** de espera
+- Un correo que no existe contesta **lo mismo** que un código equivocado, y
+  tarda parecido: así esto no sirve para averiguar quién tiene cuenta
+- Se rechazan `11111111`, `12345678` y `12121212`
+
+---
+
+## ⚠️ Lo que hay que configurar en Supabase
+
+### 1 · Que el correo lleve el código, y de 8 números
+
+**Authentication → Sign In / Providers → Email:**
+
+| Ajuste | Ponlo en |
+|---|---|
+| **Email OTP Length** | **8** |
+| **Email OTP Expiration** | **600** (10 minutos) |
+
+Los 8 tienen que coincidir con `LARGO_CODIGO` en la app. Si algún día lo
+cambias, avísame para cambiar las casillas de la pantalla.
+
+### 2 · La plantilla del correo
+
+**Authentication → Emails → Magic Link:**
 
 **Asunto:**
 
@@ -47,252 +112,28 @@ Tu código para entrar a OaxIntegra IA
 **Cuerpo:**
 
 ```html
-<p>Hola, somos de OaxIntegra IA y te enviamos este enlace de acceso para entrar a tu cuenta.</p>
+<p>Hola, somos de OaxIntegra IA y te enviamos tu código de acceso.</p>
 
-<p style="font-size:15px">Escribe estos 6 números en la página:</p>
+<p style="font-size:15px">Escribe estos 8 números en la página:</p>
 
 <p style="font-size:34px; font-weight:bold; letter-spacing:8px; margin:18px 0">{{ .Token }}</p>
 
-<p style="font-size:14px">O si prefieres, <a href="{{ .ConfirmationURL }}">entra directo con este enlace</a>.</p>
+<p style="font-size:14px"><b>Guarda este número.</b> Con tu correo y estos 8 números entras siempre.</p>
 
-<p style="font-size:13px; color:#666">
-El código sirve una sola vez y vence en una hora.<br>
-Si no pediste entrar, no hagas nada.
-</p>
+<p style="font-size:13px; color:#666">Si no pediste entrar, no hagas nada.</p>
 ```
 
-Las dos etiquetas entre llaves son lo único que no se puede cambiar:
+`{{ .Token }}` son los números. **Sin eso no llega ningún código.**
 
-| Etiqueta | Qué es |
-|---|---|
-| `{{ .Token }}` | **Los 6 números.** Sin esto no hay código. |
-| `{{ .ConfirmationURL }}` | El enlace, para quien prefiera darle clic |
+### 3 · Las tablas
 
-Los dos caminos funcionan y llevan al mismo lugar. La app está hecha para el
-código, pero si alguien le da clic al enlace, entra igual.
+En el **SQL Editor**, en este orden:
 
-> **Sobre el nombre:** va **OaxIntegra IA**, con espacio y las dos letras de
-> «IA» en mayúscula, igual que en toda la app. Confirmado el 24 de agosto de
-> 2026: lo que se había puesto antes («Wax, integra IA») era el nombre dictado
-> en voz alta y partido en dos.
+1. `backend/migraciones/001_perfiles.sql`
+2. `backend/migraciones/002_codigo_seguridad.sql`
+3. `backend/migraciones/003_recuperacion.sql`
 
----
-
-## El otro paso que se salta todo el mundo
-
-**Authentication → URL Configuration → Redirect URLs**, agrega:
-
-```
-http://localhost:3000/**
-https://tu-sitio-real.com/**
-```
-
-Solo hace falta para quien entre por el enlace. Con el código funciona sin
-esto, pero mejor déjalo puesto.
-
----
-
-## ⚠️ El código NO es fijo: cada quien recibe el suyo
-
-Esta es **la duda correcta** que hay que hacerse, porque si el número fuera el
-mismo para todos, cualquiera que lo supiera entraría a la cuenta de cualquiera.
-
-**No lo es.** `{{ .Token }}` no es un número: es un **hueco** que Supabase
-rellena, en el momento de mandar el correo, con un número recién generado al
-azar para esa persona y esa petición.
-
-```
-María pide entrar   →  correo a María   →  748103
-Pedro pide entrar   →  correo a Pedro   →  219576
-María pide otro     →  correo a María   →  360942   ← el 748103 ya no sirve
-```
-
-| | |
-|---|---|
-| ¿El mismo para todos? | **No.** Uno nuevo por cada petición |
-| ¿Se puede reusar? | **No.** Una sola vez |
-| ¿Y si pido otro? | El anterior **deja de valer al instante** |
-| ¿Vence? | Sí. Por defecto en 1 hora — mejor bájalo (ver abajo) |
-| ¿La app lo conoce? | **Nunca.** Solo manda al servidor lo que se escribió |
-
-**Comprobado, no supuesto.** La prueba `pruebas/acceso.mjs` pide seis códigos
-seguidos y verifica que salgan seis distintos, que ninguno sea un número fijo
-del código fuente, y que el viejo devuelva 403 en cuanto se pide otro.
-
-```
-3b · CADA CÓDIGO ES DISTINTO (nadie recibe el mismo)
-  ✓ 6 peticiones → 6 códigos distintos
-  ✓ ninguno es un número fijo del código fuente
-  ✓ al pedir otro, el anterior cambia
-  ✓ el código viejo ya no abre nada (HTTP 403)
-```
-
-### Y aunque alguien adivinara un código
-
-No le serviría para robar una cuenta, porque **el código va al correo de esa
-persona, no al de quien lo pide**. Para entrar a la cuenta de alguien habría
-que tener acceso a su bandeja de entrada. Aquí no existen los «correos
-secundarios»: la cuenta *es* el correo.
-
----
-
-## Dos ajustes que conviene tocar
-
-En **Authentication → Sign In / Providers → Email**:
-
-| Ajuste | Viene así | Ponlo en | Por qué |
-|---|---|---|---|
-| **Email OTP Expiration** | 3600 s (1 hora) | **600 s (10 min)** | Una hora es mucho margen para un correo que se queda abierto en una computadora prestada |
-| **Email OTP Length** | 6 | **8**, si quieres | Pasa de un millón de combinaciones a cien millones. Cuesta escribir dos números más |
-
-Con 6 dígitos y el límite de intentos de Supabase ya es razonable; con 10
-minutos de vigencia, más. Lo de 8 dígitos es opcional — es la balanza de
-siempre entre seguridad y comodidad, y tu público valora lo cómodo.
-
-**Si cambias la longitud a 8, avísame**: hay que poner 8 casillas en la
-pantalla en vez de 6.
-
----
-
----
-
-## La segunda forma de entrar: tu código de seguridad
-
-**Para cuando el correo no llega.** Tarda, cae en spam, o se acabó la cuota del
-día. Con esto no te quedas fuera.
-
-```
-Portada  →  «No me llega el correo»  →  correo + 8 números  →  dentro
-```
-
-Se elige **dentro de la app**, justo después de poner el usuario. Se puede
-saltar («Ahora no») y ponerlo después: está siempre en **Mi perfil**, tocando
-tu nombre en la barra de arriba.
-
-### Dónde se guarda: en ningún archivo de este proyecto
-
-Se le pone a Supabase como la **contraseña** de esa cuenta. Supabase la cifra
-con bcrypt y no la devuelve nunca — ni a la app, ni a ti, ni a mí.
-
-Se pensó en guardarlo en la tabla `perfiles` y **se descartó**, por tres
-motivos de peso:
-
-1. Habría que cifrarlo a mano, y hacer eso bien es difícil de verdad
-2. Para comprobarlo al entrar habría que poder leerlo **antes** de tener
-   sesión — o sea, abrir un agujero en las políticas de seguridad
-3. Supabase ya limita los intentos en su propio login. Escribir eso otra vez
-   saldría peor
-
-En `perfiles` solo queda un **sí/no** (`tiene_codigo`), para que la app sepa
-qué enseñarte. Nunca el código.
-
-**Comprobado en la prueba:** después de guardarlo se mira el `localStorage`
-entero del navegador y el código no aparece por ningún lado.
-
-### Por qué 8 números y no 6
-
-Porque este código **no cambia**. El del correo es distinto cada vez y llega a
-una bandeja que solo tú abres; este se queda igual hasta que lo cambies.
-
-| | Del correo | De seguridad |
-|---|---|---|
-| Cambia | Cada vez | No, hasta que lo cambies |
-| Hace falta | Tu bandeja de entrada | Solo el número |
-| Combinaciones | Un millón | **Cien millones** |
-
-Ocho números cuestan escribir dos más, y multiplican por cien lo que tendría
-que probar alguien. Con eso más el corte de intentos de Supabase, alcanza para
-lo que es: **un respaldo cómodo, no la puerta principal**.
-
-### Códigos que no se aceptan
-
-Se rechazan los tres que cualquiera probaría primero:
-
-| | |
-|---|---|
-| `11111111` | Todo el mismo número |
-| `12345678` | En orden (también al revés) |
-| `12121212` | Los mismos dos, repetidos |
-
-### Si se olvida
-
-**No se puede recuperar, ni yo puedo.** Está cifrado justo para eso. Pero no
-se pierde la cuenta: se entra con el código del correo, y desde Mi perfil se
-pone uno nuevo.
-
-Por eso la pantalla avisa en grande **⚠️ ANÓTALO DONDE NO SE TE PIERDA** antes
-de dejarte guardarlo.
-
----
-
-## El usuario
-
-Se elige **la primera vez y es obligatorio**. Reglas, las mismas de siempre en
-este proyecto: de 4 a 20 caracteres, sin espacios, y al menos una MAYÚSCULA.
-
-Mientras escribe se le va diciendo si está libre — sin poder leer la tabla,
-porque las políticas de seguridad no lo permiten. Lo resuelve la función
-`usuario_libre()`, que mira por dentro y solo contesta sí o no: nunca dice de
-quién es ni cuántos hay.
-
-### Si se le olvida el usuario, no pierde nada
-
-Porque **el usuario no es la llave: la llave es el correo**. Entra con su
-correo como siempre, y ahí mismo lo vuelve a ver.
-
-Hay dos maneras:
-
-1. **«Olvidé mi usuario»** en la portada. Entra normal y, al pasar, le sale su
-   usuario en grande.
-2. **Tocando su nombre** en la barra de arriba (o en el menú, si es celular).
-   Sale una ventana con su usuario y su correo.
-
-Esa es toda la recuperación de cuenta, y no hace falta más: no hay contraseña
-que perder.
-
----
-
-## La base de datos
-
-Todo está en `backend/migraciones/001_perfiles.sql`. Se aplica pegándolo en el
-**SQL Editor** de Supabase, o con el conector.
-
-| Qué | Para qué |
-|---|---|
-| Tabla `perfiles` | El usuario y el giro. Ligada a `auth.users` por el id. |
-| Índice único | Dos personas no pueden tener el mismo usuario, ni cambiando mayúsculas |
-| **RLS** | Cada quien ve y toca **solo lo suyo** |
-| `usuario_libre()` | Decir si un usuario está libre sin enseñar la tabla |
-| `fijar_usuario()` | Guardarlo comprobando que siga libre, todo de una vez |
-| `fijar_giro()` | Guardar el giro del negocio |
-
-### Por qué las funciones y no tocar la tabla directo
-
-Entre que compruebas que un usuario está libre y lo guardas, otro podría
-tomarlo. `fijar_usuario()` hace las dos cosas de un solo golpe, y el índice
-único tiene la última palabra: si hay choque, devuelve `ocupado` en vez de
-reventar.
-
-### Sobre la llave que va en el navegador
-
-La **anon key** sí va en el HTML: es pública por diseño, es el identificador
-del proyecto. **Lo que protege los datos son las políticas RLS de arriba**, no
-esconderla.
-
-La **service_role** nunca puede salir del servidor: se salta todas las reglas.
-`build.py` y `revisar.js` abren el JWT, miran el rol de dentro, y se detienen
-si aparece. Las dos empiezan con `eyJ` y se parecen muchísimo.
-
----
-
-## Cuántos correos puedes mandar
-
-Con el servidor que Supabase presta: **3 por hora**. Alcanza para probar, no
-para tener gente usándolo.
-
-Para uso real, conecta tu propio correo en **Settings → Authentication → SMTP**.
-Resend, Brevo o Mailgun tienen plan gratis de sobra. De paso dejan de caer en
-spam, que con el prestado pasa seguido.
+El 003 depende del 002, y el 002 del 001.
 
 ---
 
@@ -300,40 +141,31 @@ spam, que con el prestado pasa seguido.
 
 | Lo que ves | Qué pasa |
 |---|---|
-| Llega un correo **sin ningún número** | Falta `{{ .Token }}` en la plantilla. Es lo primero de este documento. |
-| «El acceso todavía no está configurado» | Falta `SUPABASE_URL` o `SUPABASE_ANON_KEY`. Corre `node revisar.js`. |
-| El correo no llega | Mira en spam. Si sigue sin llegar, ya gastaste los 3 por hora. |
-| «Ese código no coincide» | Se escribió mal, o ya se usó, o venció. Pide otro. |
-| «Espera un minuto» | Supabase corta a 3 por hora por correo. |
-| Se queda en «Comprobando si está libre…» | Falta aplicar `001_perfiles.sql`. |
-| Entra y a los segundos se sale | El reloj de la computadora está mal: los tokens se validan por hora. |
+| Llega un correo **sin números** | Falta `{{ .Token }}` en la plantilla |
+| Llegan 6 números y la pantalla pide 8 | Falta poner **Email OTP Length = 8** |
+| «Ese correo y ese código no coinciden» | Se escribió mal, o es de otra cuenta |
+| «Demasiados intentos, espera 15 minutos» | Cinco fallos seguidos en la recuperación |
+| Se queda en «Comprobando si está libre…» | Falta aplicar `001_perfiles.sql` |
+| «No se pudo guardar» al poner la recuperación | Falta aplicar `003_recuperacion.sql` |
 
 ---
 
 ## Lo que probé y lo que no
 
-**Probado aquí, 42 comprobaciones en un navegador de verdad** (`pruebas/acceso.mjs`,
-contra un Supabase de mentiras):
+**Probado aquí: 51 comprobaciones en un navegador de verdad**, en pantalla de
+celular (`pruebas/acceso.mjs`, contra un Supabase de mentiras):
 
-- La portada de tres pasos, en celular
-- Correo mal escrito → avisa y no avanza
-- Código equivocado → lo explica en español y no deja pasar
-- Código correcto → pide el usuario, y **no deja entrar sin él**
-- Usuario que no cumple las reglas → rechazado
-- Usuario ya tomado → avisa **mientras escribe** y también al guardar
-- Usuario bueno → entra y lo saluda por su nombre
-- El giro se guarda y sobrevive a recargar
-- Token inválido → no deja entrar y limpia lo que había
-- El enlace del correo también sirve, y el token se borra de la barra
-- Tocar el nombre enseña el usuario otra vez
-- Cerrar sesión, también desde el celular
-- Cero errores de JavaScript
+- La portada con dos botones, sin dos formas de entrar
+- Registro completo, con el usuario comprobado **sin sesión**
+- Que el código que llega **quede fijado** como contraseña
+- Entrar después solo con correo + código, sin ningún correo de por medio
+- Código equivocado, y recuperación equivocada, con los intentos que quedan
+- La recuperación buena → llega un código nuevo → el viejo deja de valer
+- Que ni el código de entrada ni el de recuperación queden en el navegador
+- Cerrar sesión, y que vuelva a los dos botones del principio
 
 **No pude probar aquí:**
 
-- **Que el correo salga de verdad.** La máquina donde corro tiene la salida a
-  internet filtrada: `supabase.com` no responde. El conector de Supabase sí
-  llega, pero es para la base de datos, no para mandar correos de prueba.
-  **Eso lo tienes que ver tú:** entra a `http://localhost:3000`, pon tu correo,
-  y mira si llega el número.
-- **La plantilla del correo**, porque se configura en tu panel, no en el código.
+- **Que el correo salga de verdad.** Esta máquina tiene bloqueada la salida a
+  `supabase.com`. Eso lo tienes que ver tú: `npm start`, tu propio correo, y
+  comprobar que llega el número.
