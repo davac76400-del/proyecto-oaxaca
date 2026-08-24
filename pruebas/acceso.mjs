@@ -21,6 +21,29 @@ pag.on('console', m => { if (m.type() === 'error') errores.push('[consola] ' + m
 
 const ultimo = async () => (await (await fetch(FALSO + '/__ultimo')).json());
 
+/* Esperar a que algo TENGA texto, en vez de dormir un rato fijo. Con sleeps
+   la prueba fallaba de vez en cuando: si el servidor tardaba más de la cuenta,
+   se leía la caja del error antes de que se escribiera. */
+const esperarTexto = async (sel, ms = 9000) => {
+  await pag.waitForFunction(
+    s => { const e = document.querySelector(s); return e && e.textContent.trim().length > 0; },
+    sel, { timeout: ms });
+  return (await pag.textContent(sel)).trim();
+};
+
+/* La pista del usuario pasa por «Comprobando si está libre…» antes del
+   veredicto, así que aquí hay que esperar al veredicto, no al primer texto. */
+const esperarPista = async (ms = 9000) => {
+  await pag.waitForFunction(() => {
+    const e = document.querySelector('#pista-usuario');
+    /* Ojo: «Comprobando si está libre…» también contiene «libre», así que
+       buscar esa palabra se cumplía sola. El veredicto es lo único que
+       empieza con la palomita o la cruz. */
+    return e && !e.hidden && /^[\u2713\u2717]/.test(e.textContent.trim());
+  }, null, { timeout: ms });
+  return (await pag.textContent('#pista-usuario')).trim();
+};
+
 // ═══════════════════════════════════════════════ 1
 console.log('\n1 · LA PORTADA');
 await pag.goto(APP, { waitUntil: 'networkidle' });
@@ -36,7 +59,7 @@ for (const viejo of ['#reg-telefono', '#reg-lada', '#casillas-wa', '#tab-registr
 console.log('\n2 · CORREO MAL ESCRITO');
 await pag.fill('#correo-acceso', 'no-es-correo');
 await pag.click('#btn-acceso');
-await pag.waitForTimeout(400);
+await esperarTexto('#error-correo-acceso');
 comprobar(await pag.isVisible('#error-correo-acceso'), 'avisa que está mal');
 comprobar(await pag.isVisible('#vista-correo'), 'no avanza');
 
@@ -55,8 +78,7 @@ comprobar(/^\d{6}$/.test(codigo || ''), `el servidor generó un código de 6 nú
 console.log('\n4 · CÓDIGO EQUIVOCADO');
 await pag.fill('#casillas-codigo .casilla >> nth=0', '0');
 for (let i = 1; i < 6; i++) await pag.fill(`#casillas-codigo .casilla >> nth=${i}`, '0');
-await pag.waitForTimeout(1200);
-const errMal = await pag.textContent('#error-codigo');
+const errMal = await esperarTexto('#error-codigo');
 comprobar(/no coincide|venció|nuevo/i.test(errMal || ''), `lo explica en español: «${(errMal||'').slice(0,46)}…»`);
 comprobar(await pag.isVisible('#vista-codigo'), 'no deja pasar');
 
@@ -75,25 +97,22 @@ comprobar(await pag.isVisible('#portada'), 'todavía NO deja entrar sin usuario'
 console.log('\n6 · LAS REGLAS DEL USUARIO');
 await pag.fill('#reg-usuario', 'ana');            // corto y sin mayúscula
 await pag.click('#btn-guardar-usuario');
-await pag.waitForTimeout(400);
+await esperarTexto('#error-reg-usuario');
 comprobar(await pag.isVisible('#error-reg-usuario'), 'rechaza uno que no cumple');
 comprobar(await pag.isVisible('#vista-usuario'), 'sigue sin dejar pasar');
 
 await pag.fill('#reg-usuario', 'MariaTelar23');   // ya lo tiene alguien
-await pag.waitForTimeout(1100);
-const pista = await pag.textContent('#pista-usuario');
+const pista = await esperarPista();
 comprobar(/ya lo tiene|ocupado/i.test(pista || ''), `avisa mientras escribe: «${(pista||'').slice(0,42)}»`);
 
 await pag.click('#btn-guardar-usuario');
-await pag.waitForTimeout(900);
-const errOcupado = await pag.textContent('#error-reg-usuario');
+const errOcupado = await esperarTexto('#error-reg-usuario');
 comprobar(/ya lo tiene/i.test(errOcupado || ''), 'y también al intentar guardarlo');
 
 // ═══════════════════════════════════════════════ 7
 console.log('\n7 · USUARIO BUENO → ADENTRO');
 await pag.fill('#reg-usuario', 'RosaBarro77');
-await pag.waitForTimeout(1100);
-const pistaOk = await pag.textContent('#pista-usuario');
+const pistaOk = await esperarPista();
 comprobar(/libre/i.test(pistaOk || ''), 'dice que está libre');
 await pag.click('#btn-guardar-usuario');
 await pag.waitForSelector('#portada', { state: 'hidden', timeout: 8000 });
