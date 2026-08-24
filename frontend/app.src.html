@@ -2815,6 +2815,15 @@
     }, falta);
   }
 
+  /* A dónde debe volver el enlace del correo: a donde esté abierta la app.
+     Si esta dirección no está en la lista blanca de Supabase (Authentication →
+     URL Configuration → Redirect URLs), Supabase la ignora y usa el «Site URL»
+     del proyecto. O sea: mandarla nunca empeora nada, y arregla el caso de
+     tenerlo publicado en un dominio distinto al del panel. */
+  function direccionRegreso() {
+    return window.location.origin + window.location.pathname;
+  }
+
   /* --- volver desde el ENLACE del correo -----------------------------------
      Supabase manda un enlace de fábrica; solo manda números si le cambias la
      plantilla. Para que la app funcione SIN configurar nada, se atiende el
@@ -3031,7 +3040,7 @@
     caja.hidden = true;
     girador.hidden = false; texto.textContent = 'Mandando…';
 
-    pedirAuth('/otp', { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: true } })
+    pedirAuth('/otp?redirect_to=' + encodeURIComponent(direccionRegreso()), { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: true } })
       .then(function () {
         girador.hidden = true; texto.textContent = 'Mándame mi código';
         irAEscribirCodigo('Paso 2 de 3 · Tu código');
@@ -3128,7 +3137,7 @@
     var caja = $('#error-codigo');
     caja.hidden = true;
     girador.hidden = false; texto.textContent = 'Mandando…';
-    pedirAuth('/otp', { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: true } })
+    pedirAuth('/otp?redirect_to=' + encodeURIComponent(direccionRegreso()), { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: true } })
       .then(function () {
         girador.hidden = true; texto.textContent = 'Mandar otro';
         codCorreo.limpiar();
@@ -3200,7 +3209,7 @@
         }
         /* Bien: se le manda un código de entrada nuevo al correo. */
         motivoCodigo = 'recuperacion';
-        return pedirAuth('/otp', { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: false } })
+        return pedirAuth('/otp?redirect_to=' + encodeURIComponent(direccionRegreso()), { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: false } })
           .then(function () {
             girador.hidden = true; texto.textContent = 'Mándame un código nuevo';
             codRecuperar.limpiar();
