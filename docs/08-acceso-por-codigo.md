@@ -3,6 +3,9 @@
 Tres pasos: **correo → código de 6 números → elegir usuario**. Lo lleva
 Supabase, que es quien manda el correo y quien recuerda quién es quién.
 
+Y una segunda puerta por si el correo falla: un **código de seguridad de 8
+números** que la persona elige dentro de la app. Está más abajo.
+
 ```
 ┌───────────────────────────┐
 │ Paso 1 · tu correo        │
@@ -148,6 +151,77 @@ siempre entre seguridad y comodidad, y tu público valora lo cómodo.
 
 **Si cambias la longitud a 8, avísame**: hay que poner 8 casillas en la
 pantalla en vez de 6.
+
+---
+
+---
+
+## La segunda forma de entrar: tu código de seguridad
+
+**Para cuando el correo no llega.** Tarda, cae en spam, o se acabó la cuota del
+día. Con esto no te quedas fuera.
+
+```
+Portada  →  «No me llega el correo»  →  correo + 8 números  →  dentro
+```
+
+Se elige **dentro de la app**, justo después de poner el usuario. Se puede
+saltar («Ahora no») y ponerlo después: está siempre en **Mi perfil**, tocando
+tu nombre en la barra de arriba.
+
+### Dónde se guarda: en ningún archivo de este proyecto
+
+Se le pone a Supabase como la **contraseña** de esa cuenta. Supabase la cifra
+con bcrypt y no la devuelve nunca — ni a la app, ni a ti, ni a mí.
+
+Se pensó en guardarlo en la tabla `perfiles` y **se descartó**, por tres
+motivos de peso:
+
+1. Habría que cifrarlo a mano, y hacer eso bien es difícil de verdad
+2. Para comprobarlo al entrar habría que poder leerlo **antes** de tener
+   sesión — o sea, abrir un agujero en las políticas de seguridad
+3. Supabase ya limita los intentos en su propio login. Escribir eso otra vez
+   saldría peor
+
+En `perfiles` solo queda un **sí/no** (`tiene_codigo`), para que la app sepa
+qué enseñarte. Nunca el código.
+
+**Comprobado en la prueba:** después de guardarlo se mira el `localStorage`
+entero del navegador y el código no aparece por ningún lado.
+
+### Por qué 8 números y no 6
+
+Porque este código **no cambia**. El del correo es distinto cada vez y llega a
+una bandeja que solo tú abres; este se queda igual hasta que lo cambies.
+
+| | Del correo | De seguridad |
+|---|---|---|
+| Cambia | Cada vez | No, hasta que lo cambies |
+| Hace falta | Tu bandeja de entrada | Solo el número |
+| Combinaciones | Un millón | **Cien millones** |
+
+Ocho números cuestan escribir dos más, y multiplican por cien lo que tendría
+que probar alguien. Con eso más el corte de intentos de Supabase, alcanza para
+lo que es: **un respaldo cómodo, no la puerta principal**.
+
+### Códigos que no se aceptan
+
+Se rechazan los tres que cualquiera probaría primero:
+
+| | |
+|---|---|
+| `11111111` | Todo el mismo número |
+| `12345678` | En orden (también al revés) |
+| `12121212` | Los mismos dos, repetidos |
+
+### Si se olvida
+
+**No se puede recuperar, ni yo puedo.** Está cifrado justo para eso. Pero no
+se pierde la cuenta: se entra con el código del correo, y desde Mi perfil se
+pone uno nuevo.
+
+Por eso la pantalla avisa en grande **⚠️ ANÓTALO DONDE NO SE TE PIERDA** antes
+de dejarte guardarlo.
 
 ---
 

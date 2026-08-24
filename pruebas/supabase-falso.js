@@ -24,8 +24,12 @@ const USUARIO = {
   created_at: '2026-01-15T10:00:00Z',
   user_metadata: {}
 };
-/* La "tabla" perfiles: id -> { usuario, giro, giro_texto } */
+/* La "tabla" perfiles: id -> { usuario, giro, giro_texto, tiene_codigo } */
 let PERFILES = {};
+/* La "contraseña" (el código de seguridad). En Supabase va cifrada con
+   bcrypt en auth.users; aquí, para probar, basta con guardarla tal cual. */
+let CONTRASENA = null;
+const MINIMO_CONTRASENA = 6;   // el mínimo que trae Supabase de fábrica
 /* Usuarios ya tomados por OTRA gente, para probar el choque de nombres. */
 const TOMADOS = new Set(['MariaTelar23']);
 
@@ -54,13 +58,17 @@ http.createServer((req, res) => {
     if (url.pathname === '/__ultimo') {
       return json(res, 200, {
         codigo: ultimoCodigo, enlace: ultimoEnlace, correo: USUARIO.email,
-        emitidos: CODIGOS_EMITIDOS.slice()
+        emitidos: CODIGOS_EMITIDOS.slice(),
+        hayContrasena: CONTRASENA !== null,
+        /* Solo para la prueba: comprobar que NUNCA se guarda en claro
+           en el navegador. En Supabase esto no existe. */
+        largoContrasena: CONTRASENA ? CONTRASENA.length : 0
       });
     }
     if (url.pathname === '/__reset') {
       ultimoCodigo = null; ultimoEnlace = null; CODIGOS_EMITIDOS.length = 0;
       USUARIO.email = ''; USUARIO.user_metadata = {};
-      PERFILES = {};
+      PERFILES = {}; CONTRASENA = null;
       return json(res, 200, { ok: true });
     }
 
@@ -111,8 +119,36 @@ http.createServer((req, res) => {
       return json(res, 200, USUARIO);
     }
 
-    /* ---------------- 4. renovar ---------------- */
+    /* ---------------- 3b. poner o cambiar la contraseña ---------------- */
+    if (url.pathname === '/auth/v1/user' && req.method === 'PUT') {
+      if (!conSesion) return json(res, 401, { msg: 'invalid claim: missing sub claim' });
+      if (typeof datos.password === 'string') {
+        if (datos.password.length < MINIMO_CONTRASENA) {
+          return json(res, 422, { msg: 'Password should be at least ' + MINIMO_CONTRASENA + ' characters' });
+        }
+        CONTRASENA = datos.password;
+        console.log('[falso] código de seguridad guardado (' + datos.password.length + ' números)');
+      }
+      if (datos.data) { USUARIO.user_metadata = Object.assign({}, USUARIO.user_metadata, datos.data); }
+      return json(res, 200, USUARIO);
+    }
+
+    /* ---------------- 4. renovar, o entrar con contraseña ---------------- */
     if (url.pathname === '/auth/v1/token' && req.method === 'POST') {
+      const tipo = url.searchParams.get('grant_type');
+
+      if (tipo === 'password') {
+        /* Igual que Supabase: si el correo o la contraseña no cuadran, el
+           mismo error para los dos. Distinguirlos diría si esa cuenta existe. */
+        if (!CONTRASENA || datos.email !== USUARIO.email || datos.password !== CONTRASENA) {
+          return json(res, 400, { error: 'invalid_grant', error_description: 'Invalid login credentials' });
+        }
+        return json(res, 200, {
+          access_token: 'TOKEN_BUENO', refresh_token: 'REFRESCO',
+          expires_in: 3600, token_type: 'bearer', user: USUARIO
+        });
+      }
+
       if (datos.refresh_token !== 'REFRESCO') return json(res, 401, { msg: 'Invalid Refresh Token' });
       return json(res, 200, { access_token: 'TOKEN_NUEVO', refresh_token: 'REFRESCO', expires_in: 3600 });
     }
@@ -152,6 +188,12 @@ http.createServer((req, res) => {
       PERFILES[USUARIO.id] = Object.assign({}, PERFILES[USUARIO.id], { usuario: n });
       console.log('[falso] usuario fijado → ' + n);
       return json(res, 200, { ok: true, usuario: n });
+    }
+
+    if (url.pathname === '/rest/v1/rpc/marcar_codigo' && req.method === 'POST') {
+      if (!conSesion) return json(res, 401, { message: 'JWT expired' });
+      PERFILES[USUARIO.id] = Object.assign({}, PERFILES[USUARIO.id], { tiene_codigo: !!datos.puesto });
+      return json(res, 200, { ok: true, tiene_codigo: !!datos.puesto });
     }
 
     if (url.pathname === '/rest/v1/rpc/fijar_giro' && req.method === 'POST') {

@@ -184,6 +184,24 @@ La prueba pasa de 32 a 42 comprobaciones y saca el BUG-29.
 apagado en el chat a media faena) y comprobar que el correo salga de verdad
 (la máquina tiene bloqueada la salida a supabase.com).
 
+**25 · Código de seguridad como segunda puerta (24 ago 2026).** El autor pide
+recuperar algo del sistema viejo: además del código que llega por correo,
+poder anotar uno propio dentro de la app y entrar con él si el correo falla.
+
+La decisión de fondo fue **dónde guardarlo**. Guardarlo en la tabla `perfiles`
+obligaba a cifrarlo a mano y, peor, a poder leerlo antes de tener sesión — un
+agujero en las políticas. Se le pone a Supabase como la contraseña de la
+cuenta: lo cifra con bcrypt, no lo devuelve nunca, y su propio login ya limita
+los intentos. En `perfiles` solo queda un sí/no.
+
+Ocho números y no seis, porque este código **no cambia**: el del correo es
+distinto cada vez y además exige la bandeja de entrada; este se queda igual.
+Ocho pasa de un millón de combinaciones a cien millones. Se rechazan además
+los tres que cualquiera probaría (todos iguales, en orden, dos repetidos).
+
+La prueba sube de 46 a 60 comprobaciones, y una de ellas mira el localStorage
+entero para confirmar que el código nunca queda guardado en el navegador.
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

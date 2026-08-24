@@ -1663,9 +1663,58 @@
           Si es tu primera vez, con esto queda hecha tu cuenta. Es el mismo paso.
         </p>
 
-        <button type="button" id="btn-olvide" class="btn-suave mt-4">
-          Olvidé mi usuario
-        </button>
+        <div class="flex flex-wrap gap-3 mt-4">
+          <button type="button" id="btn-olvide" class="btn-suave" style="margin:0">
+            Olvidé mi usuario
+          </button>
+          <button type="button" id="btn-usar-seguridad" class="btn-suave" style="margin:0">
+            No me llega el correo
+          </button>
+        </div>
+      </div>
+
+      <!-- ====== ENTRAR CON EL CÓDIGO DE SEGURIDAD (respaldo) ====== -->
+      <div id="vista-seguridad" hidden>
+        <p class="rotulo mb-4">Otra forma de entrar</p>
+        <h3 class="text-3xl mb-3">Tu código de seguridad.</h3>
+        <p class="text-tenue leading-relaxed mb-6 text-[0.98rem]">
+          El de <b class="text-texto">8 números</b> que tú anotaste dentro de la
+          app. Si nunca pusiste uno, tendrás que entrar con el código del correo.
+        </p>
+
+        <div class="space-y-5">
+          <div>
+            <label for="correo-seguridad" class="block text-[0.9rem] text-tenue mb-2">Tu correo</label>
+            <input id="correo-seguridad" type="email" class="campo" placeholder="tucorreo@ejemplo.com"
+                   autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"
+                   data-regla="correo">
+            <p class="error-campo" id="error-correo-seguridad" hidden></p>
+          </div>
+
+          <div>
+            <label class="block text-[0.9rem] text-tenue mb-2">Tu código de seguridad</label>
+            <div id="casillas-seguridad" class="grid grid-cols-8 gap-1.5 sm:gap-2" role="group" aria-label="Tu código de seguridad de ocho números">
+              <input class="casilla" type="text" inputmode="numeric" autocomplete="current-password" maxlength="1" aria-label="Número 1">
+              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 2">
+              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 3">
+              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 4">
+              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 5">
+              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 6">
+              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 7">
+              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 8">
+            </div>
+          </div>
+          <p class="error-campo" id="error-seguridad" hidden></p>
+
+          <button type="button" id="btn-entrar-seguridad" class="btn-neon w-full">
+            <span id="texto-btn-seguridad">Entrar</span>
+            <span id="girador-seguridad" class="girador" hidden></span>
+          </button>
+
+          <button type="button" id="btn-volver-correo" class="btn-suave">
+            Mejor mándame el código al correo
+          </button>
+        </div>
       </div>
 
       <!-- ============ PASO 2 · el código ============ -->
@@ -1744,6 +1793,49 @@
             <span id="girador-usuario" class="girador" hidden></span>
           </button>
         </form>
+      </div>
+
+      <!-- ============ PASO 4 · crear el código de seguridad ============ -->
+      <div id="vista-crear-seguridad" hidden>
+        <p class="rotulo mb-4">Último paso · Tu código de seguridad</p>
+        <h3 class="text-3xl mb-3">Por si el correo falla.</h3>
+        <p class="text-tenue leading-relaxed mb-5 text-[0.98rem]">
+          Elige <b class="text-texto">8 números</b> que solo tú sepas. Si algún
+          día no te llega el correo, entras con estos y ya.
+        </p>
+
+        <div class="border-l-4 rounded-[2px] p-4 mb-6"
+             style="border-color:rgb(var(--ambar)); background:color-mix(in srgb, rgb(var(--ambar)) 12%, transparent)">
+          <p class="text-[1.05rem] sm:text-[1.15rem] leading-snug font-semibold" style="color:rgb(var(--ambar))">
+            ⚠️ ANÓTALO DONDE NO SE TE PIERDA
+          </p>
+          <p class="text-[0.97rem] text-texto mt-2 leading-snug">
+            Nadie te lo puede recordar, ni nosotros: se guarda cifrado y no se
+            puede leer. Si se te olvida, entras con el código del correo y pones
+            uno nuevo.
+          </p>
+        </div>
+
+        <div id="casillas-crear" class="grid grid-cols-8 gap-1.5 sm:gap-2 mb-2" role="group" aria-label="Elige tu código de seguridad de ocho números">
+          <input class="casilla" type="text" inputmode="numeric" autocomplete="new-password" maxlength="1" aria-label="Número 1">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 2">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 3">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 4">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 5">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 6">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 7">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 8">
+        </div>
+        <p class="error-campo" id="error-crear-seguridad" hidden></p>
+
+        <button type="button" id="btn-guardar-seguridad" class="btn-neon w-full mt-5">
+          <span id="texto-btn-crear">Guardar mi código</span>
+          <span id="girador-crear" class="girador" hidden></span>
+        </button>
+
+        <button type="button" id="btn-saltar-seguridad" class="btn-suave mt-4">
+          Ahora no, entrar sin código de respaldo
+        </button>
       </div>
 
       <!-- ============ procesando ============ -->
@@ -2004,8 +2096,9 @@
         <path d="M33 42l10 10 20-20" stroke="#8CDB2B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <h3 id="titulo-exito" class="text-2xl mb-4">¡Gracias por escribirnos!</h3>
-      <p id="texto-exito" class="text-tenue leading-relaxed mb-8">Te responderemos en breve.</p>
-      <button type="button" data-cerrar class="btn-neon w-full">Entendido</button>
+      <p id="texto-exito" class="text-tenue leading-relaxed mb-8" style="white-space:pre-line">Te responderemos en breve.</p>
+      <button type="button" id="btn-accion-exito" class="btn-neon w-full mb-3" hidden></button>
+      <button type="button" data-cerrar id="btn-cerrar-exito" class="btn-neon w-full">Entendido</button>
     </div>
   </div>
 </div>
@@ -2286,11 +2379,29 @@
     else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
   });
 
-  function modalExito(titulo, texto) {
+  /* El tercer argumento es opcional: { etiqueta, accion }. Sirve para
+     ofrecer algo concreto sin sacar otra ventana encima. */
+  var accionExito = null;
+  function modalExito(titulo, texto, accion) {
     $('#titulo-exito').textContent = titulo;
     $('#texto-exito').textContent = texto;
+    var boton = $('#btn-accion-exito');
+    accionExito = (accion && typeof accion.accion === 'function') ? accion.accion : null;
+    if (accionExito) {
+      boton.hidden = false;
+      boton.textContent = accion.etiqueta || 'Continuar';
+      $('#btn-cerrar-exito').className = 'btn-linea w-full justify-center';
+    } else {
+      boton.hidden = true;
+      $('#btn-cerrar-exito').className = 'btn-neon w-full';
+    }
     abrirModal('modal-exito');
   }
+  $('#btn-accion-exito').addEventListener('click', function () {
+    var f = accionExito;
+    cerrarModal();
+    if (f) { f(); }
+  });
 
   /* =========================================================
      4. VALIDACIÓN DE CAMPOS
@@ -2511,6 +2622,7 @@
       nombre: apodo || correo.split('@')[0],
       giro: giro,
       giroTexto: giro ? (GIROS_TEXTO[giro] || 'Otro') : '',
+      tieneCodigo: !!p.tieneCodigo,
       alta: usuarioAuth.created_at || new Date().toISOString()
     };
   }
@@ -2524,10 +2636,11 @@
 
   /* El perfil puede no existir todavía (cuenta recién hecha). Eso no es error. */
   function traerPerfil(token, id) {
-    return pedirDatos('/perfiles?select=usuario,giro,giro_texto&id=eq.' + encodeURIComponent(id), {
+    return pedirDatos('/perfiles?select=usuario,giro,giro_texto,tiene_codigo&id=eq.' + encodeURIComponent(id), {
       token: token, cabeceras: { 'Accept': 'application/vnd.pgrst.object+json' }
     }).then(function (p) {
-      return p ? { usuario: p.usuario || '', giro: p.giro || '', giroTexto: p.giro_texto || '' } : {};
+      return p ? { usuario: p.usuario || '', giro: p.giro || '',
+                   giroTexto: p.giro_texto || '', tieneCodigo: !!p.tiene_codigo } : {};
     }).catch(function () { return {}; });
   }
 
@@ -2632,7 +2745,7 @@
 
   /* --- las cuatro vistas de la portada ------------------------------------- */
   function verVistaAuth(cual) {
-    ['correo', 'codigo', 'usuario', 'entrando'].forEach(function (k) {
+    ['correo', 'codigo', 'usuario', 'crear-seguridad', 'seguridad', 'entrando'].forEach(function (k) {
       var el = document.getElementById('vista-' + k);
       if (el) { el.hidden = (k !== cual); }
     });
@@ -2679,7 +2792,7 @@
       casilla.addEventListener('paste', function (e) {
         e.preventDefault();
         var pegado = (e.clipboardData || window.clipboardData).getData('text')
-                       .replace(/[^0-9]/g, '').slice(0, 6);
+                       .replace(/[^0-9]/g, '').slice(0, casillas.length);
         if (!pegado) { return; }
         for (var j = 0; j < pegado.length && (i + j) < casillas.length; j++) {
           casillas[i + j].value = pegado[j];
@@ -2858,7 +2971,9 @@
           sesion.usuario = nombre;
           sesion.nombre = nombre;
           guardarPerfilLocal();
-          entrarDeLleno();
+          /* Antes de entrar, se le ofrece el código de respaldo. Se puede
+             saltar: obligar dos códigos de golpe es pedir demasiado. */
+          abrirCrearSeguridad(false);
           return;
         }
         caja.hidden = false;
@@ -2871,6 +2986,192 @@
         caja.hidden = false;
         caja.textContent = explicarFalloAuth(err, 'No pude guardar tu usuario');
       });
+  });
+
+  /* ---------------------------------------------------------------
+     EL CÓDIGO DE SEGURIDAD  ·  la segunda forma de entrar
+     ---------------------------------------------------------------
+     Para cuando el correo no llega: tarda, cae en spam, o se acabó
+     la cuota del día. La persona elige 8 números dentro de la app y
+     con eso entra.
+
+     DÓNDE SE GUARDA: se le pone a Supabase como la CONTRASEÑA de esa
+     cuenta. No se guarda aquí, ni en la tabla perfiles, ni en el
+     navegador. Supabase la cifra con bcrypt y no la devuelve nunca.
+
+     POR QUÉ ASÍ Y NO INVENTANDO ALGO:
+       · cifrar contraseñas bien es difícil, y hacerlo mal es peor
+         que no hacerlo
+       · para comprobarla al entrar habría que poder leerla ANTES de
+         tener sesión, o sea abrir un agujero en las políticas
+       · Supabase ya limita los intentos de su propio login; escribir
+         eso otra vez a mano saldría peor
+
+     LO QUE HAY QUE SABER, Y ESTÁ DICHO EN LA PANTALLA: 8 números son
+     más débiles que un código que cambia cada vez y llega a un correo
+     que solo tú abres. Es un respaldo cómodo, no la puerta principal.
+     Por eso son 8 y no 6: cien millones de combinaciones en vez de un
+     millón, y Supabase corta los intentos repetidos.
+     --------------------------------------------------------------- */
+  var LARGO_SEGURIDAD = 8;
+
+  /* Códigos que no se aceptan: los que cualquiera probaría primero. */
+  function codigoDebil(c) {
+    if (/^(\d)\1+$/.test(c)) { return 'Ese código es todo el mismo número. Elige otro.'; }
+    var sube = true, baja = true;
+    for (var i = 1; i < c.length; i++) {
+      if (+c[i] !== +c[i - 1] + 1) { sube = false; }
+      if (+c[i] !== +c[i - 1] - 1) { baja = false; }
+    }
+    if (sube || baja) { return 'Ese código va en orden. Elige uno menos fácil de adivinar.'; }
+    if (/^(\d\d)\1+$/.test(c)) { return 'Ese código repite los mismos dos números. Elige otro.'; }
+    return null;
+  }
+
+  var codigoSeguridad = conectarCasillas('#casillas-seguridad', function () { entrarConSeguridad(); });
+  var codigoCrear     = conectarCasillas('#casillas-crear', function () { /* se guarda con el botón */ });
+
+  /* Si se abre desde dentro de la app (para cambiarlo), al cerrar se
+     vuelve al chat en vez de a la portada. */
+  var creandoDesdeDentro = false;
+
+  /* ---- entrar con el código de seguridad ---- */
+  function entrarConSeguridad() {
+    var campo = $('#correo-seguridad');
+    var caja = $('#error-seguridad');
+    if (!validarGrupo([campo])) { return; }
+
+    var codigo = codigoSeguridad.leer();
+    if (codigo.length < LARGO_SEGURIDAD) {
+      caja.hidden = false;
+      caja.textContent = 'Faltan números de tu código.';
+      return;
+    }
+    caja.hidden = true;
+    var girador = $('#girador-seguridad'), texto = $('#texto-btn-seguridad');
+    girador.hidden = false; texto.textContent = 'Entrando…';
+
+    /* El login de siempre de Supabase: correo + contraseña. La
+       contraseña es el código, y Supabase la compara cifrada. */
+    pedirAuth('/token?grant_type=password', {
+      metodo: 'POST',
+      cuerpo: { email: campo.value.trim().toLowerCase(), password: codigo }
+    })
+      .then(function (datos) {
+        guardarTokens(datos);
+        return continuarConTokens().then(function (dentro) {
+          girador.hidden = true; texto.textContent = 'Entrar';
+          codigoSeguridad.limpiar();
+          if (dentro) {
+            irA('#demo');
+            avisar('¡Bienvenida de vuelta, ' + sesion.usuario + '!');
+          }
+        });
+      })
+      .catch(function (err) {
+        girador.hidden = true; texto.textContent = 'Entrar';
+        caja.hidden = false;
+        var m = String((err && err.message) || '');
+        caja.textContent = /invalid.*credentials|invalid login/i.test(m)
+          ? 'Ese correo y ese código no coinciden. Si nunca pusiste un código de seguridad, entra con el del correo.'
+          : explicarFalloAuth(err, 'No pude entrar');
+        codigoSeguridad.marcarMal();
+      });
+  }
+  $('#btn-entrar-seguridad').addEventListener('click', entrarConSeguridad);
+
+  $('#btn-usar-seguridad').addEventListener('click', function () {
+    verVistaAuth('seguridad');
+    $('#correo-seguridad').value = $('#correo-acceso').value ||
+                                   (correoPendiente || '');
+    codigoSeguridad.limpiar();
+    if ($('#correo-seguridad').value) {
+      if (codigoSeguridad.primera) { codigoSeguridad.primera.focus(); }
+    } else {
+      $('#correo-seguridad').focus();
+    }
+  });
+
+  $('#btn-volver-correo').addEventListener('click', function () {
+    verVistaAuth('correo');
+    $('#error-seguridad').hidden = true;
+    $('#correo-acceso').focus();
+  });
+
+  /* ---- crear o cambiar el código ---- */
+  function abrirCrearSeguridad(desdeDentro) {
+    creandoDesdeDentro = !!desdeDentro;
+    codigoCrear.limpiar();
+    $('#error-crear-seguridad').hidden = true;
+    $('#btn-saltar-seguridad').textContent = desdeDentro
+      ? 'Cancelar'
+      : 'Ahora no, entrar sin código de respaldo';
+    $('#texto-btn-crear').textContent = (sesion && sesion.tieneCodigo)
+      ? 'Cambiar mi código'
+      : 'Guardar mi código';
+    if (desdeDentro) { mostrarPortada(); }
+    verVistaAuth('crear-seguridad');
+    setTimeout(function () { if (codigoCrear.primera) { codigoCrear.primera.focus(); } }, 120);
+  }
+
+  function guardarCodigoSeguridad() {
+    var caja = $('#error-crear-seguridad');
+    var codigo = codigoCrear.leer();
+    if (codigo.length < LARGO_SEGURIDAD) {
+      caja.hidden = false;
+      caja.textContent = 'Escribe los ' + LARGO_SEGURIDAD + ' números de tu código.';
+      return;
+    }
+    var flojo = codigoDebil(codigo);
+    if (flojo) {
+      caja.hidden = false; caja.textContent = flojo;
+      codigoCrear.marcarMal();
+      return;
+    }
+    caja.hidden = true;
+    var girador = $('#girador-crear'), texto = $('#texto-btn-crear');
+    var etiqueta = texto.textContent;
+    girador.hidden = false; texto.textContent = 'Guardando…';
+
+    var t = leerTokens();
+    /* Primero Supabase, y solo si acepta se deja constancia en el perfil.
+       Al revés, un fallo dejaría el perfil diciendo que hay código cuando
+       no lo hay, y la persona vería una salida que no funciona. */
+    pedirAuth('/user', { metodo: 'PUT', token: t.access_token, cuerpo: { password: codigo } })
+      .then(function () { return llamarFuncion('marcar_codigo', { puesto: true }); })
+      .then(function () {
+        girador.hidden = true; texto.textContent = etiqueta;
+        sesion.tieneCodigo = true;
+        guardarPerfilLocal();
+        codigoCrear.limpiar();
+        if (creandoDesdeDentro) {
+          creandoDesdeDentro = false;
+          ocultarPortada();
+          avisar('Listo, tu código de seguridad quedó guardado.');
+        } else {
+          entrarDeLleno();
+        }
+      })
+      .catch(function (err) {
+        girador.hidden = true; texto.textContent = etiqueta;
+        caja.hidden = false;
+        var m = String((err && err.message) || '');
+        caja.textContent = /at least|should be|weak|length/i.test(m)
+          ? 'Ese código no lo acepta el servidor. Prueba con otros 8 números.'
+          : explicarFalloAuth(err, 'No pude guardar tu código');
+      });
+  }
+  $('#btn-guardar-seguridad').addEventListener('click', guardarCodigoSeguridad);
+
+  $('#btn-saltar-seguridad').addEventListener('click', function () {
+    codigoCrear.limpiar();
+    $('#error-crear-seguridad').hidden = true;
+    if (creandoDesdeDentro) {
+      creandoDesdeDentro = false;
+      ocultarPortada();
+    } else {
+      entrarDeLleno();
+    }
   });
 
   /* ---------------------------------------------------------------
@@ -2897,11 +3198,17 @@
      entra con el correo, olvidar el usuario nunca deja a nadie fuera. */
   function mostrarMiUsuario() {
     if (!sesion) { return; }
+    var sobreCodigo = sesion.tieneCodigo
+      ? 'Tienes código de seguridad puesto: con él entras aunque no te llegue el correo.'
+      : 'Todavía no tienes código de seguridad. Ponlo y podrás entrar aunque el correo no llegue.';
     modalExito(
       'Tu usuario es ' + sesion.usuario,
-      'Apúntalo donde no se te pierda. Entras siempre con tu correo ' +
-      sesion.correo + ', así que aunque se te olvide, aquí lo vuelves a ver ' +
-      'en «Mi perfil».'
+      'Apúntalo donde no se te pierda. Entras con tu correo ' + sesion.correo +
+      ', así que aunque se te olvide, aquí lo vuelves a ver.\n\n' + sobreCodigo,
+      {
+        etiqueta: sesion.tieneCodigo ? 'Cambiar mi código de seguridad' : 'Poner mi código de seguridad',
+        accion: function () { abrirCrearSeguridad(true); }
+      }
     );
   }
 

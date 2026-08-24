@@ -146,8 +146,35 @@ await pag.fill('#reg-usuario', 'RosaBarro77');
 const pistaOk = await esperarPista();
 comprobar(/libre/i.test(pistaOk || ''), 'dice que está libre');
 await pag.click('#btn-guardar-usuario');
-await pag.waitForSelector('#portada', { state: 'hidden', timeout: 8000 });
-ok('ya está dentro');
+await pag.waitForSelector('#vista-crear-seguridad:not([hidden])', { timeout: 8000 });
+ok('ofrece poner el código de seguridad');
+
+// ═══════════════════════════════════════════════ 7b
+console.log('\n7b · EL CÓDIGO DE SEGURIDAD (respaldo)');
+comprobar(await pag.locator('#casillas-crear .casilla').count() === 8, 'son 8 casillas, no 6');
+comprobar(/ANÓTALO DONDE NO SE TE PIERDA/.test(await pag.textContent('#vista-crear-seguridad')),
+          'avisa en grande que hay que anotarlo');
+
+// Los códigos fáciles se rechazan.
+for (const [flojo, porque] of [['11111111', 'todo el mismo número'],
+                               ['12345678', 'en orden'],
+                               ['12121212', 'dos números repetidos']]) {
+  for (let i = 0; i < 8; i++) await pag.fill(`#casillas-crear .casilla >> nth=${i}`, flojo[i]);
+  await pag.click('#btn-guardar-seguridad');
+  const e = await esperarTexto('#error-crear-seguridad');
+  comprobar(e.length > 0, `rechaza ${flojo} (${porque})`);
+  await pag.waitForTimeout(850);   // marcarMal limpia a los 700ms
+}
+
+// Uno bueno sí pasa.
+const SEGURO = '73920486';
+for (let i = 0; i < 8; i++) await pag.fill(`#casillas-crear .casilla >> nth=${i}`, SEGURO[i]);
+await pag.click('#btn-guardar-seguridad');
+await pag.waitForSelector('#portada', { state: 'hidden', timeout: 9000 });
+ok('guarda el código bueno y entra');
+comprobar((await ultimo()).hayContrasena === true, 'quedó guardado en el servidor, no en la app');
+const enNavegador = await pag.evaluate(() => JSON.stringify(localStorage));
+comprobar(!enNavegador.includes(SEGURO), 'y NO quedó guardado en el navegador');
 comprobar((await pag.textContent('#sesion-nombre')) === 'RosaBarro77', 'lo saluda por su usuario');
 
 // ═══════════════════════════════════════════════ 8
@@ -197,6 +224,30 @@ await pag.click('#sesion-nombre-movil');
 await pag.waitForTimeout(600);
 const modal = await pag.textContent('body');
 comprobar(/Tu usuario es RosaBarro77/.test(modal), 'desde «Mi perfil» ve su usuario otra vez');
+
+// ═══════════════════════════════════════════════ 12b
+console.log('\n12b · ENTRAR CON EL CÓDIGO DE SEGURIDAD');
+await pag.evaluate(() => localStorage.clear());        // como en otro teléfono
+await pag.goto(APP, { waitUntil: 'networkidle' });
+await pag.waitForTimeout(800);
+comprobar(await pag.isVisible('#btn-usar-seguridad'), 'hay salida «No me llega el correo»');
+await pag.click('#btn-usar-seguridad');
+await pag.waitForSelector('#vista-seguridad:not([hidden])', { timeout: 5000 });
+ok('lleva a la pantalla del código de seguridad');
+
+// Primero uno equivocado.
+await pag.fill('#correo-seguridad', 'maria@ejemplo.com');
+for (let i = 0; i < 8; i++) await pag.fill(`#casillas-seguridad .casilla >> nth=${i}`, '9');
+const errSeg = await esperarTexto('#error-seguridad');
+comprobar(/no coinciden|no pude/i.test(errSeg), `código malo → «${errSeg.slice(0, 44)}…»`);
+comprobar(await pag.isVisible('#portada'), 'y no deja pasar');
+
+// Ahora el bueno.
+await pag.waitForTimeout(900);
+for (let i = 0; i < 8; i++) await pag.fill(`#casillas-seguridad .casilla >> nth=${i}`, SEGURO[i]);
+await pag.waitForSelector('#portada', { state: 'hidden', timeout: 9000 });
+ok('con el código bueno entra, sin tocar el correo');
+comprobar((await pag.textContent('#sesion-nombre')) === 'RosaBarro77', 'y es la misma cuenta');
 
 // ═══════════════════════════════════════════════ 13
 console.log('\n13 · CERRAR SESIÓN');

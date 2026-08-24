@@ -73,9 +73,13 @@ Y cuando lo publiques, también la dirección real de tu sitio.
 
 ## 3 · Las tablas de la base
 
-Si no las apliqué yo con el conector, pega el contenido de
-`backend/migraciones/001_perfiles.sql` en el **SQL Editor** de Supabase y dale
-a *Run*. Es copiar y pegar, no hay que entenderlo.
+Si no las apliqué yo con el conector, pega en el **SQL Editor** de Supabase, **en este orden**, y dale a *Run* a
+cada uno:
+
+1. `backend/migraciones/001_perfiles.sql`
+2. `backend/migraciones/002_codigo_seguridad.sql`
+
+Es copiar y pegar, no hay que entenderlo.
 
 Para comprobar que quedó: **Table Editor** debe mostrar una tabla `perfiles`.
 
