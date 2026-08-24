@@ -700,6 +700,30 @@ que ya tiene abierta.
 
 ---
 
+## BUG-29 · «Mi perfil» era inalcanzable justo cuando servía ✅ RESUELTO (24 ago 2026)
+
+**Síntoma:** con sesión abierta, no había manera de volver a ver tu usuario.
+El botón existía y respondía al clic en el código, pero nunca pasaba nada.
+
+**Causa:** colgué la ventana de «Mi perfil» de los botones `[data-portada="si"]`.
+Esos botones son los de «Perfil» / «Mi perfil» de la cabecera… y `pintarSesion()`
+los **esconde** en cuanto hay sesión, porque su trabajo es llevarte a la portada
+a entrar. O sea: el gancho estaba puesto exactamente en lo único que desaparece
+cuando hace falta.
+
+Y esto importaba más de lo que parece: ver tu usuario otra vez ES la
+recuperación de cuenta de esta app. Sin eso, quien lo olvidara se quedaba sin
+forma de recordarlo.
+
+**Arreglo:** el nombre del chip de sesión —que sí está visible mientras hay
+sesión— pasa a ser el botón. Están los dos: barra de arriba y menú del celular.
+
+**Cómo salió:** la prueba automática hacía clic y comprobaba que apareciera el
+usuario. Falló. Mi primer impulso fue pensar que el selector de la prueba estaba
+mal; al mirarlo de verdad, la prueba tenía razón.
+
+---
+
 ## Resumen
 
 | # | Problema | Estado |
@@ -732,3 +756,4 @@ que ya tiene abierta.
 | 26 | El aviso del correo mal escrito no salía | ✅ |
 | 27 | En celular no se podía cerrar sesión | ✅ |
 | 28 | El enlace no servía con la app ya abierta | ✅ |
+| 29 | «Mi perfil» era inalcanzable estando dentro | ✅ |

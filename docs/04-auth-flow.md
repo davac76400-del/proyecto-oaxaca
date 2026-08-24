@@ -5,31 +5,28 @@
 > teléfono verificado por WhatsApp. **Todo eso se quitó.**
 >
 > Ahora: **el correo y ya**. Lo lleva Supabase.
-> El paso a paso para configurarlo está en `docs/08-magic-link.md`.
+> El paso a paso para configurarlo está en `docs/08-acceso-por-codigo.md`.
 
 ---
 
 ## Cómo es ahora
 
 ```
-┌─────────────────────────────┐
-│  Escribe su correo          │   ← un campo. Uno.
-│  [ tucorreo@ejemplo.com ]   │
-│  [ Mándame mi enlace     ]  │
-└─────────────────────────────┘
-              │
-              ▼
-      «Revisa tu correo»
-              │
-              ▼
-   Le da clic al enlace  →  entra
+Paso 1 · tu correo   →   Paso 2 · código de 6 números   →   Paso 3 · tu usuario
+   [ correo ]                  ▢ ▢ ▢ ▢ ▢ ▢                  ⚠️ RECUERDA TU USUARIO
+                                                              [ MariaTelar23 ]
 ```
 
-No hay contraseña. No hay código que apuntar. No hay teléfono. No hay
-pestañas de «Regístrate» / «Iniciar sesión»: **es el mismo paso**. Si el correo
-no existía, la cuenta se crea sola.
+No hay contraseña. No hay teléfono. No hay pestañas de «Regístrate» / «Iniciar
+sesión»: **es el mismo camino**. Si el correo no existía, la cuenta se crea sola.
 
----
+El **paso 3 sale solo la primera vez**, y es obligatorio: sin usuario no se
+entra.
+
+**El código no es una contraseña fija.** Cada vez que entras se manda uno nuevo,
+sirve una sola vez y vence en una hora. Para quien lo usa se siente igual —
+escribe el número que le llegó — pero uno que no cambiara y viajara por correo
+sin cifrar se adivinaría en un rato.
 
 ## Por qué se cambió
 
@@ -103,4 +100,4 @@ queda en el historial del navegador.
 existe en pantalla grande; en el menú móvil hay ahora su propio botón. Antes no
 lo había — ver BUG-27.
 
-Todo el detalle técnico, en `docs/08-magic-link.md`.
+Todo el detalle técnico, en `docs/08-acceso-por-codigo.md`.

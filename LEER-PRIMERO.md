@@ -121,7 +121,7 @@ cd frontend && python3 build.py && cd ..
 npm start                   # abre http://localhost:3000
 ```
 
-Paso a paso: **`docs/08-magic-link.md`** (el acceso) y
+Paso a paso: **`docs/08-acceso-por-codigo.md`** (el acceso) y
 **`docs/06-ia-directa.md`** (la IA).
 
 Mientras tanto la app funciona igual, respondiendo con el motor local que trae

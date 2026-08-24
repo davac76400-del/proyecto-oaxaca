@@ -161,6 +161,29 @@ La prueba automática (32 comprobaciones contra un Supabase de mentiras) sacó
 tres bugs: BUG-26, BUG-27 y BUG-28. El del celular sin botón de salir venía
 arrastrándose desde el BUG-19.
 
+**24 · Código al correo, usuario obligatorio y Supabase de verdad (24 ago 2026).**
+El autor conecta el conector de Supabase y aparece su proyecto ya creado. Se
+sacan la dirección y la anon key reales y quedan en el `.env`.
+
+Cambia el acceso: en vez de un enlace, un **código de 6 números** al correo
+(`/auth/v1/verify`), y un **usuario obligatorio** la primera vez, con aviso
+grande de recordarlo. El enlace se conserva como segundo camino: quien prefiera
+darle clic, entra igual.
+
+Se escribe `001_perfiles.sql`: tabla `perfiles` ligada a `auth.users`, índice
+único sin distinguir mayúsculas, RLS, y tres funciones (`usuario_libre`,
+`fijar_usuario`, `fijar_giro`) para poder comprobar y guardar sin abrir la tabla.
+
+La recuperación de cuenta sale gratis: como se entra con el correo, olvidar el
+usuario no deja a nadie fuera. Se ve tocando el nombre del chip, o entrando por
+«Olvidé mi usuario».
+
+La prueba pasa de 32 a 42 comprobaciones y saca el BUG-29.
+
+**Lo que no se pudo hacer desde aquí:** aplicar la migración (el conector quedó
+apagado en el chat a media faena) y comprobar que el correo salga de verdad
+(la máquina tiene bloqueada la salida a supabase.com).
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

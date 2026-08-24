@@ -138,7 +138,7 @@ def revisar_service_role(texto, de_donde):
         print('  En el navegador va la ANON KEY, la que dice "anon" en el panel')
         print('  de Supabase (Settings → API). Esa sí es pública y es la correcta.')
         print('')
-        print('  Guía: docs/08-magic-link.md')
+        print('  Guía: docs/08-acceso-por-codigo.md')
         sys.exit(1)
 
 
@@ -238,7 +238,7 @@ def resolver_supabase(src):
         print('  Acceso por enlace: ' + url)
     else:
         print('  Acceso por enlace: SIN CONFIGURAR (falta SUPABASE_URL o SUPABASE_ANON_KEY)')
-        print('    La app funciona, pero nadie podrá entrar. Mira docs/08-magic-link.md')
+        print('    La app funciona, pero nadie podrá entrar. Mira docs/08-acceso-por-codigo.md')
     return src
 
 

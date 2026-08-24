@@ -94,7 +94,7 @@ código principal.
 4. **Modales** — `abrirModal`, `cerrarModal`, `mostrarPortada`, `ocultarPortada`
 5. **Validación** — objeto `REGLAS`, `validarCampo`, `validarGrupo`
 6. **Acceso por enlace** — `enviarEnlace`, `leerRegreso`, `refrescarSesion`,
-   `arrancarAuth` (ver `docs/08-magic-link.md`)
+   `arrancarAuth` (ver `docs/08-acceso-por-codigo.md`)
 7. **Cuentas** — `leerCuentas`, `guardarCuenta`, `crearCuenta`, `iniciarSesion`, `cerrarSesion`
 8. **Conversaciones** — `cargarConvs`, `nuevaConv`, `borrarConv`, `pintarListaConvs`
 9. **Chat** — `preguntar`, `mensajeIA`, `mensajeUsuario`, `extraerTexto`

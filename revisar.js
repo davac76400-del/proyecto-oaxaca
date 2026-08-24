@@ -248,7 +248,7 @@ function main() {
   } else {
     console.log('  ' + ROJO + NEGRITA + '✗ Faltan ' + faltanImprescindibles + ' dato(s) para poder entrar a la app.' + FIN);
     console.log('');
-    console.log('    Guía con capturas: ' + NEGRITA + 'docs/08-magic-link.md' + FIN);
+    console.log('    Guía con capturas: ' + NEGRITA + 'docs/08-acceso-por-codigo.md' + FIN);
   }
   console.log('');
   process.exit(faltanImprescindibles ? 1 : 0);

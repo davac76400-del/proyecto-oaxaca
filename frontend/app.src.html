@@ -901,7 +901,9 @@
       </button>
       <div id="sesion-chip" class="sesion-chip" hidden>
         <span class="w-1.5 h-1.5 bg-verde rotate-45 inline-block shrink-0" aria-hidden="true"></span>
-        <span id="sesion-nombre" class="text-texto"></span>
+        <button type="button" id="sesion-nombre" class="text-texto hover:text-cian transition-colors"
+                title="Ver mi usuario y mi correo">
+        </button>
         <button type="button" id="btn-salir" class="text-tenue hover:text-rosa transition-colors" aria-label="Cerrar sesión">salir</button>
       </div>
     </nav>
@@ -939,7 +941,8 @@
       <div id="sesion-chip-movil" class="mt-2 pt-4 border-t border-borde flex items-center justify-between gap-3" hidden>
         <span class="flex items-center gap-2 text-[0.95rem] min-w-0">
           <span class="w-1.5 h-1.5 bg-verde rotate-45 inline-block shrink-0" aria-hidden="true"></span>
-          <span id="sesion-nombre-movil" class="text-texto truncate"></span>
+          <button type="button" id="sesion-nombre-movil" class="text-texto truncate hover:text-cian transition-colors"
+                  title="Ver mi usuario y mi correo"></button>
         </span>
         <button type="button" id="btn-salir-movil" class="btn-linea shrink-0" style="margin:0">Cerrar sesión</button>
       </div>
@@ -1625,19 +1628,19 @@
       </h1>
       <p class="text-tenue text-[1.05rem] leading-relaxed" style="max-width:38ch; margin-inline:auto">
         Tu asistente con inteligencia artificial, hecho para el emprendedor oaxaqueño.
-        Entra con tu correo y empieza. Sin contraseñas.
+        Entra con tu correo. Te mandamos un código y listo.
       </p>
     </div>
 
     <div class="tarjeta-auth">
 
-      <!-- ============ PASO 1 · pedir el enlace ============ -->
+      <!-- ============ PASO 1 · el correo ============ -->
       <div id="vista-correo">
-        <p class="rotulo mb-4">Entrar</p>
-        <h3 class="text-3xl mb-3">Solo tu correo.</h3>
+        <p class="rotulo mb-4">Paso 1 de 3 · Tu correo</p>
+        <h3 class="text-3xl mb-3">Empecemos por tu correo.</h3>
         <p class="text-tenue leading-relaxed mb-7 text-[0.98rem]">
-          Escribe tu correo y te mandamos un enlace. Le das clic y ya estás dentro.
-          No hay contraseña que recordar ni formulario que llenar.
+          Te mandamos un código de 6 números. Lo escribes aquí y entras.
+          No hay contraseña que inventar ni que recordar.
         </p>
 
         <form id="form-acceso" class="space-y-5" novalidate>
@@ -1650,7 +1653,7 @@
           </div>
 
           <button type="submit" class="btn-neon w-full" id="btn-acceso">
-            <span id="texto-btn-acceso">Mándame mi enlace</span>
+            <span id="texto-btn-acceso">Mándame mi código</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             <span id="girador-acceso" class="girador" hidden></span>
           </button>
@@ -1659,37 +1662,91 @@
         <p class="text-[0.8rem] text-tenue mt-5 leading-relaxed">
           Si es tu primera vez, con esto queda hecha tu cuenta. Es el mismo paso.
         </p>
+
+        <button type="button" id="btn-olvide" class="btn-suave mt-4">
+          Olvidé mi usuario
+        </button>
       </div>
 
-      <!-- ============ PASO 2 · «revisa tu correo» ============ -->
-      <div id="vista-enviado" hidden>
-        <div class="mb-6" aria-hidden="true">
-          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--verde))" stroke-width="1.6">
-            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/>
-          </svg>
-        </div>
-        <p class="rotulo mb-4">Ya va en camino</p>
-        <h3 class="text-3xl mb-3">Revisa tu correo.</h3>
+      <!-- ============ PASO 2 · el código ============ -->
+      <div id="vista-codigo" hidden>
+        <p class="rotulo mb-4">Paso 2 de 3 · Tu código</p>
+        <h3 class="text-3xl mb-3">Te mandé un código.</h3>
         <p class="text-tenue leading-relaxed mb-2 text-[0.98rem]">
-          Te lo mandamos a <b id="correo-enviado" class="text-texto"></b>.
-          Abre el mensaje y dale clic al enlace: entras solo, aquí mismo.
+          Revisa tu correo <b id="correo-enviado" class="text-texto"></b> y escribe
+          aquí los <b class="text-texto">6 números</b> que te llegaron.
         </p>
-        <p class="text-tenue text-[0.88rem] leading-relaxed mb-7">
+        <p class="text-tenue text-[0.86rem] mb-6">
           Si no lo ves en un minuto, búscalo en <b class="text-texto">correo no deseado</b>.
-          El enlace sirve una sola vez y vence en una hora.
+          Vence en una hora.
         </p>
 
-        <div class="flex flex-wrap gap-3">
-          <button type="button" id="btn-reenviar" class="btn-neon flex-1 justify-center">
-            <span id="texto-btn-reenviar">Mandar otro</span>
+        <div id="casillas-codigo" class="grid grid-cols-6 gap-2 sm:gap-3 mb-2" role="group" aria-label="El código de seis números que te llegó por correo">
+          <input class="casilla" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Número 1">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 2">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 3">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 4">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 5">
+          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 6">
+        </div>
+        <p class="error-campo text-center" id="error-codigo" hidden></p>
+
+        <button type="button" id="btn-comprobar" class="btn-neon w-full mt-6">
+          <span id="texto-btn-comprobar">Entrar</span>
+          <span id="girador-comprobar" class="girador" hidden></span>
+        </button>
+
+        <div class="flex flex-wrap gap-3 mt-4">
+          <button type="button" id="btn-reenviar" class="btn-linea flex-1 justify-center">
+            <span id="texto-btn-reenviar">Mandar otro código</span>
             <span id="girador-reenviar" class="girador" hidden></span>
           </button>
-          <button type="button" id="btn-otro-correo" class="btn-linea">Usar otro correo</button>
+          <button type="button" id="btn-otro-correo" class="btn-suave">Cambiar correo</button>
         </div>
-        <p class="error-campo mt-4" id="error-enviado" hidden></p>
       </div>
 
-      <!-- ============ PASO 3 · procesando el regreso del enlace ============ -->
+      <!-- ============ PASO 3 · elegir usuario (obligatorio la 1ª vez) ============ -->
+      <div id="vista-usuario" hidden>
+        <p class="rotulo mb-4">Paso 3 de 3 · Tu usuario</p>
+        <h3 class="text-3xl mb-3">¿Cómo te llamamos?</h3>
+        <p class="text-tenue leading-relaxed mb-5 text-[0.98rem]">
+          Elige tu usuario. Con este nombre te va a saludar el asistente y así
+          te reconocemos.
+        </p>
+
+        <div id="aviso-recuerda" class="border-l-4 rounded-[2px] p-4 mb-6"
+             style="border-color:rgb(var(--ambar)); background:color-mix(in srgb, rgb(var(--ambar)) 12%, transparent)">
+          <p class="text-[1.05rem] sm:text-[1.15rem] leading-snug font-semibold" style="color:rgb(var(--ambar))">
+            ⚠️ RECUERDA TU USUARIO
+          </p>
+          <p class="text-[0.97rem] text-texto mt-2 leading-snug">
+            Apúntalo donde no se te pierda. Si algún día se te olvida, no pasa
+            nada: entras con tu correo y ahí mismo te lo recordamos.
+          </p>
+        </div>
+
+        <form id="form-usuario" class="space-y-5" novalidate>
+          <div>
+            <label for="reg-usuario" class="block text-[0.9rem] text-tenue mb-2">Usuario</label>
+            <input id="reg-usuario" type="text" class="campo" placeholder="Ej. MariaTelar23"
+                   autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20"
+                   data-regla="usuario">
+            <p class="text-[0.78rem] text-tenue mt-1.5">
+              Sin espacios, de 4 a 20 letras o números, y al menos una MAYÚSCULA.
+            </p>
+            <p class="text-[0.82rem] mt-1.5" id="pista-usuario" hidden></p>
+            <p class="error-campo" id="error-reg-usuario" hidden></p>
+          </div>
+
+          <button type="submit" class="btn-neon w-full" id="btn-guardar-usuario">
+            <span id="texto-btn-usuario">Guardar y entrar</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <span id="girador-usuario" class="girador" hidden></span>
+          </button>
+        </form>
+      </div>
+
+      <!-- ============ procesando ============ -->
       <div id="vista-entrando" hidden>
         <div class="flex items-center gap-3 mb-5">
           <span class="girador"></span>
@@ -2316,19 +2373,23 @@
   }
 
   /* =========================================================
-     5b. ACCESO POR ENLACE MÁGICO (Supabase)
+     5b. ACCESO POR CÓDIGO AL CORREO (Supabase)
      ---------------------------------------------------------
-     Se entra escribiendo el correo. Supabase manda un enlace,
-     la persona le da clic y vuelve aquí ya identificada.
-     No hay contraseña, ni código de seis dígitos, ni teléfono.
+     Tres pasos: correo → código de 6 números → elegir usuario.
+     El usuario es obligatorio la primera vez.
 
-     SOBRE LA LLAVE DE AQUÍ ABAJO — no es una contradicción con
-     lo de la IA. La «anon key» de Supabase está DISEÑADA para
-     vivir en el navegador: es un identificador público del
-     proyecto. Lo que protege los datos no es esconderla, son
-     las políticas de Row Level Security del propio Supabase.
-     La que NUNCA puede salir del servidor es la «service_role»,
-     y esa no aparece en ningún lado de este archivo.
+     OJO CON UNA COSA: el código NO es una contraseña fija. Cada
+     vez que entras se manda uno nuevo, sirve una sola vez y vence
+     en una hora. Un código de 6 números que no cambiara y viajara
+     por correo sin cifrar sería adivinable en un rato; así, aunque
+     alguien lo vea, ya no sirve. Para quien lo usa se siente igual:
+     escribe el número que le llegó y entra.
+
+     SOBRE LA LLAVE DE AQUÍ ABAJO: la «anon key» de Supabase está
+     DISEÑADA para vivir en el navegador. Lo que protege los datos
+     no es esconderla, son las políticas de Row Level Security
+     (backend/migraciones/001_perfiles.sql). La «service_role»
+     nunca aparece aquí, y build.py se detiene si alguien la pega.
      ========================================================= */
   var CONFIG_AUTH = {
     URL:   '__SUPABASE_URL__',
@@ -2338,29 +2399,33 @@
   var CLAVE_TOKENS = 'oaxintegra.tokens';
   var CLAVE_PERFIL = 'oaxintegra.perfil';
 
-  /* Sin configurar, la portada lo dice en vez de fallar en silencio. */
   function authListo() {
     return CONFIG_AUTH.URL.indexOf('http') === 0 && CONFIG_AUTH.CLAVE.length > 20;
   }
+  function baseAuth() { return CONFIG_AUTH.URL.replace(/\/+$/, ''); }
 
-  function urlAuth(camino) { return CONFIG_AUTH.URL.replace(/\/+$/, '') + '/auth/v1' + camino; }
-
-  function pedirAuth(camino, opciones) {
+  /* Una sola puerta para hablar con Supabase, sea auth o base de datos. */
+  function pedirSupabase(camino, opciones) {
     var o = opciones || {};
     var cab = { 'apikey': CONFIG_AUTH.CLAVE, 'Content-Type': 'application/json' };
     if (o.token) { cab['Authorization'] = 'Bearer ' + o.token; }
+    if (o.cabeceras) {
+      for (var k in o.cabeceras) { if (o.cabeceras.hasOwnProperty(k)) { cab[k] = o.cabeceras[k]; } }
+    }
     var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var corte = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, CONFIG.LIMITE_MS);
     var peticion = { method: o.metodo || 'GET', headers: cab };
     if (o.cuerpo) { peticion.body = JSON.stringify(o.cuerpo); }
     if (ctrl) { peticion.signal = ctrl.signal; }
-    return fetch(urlAuth(camino), peticion).then(function (r) {
+
+    return fetch(baseAuth() + camino, peticion).then(function (r) {
       clearTimeout(corte);
       return r.text().then(function (t) {
         var datos = null;
         try { datos = t ? JSON.parse(t) : null; } catch (e) { datos = null; }
         if (!r.ok) {
-          var e2 = new Error((datos && (datos.error_description || datos.msg || datos.message)) || ('Error ' + r.status));
+          var e2 = new Error((datos && (datos.error_description || datos.msg ||
+                              datos.message || datos.error)) || ('Error ' + r.status));
           e2.estado = r.status;
           throw e2;
         }
@@ -2369,10 +2434,21 @@
     }, function (err) { clearTimeout(corte); throw err; });
   }
 
-  /* --- guardar y leer los tokens de la sesión ------------------------------ */
+  function pedirAuth(camino, o)  { return pedirSupabase('/auth/v1' + camino, o); }
+  function pedirDatos(camino, o) { return pedirSupabase('/rest/v1' + camino, o); }
+
+  /* Llama a una función de la base (las de 001_perfiles.sql). */
+  function llamarFuncion(nombre, argumentos) {
+    var t = leerTokens();
+    if (!t) { return Promise.reject(new Error('sin sesión')); }
+    return pedirDatos('/rpc/' + nombre, {
+      metodo: 'POST', token: t.access_token, cuerpo: argumentos || {}
+    });
+  }
+
+  /* --- los tokens de la sesión -------------------------------------------- */
   function guardarTokens(t) {
     if (!t || !t.access_token) { return; }
-    /* expires_at viene en segundos desde 1970; si no viene, se calcula. */
     var vence = t.expires_at
       ? Number(t.expires_at) * 1000
       : Date.now() + (Number(t.expires_in || 3600) * 1000);
@@ -2387,7 +2463,7 @@
   }
   function borrarTokens() { almacen.borrar(CLAVE_TOKENS); }
 
-  /* --- el giro del negocio: se guarda aquí y también en Supabase ----------- */
+  /* --- el giro del negocio ------------------------------------------------- */
   var GIROS_TEXTO = {
     textil:    'Textiles, telar y bordado',
     barro:     'Barro, talla de madera y alebrijes',
@@ -2400,100 +2476,114 @@
     otro:      'Otro'
   };
 
-  function leerPerfil() {
+  function leerPerfilLocal() {
     try { return JSON.parse(almacen.leer(CLAVE_PERFIL) || '{}'); } catch (e) { return {}; }
   }
+  function guardarPerfilLocal() {
+    if (!sesion) { return; }
+    var p = leerPerfilLocal();
+    p[sesion.id] = { usuario: sesion.usuario, giro: sesion.giro, giroTexto: sesion.giroTexto };
+    almacen.guardar(CLAVE_PERFIL, JSON.stringify(p));
+    almacen.guardar(CLAVE_SESION, JSON.stringify(sesion));
+  }
+
   function guardarGiro(giro) {
     if (!sesion) { return; }
     sesion.giro = giro;
     sesion.giroTexto = GIROS_TEXTO[giro] || 'Otro';
-    var perfil = leerPerfil();
-    perfil[sesion.id] = { giro: giro, giroTexto: sesion.giroTexto };
-    almacen.guardar(CLAVE_PERFIL, JSON.stringify(perfil));
-    almacen.guardar(CLAVE_SESION, JSON.stringify(sesion));
-    /* Que viaje con la cuenta, para que en otro teléfono ya lo sepa.
-       Si falla, ni modo: el giro ya quedó guardado aquí. */
-    var t = leerTokens();
-    if (t) {
-      pedirAuth('/user', { metodo: 'PUT', token: t.access_token, cuerpo: { data: { giro: giro } } })
-        .catch(function () {});
-    }
+    guardarPerfilLocal();
+    /* Que viaje con la cuenta. Si falla, ya quedó guardado aquí. */
+    llamarFuncion('fijar_giro', { clave: giro, texto: sesion.giroTexto })
+      .catch(function () {});
   }
 
-  /* Convierte el usuario de Supabase en la 'sesion' que ya usaba la app. */
-  function armarSesion(usuario) {
-    var correo = (usuario && usuario.email) || '';
-    var apodo = correo.split('@')[0] || 'amiga';
-    var meta = (usuario && usuario.user_metadata) || {};
-    var perfil = leerPerfil()[usuario.id] || {};
-    var giro = meta.giro || perfil.giro || '';
+  /* --- armar la sesión ----------------------------------------------------- */
+  function armarSesion(usuarioAuth, perfil) {
+    var correo = (usuarioAuth && usuarioAuth.email) || '';
+    var guardado = leerPerfilLocal()[usuarioAuth.id] || {};
+    var p = perfil || {};
+    var apodo = p.usuario || guardado.usuario || '';
+    var giro = p.giro || guardado.giro || '';
     return {
-      id: usuario.id,
+      id: usuarioAuth.id,
       correo: correo,
       usuario: apodo,
-      nombre: apodo,
+      nombre: apodo || correo.split('@')[0],
       giro: giro,
       giroTexto: giro ? (GIROS_TEXTO[giro] || 'Otro') : '',
-      alta: usuario.created_at || new Date().toISOString()
+      alta: usuarioAuth.created_at || new Date().toISOString()
     };
   }
 
-  /* La dirección a la que Supabase debe regresar. Se manda como parámetro
-     para que funcione igual en tu computadora que ya publicado. */
+  function traerUsuarioAuth(token) {
+    return pedirAuth('/user', { token: token }).then(function (u) {
+      if (!u || !u.id) { throw new Error('respuesta sin usuario'); }
+      return u;
+    });
+  }
+
+  /* El perfil puede no existir todavía (cuenta recién hecha). Eso no es error. */
+  function traerPerfil(token, id) {
+    return pedirDatos('/perfiles?select=usuario,giro,giro_texto&id=eq.' + encodeURIComponent(id), {
+      token: token, cabeceras: { 'Accept': 'application/vnd.pgrst.object+json' }
+    }).then(function (p) {
+      return p ? { usuario: p.usuario || '', giro: p.giro || '', giroTexto: p.giro_texto || '' } : {};
+    }).catch(function () { return {}; });
+  }
+
+  /* --- mandar el código ---------------------------------------------------- */
+  function mandarCodigo(correo) {
+    /* redirect_to va por si la plantilla del correo también trae el enlace:
+       quien prefiera darle clic, entra igual. El camino principal es el código. */
+    return pedirAuth('/otp?redirect_to=' + encodeURIComponent(direccionRegreso()), {
+      metodo: 'POST',
+      cuerpo: { email: correo, create_user: true }
+    });
+  }
+
   function direccionRegreso() {
     return window.location.origin + window.location.pathname;
   }
 
-  function enviarEnlace(correo, cajaError, textoBtn, girador, etiquetaNormal) {
-    cajaError.hidden = true;
-    girador.hidden = false;
-    textoBtn.textContent = 'Mandando…';
-
-    var camino = '/otp?redirect_to=' + encodeURIComponent(direccionRegreso());
-    return pedirAuth(camino, {
+  /* --- comprobar el código ------------------------------------------------- */
+  function verificarCodigo(correo, codigo) {
+    return pedirAuth('/verify', {
       metodo: 'POST',
-      cuerpo: { email: correo, create_user: true }
-    }).then(function () {
-      girador.hidden = true;
-      textoBtn.textContent = etiquetaNormal;
-      return true;
-    }).catch(function (err) {
-      girador.hidden = true;
-      textoBtn.textContent = etiquetaNormal;
-      cajaError.hidden = false;
-      cajaError.textContent = explicarFalloAuth(err);
-      return false;
+      cuerpo: { email: correo, token: codigo, type: 'email' }
     });
   }
 
-  /* Los errores de Supabase vienen en inglés y de poco sirven así. */
-  function explicarFalloAuth(err) {
+  /* --- los errores de Supabase, en cristiano ------------------------------- */
+  function explicarFalloAuth(err, contexto) {
     var m = String((err && err.message) || '');
     if (!authListo()) {
       return 'El acceso todavía no está configurado. Avísale a quien administra el sitio.';
     }
     if (err && err.estado === 429) {
-      return 'Ya mandamos varios enlaces a ese correo. Espera un minuto y vuelve a intentar.';
+      return 'Ya pediste varios códigos. Espera un minuto y vuelve a intentar.';
     }
-    if (/rate|too many/i.test(m)) {
-      return 'Espera un minuto antes de pedir otro enlace.';
+    if (/rate|too many|after \d+ seconds/i.test(m)) {
+      return 'Espera un minuto antes de pedir otro código.';
     }
-    if (/invalid.*email|email.*invalid/i.test(m)) {
+    if (/expired/i.test(m)) {
+      return 'Ese código ya venció. Pide uno nuevo aquí abajo.';
+    }
+    if (/invalid.*(token|otp)|token.*invalid|incorrect/i.test(m)) {
+      return 'Ese código no coincide. Revísalo o pide uno nuevo.';
+    }
+    if (/invalid.*email|email.*invalid|unable to validate/i.test(m)) {
       return 'Ese correo no se ve bien. Revísalo y vuelve a intentar.';
     }
     if (/signups.*disabled|not allowed/i.test(m)) {
       return 'Ese correo no tiene permiso de entrar todavía.';
     }
-    if (/failed to fetch|networkerror|aborted/i.test(m)) {
+    if (/failed to fetch|networkerror|aborted|load failed/i.test(m)) {
       return 'No hay internet o no alcancé el servidor. Revisa tu conexión.';
     }
-    return 'No pude mandar el enlace: ' + m;
+    return (contexto || 'No se pudo') + ': ' + m;
   }
 
-  /* --- el regreso desde el correo ------------------------------------------
-     Supabase deja los tokens en el fragmento de la dirección (#access_token=…).
-     El fragmento NO viaja al servidor, por eso se usa ese y no la query.
-     Si algo sale mal, deja error= y error_description= en el mismo lugar.  */
+  /* --- volver desde el enlace del correo (si le dieron clic) --------------- */
   function leerRegreso() {
     var bruto = window.location.hash || '';
     if (bruto.indexOf('access_token') === -1 && bruto.indexOf('error') === -1) { return null; }
@@ -2509,8 +2599,7 @@
     return trozos;
   }
 
-  /* Se borra el fragmento en cuanto se leyó: si no, los tokens se quedan
-     visibles en la barra del navegador y en el historial. */
+  /* Los tokens no se quedan en la barra de direcciones ni en el historial. */
   function limpiarDireccion() {
     if (window.history && window.history.replaceState) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -2524,57 +2613,105 @@
     var t = leerTokens();
     if (!t || !t.refresh_token) { return Promise.reject(new Error('sin refresh')); }
     return pedirAuth('/token?grant_type=refresh_token', {
-      metodo: 'POST',
-      cuerpo: { refresh_token: t.refresh_token }
-    }).then(function (datos) {
-      guardarTokens(datos);
-      return datos;
-    });
+      metodo: 'POST', cuerpo: { refresh_token: t.refresh_token }
+    }).then(function (datos) { guardarTokens(datos); return datos; });
   }
 
-  /* Se renueva un minuto antes de vencer, no cuando ya venció. */
   var relojRefresco = null;
   function programarRefresco() {
     if (relojRefresco) { clearTimeout(relojRefresco); relojRefresco = null; }
     var t = leerTokens();
     if (!t) { return; }
-    var falta = t.vence - Date.now() - 60000;
+    var falta = t.vence - Date.now() - 60000;      /* un minuto antes de vencer */
     if (falta < 5000) { falta = 5000; }
-    if (falta > 1800000) { falta = 1800000; }   /* como mucho, media hora */
+    if (falta > 1800000) { falta = 1800000; }
     relojRefresco = setTimeout(function () {
       refrescarSesion().then(programarRefresco).catch(function () {});
     }, falta);
   }
 
-  function traerUsuario(token) {
-    return pedirAuth('/user', { token: token }).then(function (u) {
-      if (!u || !u.id) { throw new Error('respuesta sin usuario'); }
-      return u;
-    });
-  }
-
-  function entrarConTokens(tokens) {
-    guardarTokens(tokens);
-    var t = leerTokens();
-    return traerUsuario(t.access_token).then(function (u) {
-      sesion = armarSesion(u);
-      almacen.guardar(CLAVE_SESION, JSON.stringify(sesion));
-      programarRefresco();
-      return sesion;
-    });
-  }
-
-  /* --- las tres vistas de la portada --------------------------------------- */
+  /* --- las cuatro vistas de la portada ------------------------------------- */
   function verVistaAuth(cual) {
-    var v = { correo: 'vista-correo', enviado: 'vista-enviado', entrando: 'vista-entrando' };
-    Object.keys(v).forEach(function (k) {
-      var el = document.getElementById(v[k]);
+    ['correo', 'codigo', 'usuario', 'entrando'].forEach(function (k) {
+      var el = document.getElementById('vista-' + k);
       if (el) { el.hidden = (k !== cual); }
     });
   }
 
-  /* --- paso 1: el formulario del correo ------------------------------------ */
+  /* --- casillas de código: avance, borrado, pegado, Enter ------------------ */
+  function conectarCasillas(selector, alCompletar) {
+    var casillas = $$(selector + ' .casilla');
+    if (!casillas.length) {
+      return { limpiar: function(){}, leer: function(){return '';}, marcarMal: function(){}, primera: null };
+    }
+    function limpiar() {
+      casillas.forEach(function (c) {
+        c.value = ''; c.removeAttribute('data-lleno'); c.removeAttribute('data-mal');
+      });
+    }
+    function leer() { return casillas.map(function (c) { return c.value; }).join(''); }
+    function marcarMal() {
+      casillas.forEach(function (c) { c.dataset.mal = 'si'; });
+      setTimeout(function () { limpiar(); casillas[0].focus(); }, 700);
+    }
+    casillas.forEach(function (casilla, i) {
+      casilla.addEventListener('input', function () {
+        casilla.value = casilla.value.replace(/[^0-9]/g, '').slice(0, 1);
+        if (casilla.value) {
+          casilla.dataset.lleno = 'si';
+          if (i < casillas.length - 1) { casillas[i + 1].focus(); }
+        } else { casilla.removeAttribute('data-lleno'); }
+        casillas.forEach(function (c) { c.removeAttribute('data-mal'); });
+        if (casillas.every(function (c) { return c.value; })) { setTimeout(alCompletar, 180); }
+      });
+      casilla.addEventListener('keydown', function (e) {
+        if (e.key === 'Backspace' && !casilla.value && i > 0) {
+          e.preventDefault();
+          casillas[i - 1].value = '';
+          casillas[i - 1].removeAttribute('data-lleno');
+          casillas[i - 1].focus();
+        }
+        if (e.key === 'ArrowLeft'  && i > 0) { casillas[i - 1].focus(); }
+        if (e.key === 'ArrowRight' && i < casillas.length - 1) { casillas[i + 1].focus(); }
+        if (e.key === 'Enter') { e.preventDefault(); alCompletar(); }
+      });
+      /* Pegar el código de un jalón, que es como llega del correo. */
+      casilla.addEventListener('paste', function (e) {
+        e.preventDefault();
+        var pegado = (e.clipboardData || window.clipboardData).getData('text')
+                       .replace(/[^0-9]/g, '').slice(0, 6);
+        if (!pegado) { return; }
+        for (var j = 0; j < pegado.length && (i + j) < casillas.length; j++) {
+          casillas[i + j].value = pegado[j];
+          casillas[i + j].dataset.lleno = 'si';
+        }
+        casillas[Math.min(i + pegado.length, casillas.length - 1)].focus();
+        if (casillas.every(function (c) { return c.value; })) { setTimeout(alCompletar, 180); }
+      });
+    });
+    return { limpiar: limpiar, leer: leer, marcarMal: marcarMal, primera: casillas[0] };
+  }
+
+  /* ---------------------------------------------------------------
+     PASO 1 · el correo
+     --------------------------------------------------------------- */
   var correoPendiente = '';
+  var veniaPorOlvido = false;      /* entró por «olvidé mi usuario» */
+
+  function pedirElCodigo(correo, cajaError, textoBtn, girador, etiqueta) {
+    cajaError.hidden = true;
+    girador.hidden = false;
+    textoBtn.textContent = 'Mandando…';
+    return mandarCodigo(correo).then(function () {
+      girador.hidden = true; textoBtn.textContent = etiqueta;
+      return true;
+    }).catch(function (err) {
+      girador.hidden = true; textoBtn.textContent = etiqueta;
+      cajaError.hidden = false;
+      cajaError.textContent = explicarFalloAuth(err, 'No pude mandar el código');
+      return false;
+    });
+  }
 
   $('#form-acceso').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -2582,20 +2719,82 @@
     if (!validarGrupo([campo])) { return; }
     correoPendiente = campo.value.trim().toLowerCase();
 
-    enviarEnlace(correoPendiente, $('#error-correo-acceso'), $('#texto-btn-acceso'),
-                 $('#girador-acceso'), 'Mándame mi enlace')
+    pedirElCodigo(correoPendiente, $('#error-correo-acceso'), $('#texto-btn-acceso'),
+                  $('#girador-acceso'), 'Mándame mi código')
       .then(function (bien) {
         if (!bien) { return; }
         $('#correo-enviado').textContent = correoPendiente;
-        verVistaAuth('enviado');
+        codigoCorreo.limpiar();
+        verVistaAuth('codigo');
+        setTimeout(function () { if (codigoCorreo.primera) { codigoCorreo.primera.focus(); } }, 120);
       });
   });
 
+  /* «Olvidé mi usuario» no es un camino aparte: es el mismo, y al entrar se
+     le enseña su usuario en grande. Menos pantallas y menos que explicar. */
+  $('#btn-olvide').addEventListener('click', function () {
+    veniaPorOlvido = true;
+    avisar('Entra con tu correo y te recuerdo tu usuario.');
+    $('#correo-acceso').focus();
+  });
+
+  /* ---------------------------------------------------------------
+     PASO 2 · el código
+     --------------------------------------------------------------- */
+  var codigoCorreo = conectarCasillas('#casillas-codigo', function () { comprobarCodigo(); });
+
+  function comprobarCodigo() {
+    var codigo = codigoCorreo.leer();
+    var caja = $('#error-codigo');
+    if (codigo.length < 6) {
+      caja.hidden = false;
+      caja.textContent = 'Faltan números del código.';
+      return;
+    }
+    caja.hidden = true;
+    var girador = $('#girador-comprobar'), texto = $('#texto-btn-comprobar');
+    girador.hidden = false; texto.textContent = 'Comprobando…';
+
+    verificarCodigo(correoPendiente, codigo)
+      .then(function (datos) {
+        guardarTokens(datos);
+        var t = leerTokens();
+        return traerUsuarioAuth(t.access_token).then(function (u) {
+          return traerPerfil(t.access_token, u.id).then(function (p) {
+            girador.hidden = true; texto.textContent = 'Entrar';
+            sesion = armarSesion(u, p);
+            guardarPerfilLocal();
+            programarRefresco();
+            /* Sin usuario todavía = primera vez. Es obligatorio elegirlo. */
+            if (!sesion.usuario) {
+              verVistaAuth('usuario');
+              setTimeout(function () { $('#reg-usuario').focus(); }, 120);
+            } else {
+              entrarDeLleno();
+            }
+          });
+        });
+      })
+      .catch(function (err) {
+        girador.hidden = true; texto.textContent = 'Entrar';
+        caja.hidden = false;
+        caja.textContent = explicarFalloAuth(err, 'No pude comprobar el código');
+        codigoCorreo.marcarMal();
+      });
+  }
+  $('#btn-comprobar').addEventListener('click', comprobarCodigo);
+
   $('#btn-reenviar').addEventListener('click', function () {
     if (!correoPendiente) { verVistaAuth('correo'); return; }
-    enviarEnlace(correoPendiente, $('#error-enviado'), $('#texto-btn-reenviar'),
-                 $('#girador-reenviar'), 'Mandar otro')
-      .then(function (bien) { if (bien) { avisar('Listo, va otro enlace en camino.'); } });
+    pedirElCodigo(correoPendiente, $('#error-codigo'), $('#texto-btn-reenviar'),
+                  $('#girador-reenviar'), 'Mandar otro código')
+      .then(function (bien) {
+        if (bien) {
+          codigoCorreo.limpiar();
+          if (codigoCorreo.primera) { codigoCorreo.primera.focus(); }
+          avisar('Listo, va otro código en camino.');
+        }
+      });
   });
 
   $('#btn-otro-correo').addEventListener('click', function () {
@@ -2606,7 +2805,109 @@
     $('#correo-acceso').select();
   });
 
-  /* --- preguntar el giro, ya adentro y sin estorbar ------------------------ */
+  /* ---------------------------------------------------------------
+     PASO 3 · elegir el usuario (obligatorio la primera vez)
+     --------------------------------------------------------------- */
+  var relojUsuario = null;
+
+  /* Mientras escribe, se le va diciendo si está libre. Se espera medio
+     segundo desde la última tecla para no preguntar en cada letra. */
+  $('#reg-usuario').addEventListener('input', function () {
+    var pista = $('#pista-usuario');
+    var v = $('#reg-usuario').value.trim();
+    if (relojUsuario) { clearTimeout(relojUsuario); relojUsuario = null; }
+    if (!/^[A-Za-z0-9._-]{4,20}$/.test(v) || !/[A-Z]/.test(v)) {
+      pista.hidden = true;
+      return;
+    }
+    pista.hidden = false;
+    pista.textContent = 'Comprobando si está libre…';
+    pista.style.color = 'rgb(var(--tenue))';
+    relojUsuario = setTimeout(function () {
+      llamarFuncion('usuario_libre', { nombre: v })
+        .then(function (libre) {
+          if ($('#reg-usuario').value.trim() !== v) { return; }   /* ya cambió */
+          pista.hidden = false;
+          if (libre) {
+            pista.textContent = '✓ ' + v + ' está libre.';
+            pista.style.color = 'rgb(var(--verde))';
+          } else {
+            pista.textContent = '✗ ' + v + ' ya lo tiene alguien. Prueba otro.';
+            pista.style.color = 'rgb(var(--naranja))';
+          }
+        })
+        .catch(function () { pista.hidden = true; });
+    }, 500);
+  });
+
+  $('#form-usuario').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var campo = $('#reg-usuario');
+    if (!validarGrupo([campo])) { return; }
+
+    var nombre = campo.value.trim();
+    var girador = $('#girador-usuario'), texto = $('#texto-btn-usuario');
+    var caja = $('#error-reg-usuario');
+    caja.hidden = true;
+    girador.hidden = false; texto.textContent = 'Guardando…';
+
+    llamarFuncion('fijar_usuario', { nombre: nombre })
+      .then(function (r) {
+        girador.hidden = true; texto.textContent = 'Guardar y entrar';
+        if (r && r.ok) {
+          sesion.usuario = nombre;
+          sesion.nombre = nombre;
+          guardarPerfilLocal();
+          entrarDeLleno();
+          return;
+        }
+        caja.hidden = false;
+        caja.textContent = (r && r.motivo === 'ocupado')
+          ? 'Ese usuario ya lo tiene alguien. Prueba con otro.'
+          : 'No se pudo guardar. Revisa que cumpla las reglas de arriba.';
+      })
+      .catch(function (err) {
+        girador.hidden = true; texto.textContent = 'Guardar y entrar';
+        caja.hidden = false;
+        caja.textContent = explicarFalloAuth(err, 'No pude guardar tu usuario');
+      });
+  });
+
+  /* ---------------------------------------------------------------
+     Ya adentro
+     --------------------------------------------------------------- */
+  function entrarDeLleno() {
+    pintarSesion();
+    pintarMedallas();
+    cargarConvs();
+    ocultarPortada();
+    pintarTiraGiro();
+    irA('#demo');
+    codigoCorreo.limpiar();
+
+    if (veniaPorOlvido) {
+      veniaPorOlvido = false;
+      mostrarMiUsuario();
+    } else {
+      avisar('¡Bienvenida, ' + sesion.usuario + '! Ya estás dentro.');
+    }
+  }
+
+  /* Enseñar el usuario en grande. Es la «recuperación de cuenta»: como se
+     entra con el correo, olvidar el usuario nunca deja a nadie fuera. */
+  function mostrarMiUsuario() {
+    if (!sesion) { return; }
+    modalExito(
+      'Tu usuario es ' + sesion.usuario,
+      'Apúntalo donde no se te pierda. Entras siempre con tu correo ' +
+      sesion.correo + ', así que aunque se te olvide, aquí lo vuelves a ver ' +
+      'en «Mi perfil».'
+    );
+  }
+
+  /* ---------------------------------------------------------------
+     La tira del giro, ya adentro y sin estorbar
+     --------------------------------------------------------------- */
   function pintarTiraGiro() {
     var tira = document.getElementById('tira-giro');
     if (!tira) { return; }
@@ -2635,12 +2936,24 @@
     }
   })();
 
-  /* --- salir ---------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     Mi perfil · dónde siempre puede ver su usuario
+     ---------------------------------------------------------------
+     OJO: los botones «Mi perfil» se ESCONDEN al iniciar sesión, así que
+     colgarse de ellos no servía de nada (lo cazó la prueba). El nombre
+     que sí está visible mientras hay sesión es el del chip; ese es el
+     botón. Están los dos: barra de arriba y menú del celular. */
+  ['#sesion-nombre', '#sesion-nombre-movil'].forEach(function (sel) {
+    var b = $(sel);
+    if (b) { b.addEventListener('click', mostrarMiUsuario); }
+  });
+
+  /* ---------------------------------------------------------------
+     Salir
+     --------------------------------------------------------------- */
   function cerrarSesion() {
     var t = leerTokens();
     if (t) {
-      /* Se le avisa a Supabase para que invalide el refresh_token del lado
-         de allá. Si no responde, la sesión de aquí se borra igual. */
       pedirAuth('/logout', { metodo: 'POST', token: t.access_token }).catch(function () {});
     }
     if (relojRefresco) { clearTimeout(relojRefresco); relojRefresco = null; }
@@ -2649,9 +2962,11 @@
     almacen.borrar(CLAVE_SESION);
     almacen.borrar(CLAVE_GUARDADAS);
     correoPendiente = '';
+    veniaPorOlvido = false;
     pintarSesion();
     convs = []; idConv = null;
     pintarListaConvs();
+    codigoCorreo.limpiar();
     verVistaAuth('correo');
     $('#correo-acceso').value = '';
     mostrarPortada();
@@ -2663,7 +2978,9 @@
     if (b) { b.addEventListener('click', cerrarSesion); }
   });
 
-  /* --- arranque: ¿venimos del correo, o ya había sesión guardada? ---------- */
+  /* ---------------------------------------------------------------
+     Arranque
+     --------------------------------------------------------------- */
   function arrancarAuth() {
     if (!authListo()) {
       verVistaAuth('correo');
@@ -2680,61 +2997,68 @@
       limpiarDireccion();
       verVistaAuth('correo');
       $('#error-correo-acceso').hidden = false;
-      $('#error-correo-acceso').textContent = /expired/i.test(regreso.error_description || regreso.error)
-        ? 'Ese enlace ya venció. Pide uno nuevo aquí abajo.'
-        : 'Ese enlace ya no sirve. Pide uno nuevo aquí abajo.';
+      $('#error-correo-acceso').textContent =
+        /expired/i.test(regreso.error_description || regreso.error)
+          ? 'Ese enlace ya venció. Pide un código nuevo aquí abajo.'
+          : 'Ese enlace ya no sirve. Pide un código nuevo aquí abajo.';
       return Promise.resolve(false);
     }
 
+    /* Le dio clic al enlace del correo en vez de escribir el código. */
     if (regreso && regreso.access_token) {
       verVistaAuth('entrando');
       limpiarDireccion();
-      return entrarConTokens(regreso).then(function () {
-        pintarSesion();
-        pintarMedallas();
-        cargarConvs();
-        ocultarPortada();
-        pintarTiraGiro();
-        irA('#demo');
-        avisar('¡Bienvenida! Ya estás dentro.');
-        return true;
-      }).catch(function () {
+      guardarTokens(regreso);
+      return continuarConTokens().catch(function () {
         verVistaAuth('correo');
         $('#error-correo-acceso').hidden = false;
-        $('#error-correo-acceso').textContent = 'No pude abrir tu cuenta con ese enlace. Pide uno nuevo.';
+        $('#error-correo-acceso').textContent =
+          'No pude abrir tu cuenta con ese enlace. Pide un código nuevo.';
         return false;
       });
     }
 
-    /* Sin enlace: ¿hay tokens guardados de la vez pasada? */
+    /* ¿Había sesión guardada de la vez pasada? */
     var t = leerTokens();
     if (!t) { verVistaAuth('correo'); return Promise.resolve(false); }
 
     var vigente = t.vence > Date.now() + 30000;
     var paso = vigente ? Promise.resolve() : refrescarSesion();
 
-    return paso
-      .then(function () { return traerUsuario(leerTokens().access_token); })
-      .then(function (u) {
-        sesion = armarSesion(u);
-        almacen.guardar(CLAVE_SESION, JSON.stringify(sesion));
+    return paso.then(continuarConTokens).catch(function () {
+      /* El token ya no vale. Se limpia y se pide el correo otra vez. */
+      borrarTokens();
+      almacen.borrar(CLAVE_SESION);
+      sesion = null;
+      pintarSesion();
+      verVistaAuth('correo');
+      return false;
+    });
+  }
+
+  /* Con tokens buenos: traer quién es, su perfil, y decidir si le falta
+     elegir usuario. Lo usan el enlace del correo y la sesión guardada. */
+  function continuarConTokens() {
+    var t = leerTokens();
+    return traerUsuarioAuth(t.access_token).then(function (u) {
+      return traerPerfil(t.access_token, u.id).then(function (p) {
+        sesion = armarSesion(u, p);
+        guardarPerfilLocal();
         programarRefresco();
+        if (!sesion.usuario) {
+          /* Entró por el enlace pero nunca eligió usuario: no se salta. */
+          correoPendiente = sesion.correo;
+          verVistaAuth('usuario');
+          setTimeout(function () { $('#reg-usuario').focus(); }, 120);
+          return false;
+        }
         pintarSesion();
         cargarConvs();
         ocultarPortada();
         pintarTiraGiro();
         return true;
-      })
-      .catch(function () {
-        /* El token ya no vale. Se limpia y se pide el correo otra vez,
-           sin dejar a nadie mirando una pantalla a medias. */
-        borrarTokens();
-        almacen.borrar(CLAVE_SESION);
-        sesion = null;
-        pintarSesion();
-        verVistaAuth('correo');
-        return false;
       });
+    });
   }
 
   /* =========================================================

@@ -194,7 +194,7 @@ eso está la cadena.
   redacción es de la IA real pero no se pierde el formato.
 
 - **Ya no queda n8n en ninguna parte** (24 ago 2026). Las altas de cuenta las
-  lleva Supabase con el enlace por correo (`docs/08-magic-link.md`), y el
+  lleva Supabase con el enlace por correo (`docs/08-acceso-por-codigo.md`), y el
   formulario de contacto abre el correo o el WhatsApp del negocio con el
   mensaje ya escrito, sin webhook de por medio.
 

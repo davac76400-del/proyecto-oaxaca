@@ -27,7 +27,7 @@ local, y la insignia dice "Modo local".
 ### Poner las llaves de Supabase
 Sin `SUPABASE_URL` y `SUPABASE_ANON_KEY` en el `.env`, la portada avisa que el
 acceso no está configurado y el botón queda apagado. Son cinco minutos:
-**`docs/08-magic-link.md`**.
+**`docs/08-acceso-por-codigo.md`**.
 
 ### Un servidor de correo propio
 El servidor que Supabase presta manda **3 correos por hora** y cae en spam
@@ -36,7 +36,7 @@ Mailgun en *Settings → Authentication → SMTP*. Todos tienen plan gratis
 suficiente.
 
 ### Cambiar el texto del correo
-La plantilla lista para copiar está en `docs/08-magic-link.md`. Se pega en
+La plantilla lista para copiar está en `docs/08-acceso-por-codigo.md`. Se pega en
 *Authentication → Emails → Magic Link*. No es código: es una pantalla del panel.
 
 ### Las conversaciones solo viven en el navegador
