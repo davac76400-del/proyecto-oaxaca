@@ -112,6 +112,36 @@ LLAVES_PROHIBIDAS = [
 ]
 
 
+def revisar_service_role(texto, de_donde):
+    """La anon key de Supabase SÍ va en el navegador: es pública por diseño.
+       La service_role NO: se salta todas las políticas de seguridad y quien
+       la tenga puede leer y borrar la base entera. Las dos son JWT y se
+       parecen mucho, así que aquí se abre el JWT y se mira el rol de dentro.
+       Este es justo el error que hay que hacer imposible."""
+    malas = 0
+    for m in re.finditer(r'eyJ[A-Za-z0-9_\-]{10,}\.eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}', texto):
+        cuerpo = m.group(0).split('.')[1]
+        cuerpo += '=' * (-len(cuerpo) % 4)
+        try:
+            carga = base64.urlsafe_b64decode(cuerpo).decode('utf-8', 'replace')
+        except Exception:
+            continue
+        if 'service_role' in carga:
+            malas += 1
+    if malas:
+        print('')
+        print('✗ ALTO. Hay ' + str(malas) + ' llave(s) service_role de Supabase en ' + de_donde + '.')
+        print('')
+        print('  Esa llave se salta TODAS las reglas de seguridad. Quien abra la')
+        print('  página podría leer y borrar la base de datos completa.')
+        print('')
+        print('  En el navegador va la ANON KEY, la que dice "anon" en el panel')
+        print('  de Supabase (Settings → API). Esa sí es pública y es la correcta.')
+        print('')
+        print('  Guía: docs/08-magic-link.md')
+        sys.exit(1)
+
+
 def revisar_llaves(texto, de_donde):
     """Se detiene si encuentra algo con forma de llave de acceso."""
     hallazgos = []
@@ -149,6 +179,51 @@ def resolver_endpoint(src):
         print('✗ No encontré ENDPOINT en CONFIG_IA para sustituirlo'); sys.exit(1)
     print('  Endpoint del asistente: ' + url)
     return nuevo
+
+
+def resolver_supabase(src):
+    """Mete la dirección y la anon key de Supabase, que se leen del entorno
+       o del .env. Sin ellas la app construye igual, pero la portada avisa
+       que el acceso no está configurado en vez de fallar en silencio."""
+    url   = (os.environ.get('SUPABASE_URL')      or leer_del_env('SUPABASE_URL')      or '').strip().rstrip('/')
+    clave = (os.environ.get('SUPABASE_ANON_KEY') or leer_del_env('SUPABASE_ANON_KEY') or '').strip()
+
+    for valor, nombre in ((url, 'SUPABASE_URL'), (clave, 'SUPABASE_ANON_KEY')):
+        if "'" in valor or '\\' in valor or '\n' in valor:
+            print('✗ ' + nombre + ' tiene caracteres no válidos'); sys.exit(1)
+
+    # El Supabase de la nube es siempre https. El local (supabase start) es
+    # http://localhost:54321, y ese sí vale para desarrollo.
+    local = url.startswith('http://localhost') or url.startswith('http://127.0.0.1')
+    if url and not url.startswith('https://') and not local:
+        print('✗ SUPABASE_URL debe empezar con https:// — tal cual viene en el panel')
+        print('  (la única excepción es http://localhost para desarrollo)')
+        sys.exit(1)
+
+    src = src.replace('__SUPABASE_URL__', url).replace('__SUPABASE_ANON__', clave)
+
+    if url and clave:
+        print('  Acceso por enlace: ' + url)
+    else:
+        print('  Acceso por enlace: SIN CONFIGURAR (falta SUPABASE_URL o SUPABASE_ANON_KEY)')
+        print('    La app funciona, pero nadie podrá entrar. Mira docs/08-magic-link.md')
+    return src
+
+
+def leer_del_env(nombre):
+    """Busca una variable en el .env de la raíz. Sin librerías de fuera."""
+    ruta = os.path.join(RAIZ, '.env')
+    if not os.path.exists(ruta):
+        return ''
+    with open(ruta, encoding='utf-8') as f:
+        for linea in f:
+            linea = linea.strip()
+            if not linea or linea.startswith('#') or '=' not in linea:
+                continue
+            k, v = linea.split('=', 1)
+            if k.strip() == nombre:
+                return v.strip().strip('"').strip("'")
+    return ''
 
 
 def incrustar_huipiles(src):
@@ -221,7 +296,10 @@ def main():
     # Antes de nada: que no haya llaves en el fuente.
     revisar_llaves(src, 'app.src.html')
     src = resolver_endpoint(src)
+    src = resolver_supabase(src)
     src = incrustar_huipiles(src)
+    # La anon key se acaba de meter: hay que comprobar que sea la buena.
+    revisar_service_role(src, 'el HTML ya armado')
 
     print('→ Ensamblando…')
     final = src.replace('/*__TAILWIND__*/', css).replace('__CHAPULIN__', uri)

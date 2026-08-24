@@ -11,6 +11,8 @@ node_modules/
 .netlify/
 .vercel/
 
-# el webhook de WhatsApp (ya vive en la raíz)
-media/
-huipiles/
+__pycache__/
+*.pyc
+
+# pruebas: playwright se instala aparte, no se versiona
+pruebas/node_modules/

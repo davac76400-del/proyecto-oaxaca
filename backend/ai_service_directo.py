@@ -112,7 +112,7 @@ LARGO: máximo 200 palabras, salvo que pidan explícitamente más."""
 # ---------------------------------------------------------------------------
 app = FastAPI(title="OaxIntegra IA — servicio de IA")
 
-# CORS abierto: esto resuelve el problema que n8n no resolvía
+# CORS abierto, para poder llamarlo desde el navegador sin tropiezos
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -197,7 +197,7 @@ def salud():
 @app.post("/chat")
 async def chat(p: Peticion):
     """
-    Recibe exactamente el mismo payload que la app mandaba a n8n,
+    Recibe el mismo payload que manda la app,
     así no hay que cambiar nada en el frontend salvo la URL.
     """
     sistema = prompt_maestro(p.businessType, p.username)

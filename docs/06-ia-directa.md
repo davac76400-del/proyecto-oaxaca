@@ -193,8 +193,10 @@ eso está la cadena.
   la sigue armando el motor local; el texto de la IA se mete *dentro*. Así la
   redacción es de la IA real pero no se pierde el formato.
 
-- **n8n sigue usándose** para las altas de cuenta (`WEBHOOK_REGISTRO`) y el
-  formulario de contacto. Eso es aparte del chat y no se tocó.
+- **Ya no queda n8n en ninguna parte** (24 ago 2026). Las altas de cuenta las
+  lleva Supabase con el enlace por correo (`docs/08-magic-link.md`), y el
+  formulario de contacto abre el correo o el WhatsApp del negocio con el
+  mensaje ya escrito, sin webhook de por medio.
 
 - **Si abres el HTML con doble clic** (sin servidor), no hay `/api/ia` que
   responda y el chat usa el motor local. Es lo esperado: para la IA real,

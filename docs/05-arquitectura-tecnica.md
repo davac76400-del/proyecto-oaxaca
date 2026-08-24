@@ -87,12 +87,14 @@ código principal.
 
 ## Secciones del JavaScript (en orden dentro del IIFE)
 
-1. **CONFIG** — webhooks, timeout
+1. **CONFIG / CONFIG_IA / CONFIG_AUTH** — el WhatsApp del negocio, el
+   endpoint del asistente, y la dirección + anon key de Supabase
 2. **Utilidades** — `$`, `$$`, `almacen` (wrapper de localStorage), `copiar`, `avisar`
 3. **Tema día/noche** — `aplicarTema`, persistencia
 4. **Modales** — `abrirModal`, `cerrarModal`, `mostrarPortada`, `ocultarPortada`
 5. **Validación** — objeto `REGLAS`, `validarCampo`, `validarGrupo`
-6. **Casillas de código** — `conectarCasillas` (avance, borrado, pegado)
+6. **Acceso por enlace** — `enviarEnlace`, `leerRegreso`, `refrescarSesion`,
+   `arrancarAuth` (ver `docs/08-magic-link.md`)
 7. **Cuentas** — `leerCuentas`, `guardarCuenta`, `crearCuenta`, `iniciarSesion`, `cerrarSesion`
 8. **Conversaciones** — `cargarConvs`, `nuevaConv`, `borrarConv`, `pintarListaConvs`
 9. **Chat** — `preguntar`, `mensajeIA`, `mensajeUsuario`, `extraerTexto`
@@ -153,8 +155,14 @@ tacha cualquier llave antes de devolver un mensaje de error.
 llave en `app.src.html`, para que no se pueda volver a hornear un secreto en el
 entregable.
 
-**Lo que sí sigue usando n8n:** las altas de cuenta (`WEBHOOK_REGISTRO`) y el
-formulario de contacto (`WEBHOOK_CONTACTO`). Eso es aparte del chat.
+**Ya no queda ningún n8n en el proyecto.** Las altas las lleva Supabase, y el
+formulario de contacto abre el correo o el WhatsApp del negocio con el mensaje
+ya escrito, sin servidor de por medio.
+
+**La anon key de Supabase sí va en el HTML**, y no contradice lo de arriba: es
+pública por diseño y lo que protege los datos son las políticas de Row Level
+Security. `build.py` además abre el JWT y se detiene si alguien pega por error
+la `service_role`, que es la que sí sería un desastre.
 
 ## Motor local de respaldo
 

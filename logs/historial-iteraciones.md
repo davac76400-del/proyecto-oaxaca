@@ -138,6 +138,29 @@ se pudieron poner: el proxy de la máquina bloquea Wikimedia, así que se dejó
 `traer_huipiles.py`, que verifica procedencia y licencia antes de descargar.
 Durante la prueba salió el BUG-25, un `var` que borraba su propia asignación.
 
+**23 · Entrar solo con el correo (24 ago 2026).** El autor pide desmontar todo
+lo de WhatsApp y poner acceso por enlace mágico con Supabase. Se borran once
+archivos: el webhook de Meta, `lib/whatsapp.js`, `backend/otp-core.js`, las tres
+funciones de OTP y los dos documentos de n8n. Del frontend salen el teléfono,
+la tabla de 22 países, las casillas de seis dígitos, las pestañas de
+registro/login y los dos webhooks de n8n; la portada queda con **un campo y un
+botón**. Se implementa el enlace mágico con `fetch` puro contra la API de
+Supabase, sin el SDK: son cuatro llamadas y la app es un solo archivo, meter
+100 KB de librería no salía a cuenta.
+
+El proyecto se queda **sin ninguna dependencia de npm** (62 MB de
+`node_modules` fuera). `build.py` gana dos cosas: sustituye la dirección y la
+anon key de Supabase, y abre los JWT que encuentra para detenerse si alguien
+pega la `service_role` por error — las dos llaves se parecen muchísimo y
+confundirlas sería regalar la base de datos.
+
+El giro del negocio ya no se pregunta al entrar: aparece adentro, como una tira
+sobre el chat con un botón de «Ahora no».
+
+La prueba automática (32 comprobaciones contra un Supabase de mentiras) sacó
+tres bugs: BUG-26, BUG-27 y BUG-28. El del celular sin botón de salir venía
+arrastrándose desde el BUG-19.
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

@@ -1,24 +1,13 @@
 {
-  "name": "oaxintegra-webhook-whatsapp",
-  "version": "1.0.0",
-  "description": "OaxIntegra IA — webhook de WhatsApp (recibe mensajes y fotos) y utilidades. El servidor de la app y la IA es backend/servidor.js.",
+  "name": "oaxintegra-ia",
+  "version": "2.0.0",
+  "description": "OaxIntegra IA — servidor de desarrollo de la app y del asistente. El acceso se hace con enlace mágico de Supabase; no hace falta instalar nada para eso.",
   "private": true,
-  "main": "servidor.js",
+  "main": "backend/servidor.js",
   "scripts": {
-    "start": "node servidor.js",
-    "tunel": "node servidor.js --tunel",
+    "start": "node backend/servidor.js",
     "app": "node backend/servidor.js",
-    "huipiles": "node lib/huipiles.js"
-  },
-  "dependencies": {
-    "axios": "^1.7.9",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "form-data": "^4.0.6",
-    "sharp": "^0.33.5"
-  },
-  "optionalDependencies": {
-    "@ngrok/ngrok": "^1.4.1"
+    "construir": "cd frontend && python3 build.py"
   },
   "engines": {
     "node": ">=18"

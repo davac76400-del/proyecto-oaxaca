@@ -1,14 +1,16 @@
 -- ============================================================================
 -- OaxIntegra IA — Esquema de base de datos
 -- ----------------------------------------------------------------------------
--- ESTADO: PROPUESTO, no implementado.
--- Hoy la app guarda todo en localStorage del navegador. Este esquema es el
--- camino para migrar a un backend real cuando se necesite:
---   · que las cuentas funcionen desde cualquier dispositivo
---   · que no se pierdan al borrar los datos del navegador
---   · poder recuperar el código por WhatsApp/SMS
+-- ESTADO: PROPUESTO. La identidad ya NO lo es: eso lo resuelve Supabase.
 --
--- Dialecto: PostgreSQL (funciona en Supabase, Neon, Railway).
+-- Quién es cada quien lo lleva Supabase en su tabla auth.users, que ya
+-- existe en tu proyecto y guarda el correo. Aquí NO se guardan contraseñas,
+-- ni códigos, ni teléfonos: no hace falta ninguno de los tres.
+--
+-- Lo de abajo es para cuando quieras que las conversaciones dejen de vivir
+-- solo en el navegador y sigan a la persona de un teléfono a otro.
+--
+-- Dialecto: PostgreSQL. Pensado para Supabase (pégalo en SQL Editor).
 -- ============================================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -17,42 +19,47 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- USUARIOS
 -- Refleja exactamente los campos del registro actual de la app.
 -- ---------------------------------------------------------------------------
-CREATE TABLE usuarios (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- Supabase ya guarda el correo y la fecha de alta en auth.users.
+-- Aquí solo va lo que es de esta app y que allá no cabe.
+CREATE TABLE perfiles (
+    -- El mismo id que en auth.users: uno a uno. Si se borra la cuenta,
+    -- se borra el perfil con ella.
+    id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
 
-    -- El usuario tal como lo escribió (para mostrarlo con sus mayúsculas)
-    usuario         VARCHAR(20)  NOT NULL,
-    -- Versión en minúsculas: es la que garantiza unicidad (como en la app)
-    usuario_lower   VARCHAR(20)  NOT NULL UNIQUE,
+    -- Giro del negocio. Puede estar vacío: se pregunta ya adentro, y quien
+    -- no quiera contestar entra igual.
+    giro        VARCHAR(40),
+    giro_texto  VARCHAR(120),
 
-    -- NUNCA guardar el código en texto plano. Hash con bcrypt.
-    -- En la app actual está en claro porque vive solo en el navegador del
-    -- propio usuario; en servidor eso sería inaceptable.
-    codigo_hash     TEXT         NOT NULL,
+    tema        VARCHAR(10) DEFAULT 'dia' CHECK (tema IN ('dia','noche')),
 
-    -- Teléfono OPCIONAL, guardado con lada: '+52 5512345678'
-    telefono        VARCHAR(20),
-    lada            VARCHAR(6)   DEFAULT '+52',
-
-    -- Giro del negocio
-    giro            VARCHAR(40)  NOT NULL,
-    giro_texto      VARCHAR(120) NOT NULL,
-
-    tema            VARCHAR(10)  DEFAULT 'dia'
-                    CHECK (tema IN ('dia','noche')),
-
-    creado_en       TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    ultimo_acceso   TIMESTAMPTZ,
-    activo          BOOLEAN      NOT NULL DEFAULT TRUE,
-
-    CONSTRAINT usuario_formato
-        CHECK (usuario ~ '^[A-Za-z0-9._-]{4,20}$' AND usuario ~ '[A-Z]'),
-    CONSTRAINT telefono_formato
-        CHECK (telefono IS NULL OR telefono ~ '^\+[0-9]{1,4} [0-9]{9,11}$')
+    creado_en   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_usuarios_lower ON usuarios(usuario_lower);
-CREATE INDEX idx_usuarios_giro  ON usuarios(giro);
+CREATE INDEX idx_perfiles_giro ON perfiles(giro);
+
+-- Cada quien ve y toca SOLO lo suyo. Esto es lo que de verdad protege los
+-- datos, no esconder la anon key (que es pública a propósito).
+ALTER TABLE perfiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "cada quien ve su perfil"     ON perfiles
+    FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "cada quien crea el suyo"     ON perfiles
+    FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "cada quien edita el suyo"    ON perfiles
+    FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+
+-- Al darse de alta, se le crea el perfil solo.
+CREATE OR REPLACE FUNCTION crear_perfil() RETURNS TRIGGER
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+    INSERT INTO perfiles (id) VALUES (NEW.id) ON CONFLICT DO NOTHING;
+    RETURN NEW;
+END $$;
+
+CREATE TRIGGER trg_crear_perfil
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION crear_perfil();
 
 
 -- ---------------------------------------------------------------------------
@@ -60,7 +67,7 @@ CREATE INDEX idx_usuarios_giro  ON usuarios(giro);
 -- ---------------------------------------------------------------------------
 CREATE TABLE conversaciones (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    usuario_id      UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    usuario_id      UUID NOT NULL REFERENCES perfiles(id) ON DELETE CASCADE,
     titulo          VARCHAR(120) NOT NULL DEFAULT 'Nueva plática',
     creada_en       TIMESTAMPTZ  NOT NULL DEFAULT now(),
     actualizada_en  TIMESTAMPTZ  NOT NULL DEFAULT now(),
@@ -80,7 +87,7 @@ CREATE TABLE mensajes (
     rol             VARCHAR(10) NOT NULL CHECK (rol IN ('usuario','asistente')),
     contenido       TEXT        NOT NULL,
 
-    -- 'n8n' | 'ia_directa' | 'local'  → para medir cuántas veces cae el respaldo
+    -- 'llama' | 'gemini' | 'local'  → para medir cuántas veces cae el respaldo
     origen          VARCHAR(20) DEFAULT 'local',
 
     -- Si el mensaje trae tarjeta de publicación, se guarda su estructura
@@ -97,7 +104,7 @@ CREATE INDEX idx_msg_conv ON mensajes(conversacion_id, creado_en);
 -- ---------------------------------------------------------------------------
 CREATE TABLE publicaciones_guardadas (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    usuario_id   UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    usuario_id   UUID NOT NULL REFERENCES perfiles(id) ON DELETE CASCADE,
     cuerpo       TEXT NOT NULL,
     etiquetas    TEXT[],
     guardada_en  TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -107,28 +114,11 @@ CREATE INDEX idx_pub_usuario ON publicaciones_guardadas(usuario_id, guardada_en 
 
 
 -- ---------------------------------------------------------------------------
--- CÓDIGOS DE RECUPERACIÓN  (para el envío por WhatsApp/SMS pendiente)
--- ---------------------------------------------------------------------------
-CREATE TABLE codigos_recuperacion (
-    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    usuario_id   UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    codigo_hash  TEXT NOT NULL,
-    expira_en    TIMESTAMPTZ NOT NULL,
-    usado        BOOLEAN NOT NULL DEFAULT FALSE,
-    canal        VARCHAR(20) DEFAULT 'whatsapp',
-    creado_en    TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX idx_recup_usuario ON codigos_recuperacion(usuario_id)
-    WHERE usado = FALSE;
-
-
--- ---------------------------------------------------------------------------
 -- BITÁCORA DE USO DE IA  (para conocer costos y detectar fallos)
 -- ---------------------------------------------------------------------------
 CREATE TABLE uso_ia (
     id           BIGSERIAL PRIMARY KEY,
-    usuario_id   UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+    usuario_id   UUID REFERENCES perfiles(id) ON DELETE SET NULL,
     proveedor    VARCHAR(30),
     modelo       VARCHAR(60),
     exito        BOOLEAN NOT NULL,

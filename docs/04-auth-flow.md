@@ -1,157 +1,106 @@
-# Sistema de autenticación — usuario + código de 6 dígitos
+# Cómo se entra a la app
 
-## Decisión de diseño
-
-Sin correo electrónico, sin contraseña larga, sin verificación por email.
-El usuario elige **un nombre de usuario** y **un código de 6 números** que él
-mismo escribe. Razón: el público objetivo puede no tener correo activo ni
-recordar contraseñas complejas, pero sí recuerda 6 números.
-
-**Importante — historial de decisión:** hubo una iteración donde el sistema
-generaba el código automáticamente. El autor lo revirtió: **el usuario escribe
-y elige su propio código**. Esa es la versión correcta y final.
+> **Esto cambió por completo el 24 de agosto de 2026.** Antes se entraba con
+> usuario + un código de 6 números que la persona elegía, y opcionalmente un
+> teléfono verificado por WhatsApp. **Todo eso se quitó.**
+>
+> Ahora: **el correo y ya**. Lo lleva Supabase.
+> El paso a paso para configurarlo está en `docs/08-magic-link.md`.
 
 ---
 
-## FLUJO DE REGISTRO (2 pasos)
+## Cómo es ahora
 
-### Paso 1 — Datos
-
-| Campo | Obligatorio | Regla |
-|---|---|---|
-| **Usuario** | Sí | Sin espacios, 4–20 caracteres, al menos una MAYÚSCULA, único |
-| **Teléfono** | **NO (opcional)** | Si se llena: exactamente 10 dígitos. Con selector de lada. |
-| **Tipo de negocio** | Sí | Select con giros (mezcal, textil, barro, comida, turismo…) |
-
-**Regex del usuario:**
-```js
-usuario: {
-  probar: function (v) {
-    var t = v.trim();
-    return /^[A-Za-z0-9._-]{4,20}$/.test(t) && /[A-Z]/.test(t);
-  },
-  error: 'Sin espacios, 4 a 20 caracteres y al menos una mayúscula.'
-}
+```
+┌─────────────────────────────┐
+│  Escribe su correo          │   ← un campo. Uno.
+│  [ tucorreo@ejemplo.com ]   │
+│  [ Mándame mi enlace     ]  │
+└─────────────────────────────┘
+              │
+              ▼
+      «Revisa tu correo»
+              │
+              ▼
+   Le da clic al enlace  →  entra
 ```
 
-**Regla del teléfono opcional (crítica — fue el BUG-06):**
-```js
-'telefono-opcional': {
-  probar: function (v) {
-    var d = v.replace(/\D/g, '');
-    return d.length === 0 || d.length === 10;   // vacío O exactamente 10
-  },
-  error: 'El teléfono debe tener 10 dígitos (o déjalo vacío).'
-}
-```
-Nota: limpia espacios, guiones y paréntesis antes de contar. `55-1234 5678`
-es válido. **Si esta regla se rompe, el registro se bloquea entero.**
-
-**Unicidad del usuario:**
-```js
-var clave = usu.value.trim().toLowerCase();
-if (leerCuentas()[clave]) { /* ya existe → mandar a iniciar sesión */ }
-```
-
-### Selector de lada (América + España)
-
-```js
-var LADAS = [
-  ['+52','🇲🇽 MX'], ['+1','🇺🇸 US/CA'], ['+54','🇦🇷 AR'], ['+591','🇧🇴 BO'],
-  ['+55','🇧🇷 BR'], ['+56','🇨🇱 CL'], ['+57','🇨🇴 CO'], ['+506','🇨🇷 CR'],
-  ['+53','🇨🇺 CU'], ['+593','🇪🇨 EC'], ['+503','🇸🇻 SV'], ['+502','🇬🇹 GT'],
-  ['+509','🇭🇹 HT'], ['+504','🇭🇳 HN'], ['+505','🇳🇮 NI'], ['+507','🇵🇦 PA'],
-  ['+595','🇵🇾 PY'], ['+51','🇵🇪 PE'], ['+1','🇩🇴 DO'], ['+598','🇺🇾 UY'],
-  ['+58','🇻🇪 VE'], ['+34','🇪🇸 ES']
-];
-// Default: +52 (México)
-```
-El teléfono se guarda con lada: `"+52 5512345678"`
-
-⚠️ **Pendiente conocido:** España usa 9 dígitos, no 10. La validación exige 10
-para todos porque así se pidió. Mejora futura: validar según el país elegido.
-
-### Paso 2 — Código
-
-Seis casillas individuales (`.casilla` dentro de `#casillas`).
-- Avance automático al escribir
-- Retroceso con borrar
-- Pegado inteligente (pegar "123456" llena las 6)
-- **Al completar las 6 cifras se envía solo** (auto-submit)
-
-```js
-var codigoRegistro = conectarCasillas('#casillas', function(){ crearCuenta(); });
-```
+No hay contraseña. No hay código que apuntar. No hay teléfono. No hay
+pestañas de «Regístrate» / «Iniciar sesión»: **es el mismo paso**. Si el correo
+no existía, la cuenta se crea sola.
 
 ---
 
-## FLUJO DE INICIO DE SESIÓN
+## Por qué se cambió
 
-Solo dos campos: **usuario** + **código**.
+La versión anterior tenía una razón de fondo buena: el público de esta app
+puede no tener correo activo ni recordar contraseñas largas, pero sí recuerda
+seis números.
 
-```js
-var cuenta = leerCuentas()[usuario.trim().toLowerCase()];
-if (!cuenta)                  → "No encontré esa cuenta"
-if (cuenta.codigo !== codigo) → "Código incorrecto"
-else                          → sesión iniciada, cargar su historial
-```
+En la práctica **no funcionó**. Los seis números se perdían. Tanto, que la
+pantalla acabó con un recuadro amarillo que decía «⚠️ Recuerda guardar tu
+usuario y tu código», y aun así el problema seguía. El teléfono se metió justo
+para poder recuperar la cuenta cuando eso pasara, y eso trajo su propia cola:
+validación por país, verificación por WhatsApp, un servicio que mantener.
+
+El enlace por correo quita las dos cosas de un golpe: no hay nada que
+recordar, y recuperar la cuenta es pedir otro enlace.
+
+**Lo que sí se perdió:** quien no tenga correo se queda fuera. Es un costo
+real y hay que tenerlo presente. La apuesta es que hoy casi cualquier teléfono
+Android llega con una cuenta de Google configurada.
 
 ---
 
-## ALMACENAMIENTO (localStorage)
+## Qué se sabe de cada persona
 
-| Clave | Contenido |
+| Dato | De dónde sale |
 |---|---|
-| `oaxintegra.cuentas` | Objeto `{ usuarioEnMinusculas: {…datos} }` |
-| `oaxintegra.sesion` | La cuenta activa (JSON) |
-| `oaxintegra.convs.<usuario>` | Historial de conversaciones de esa cuenta |
-| `oaxintegra.tema` | `"dia"` o `"noche"` |
+| Correo | Lo escribió al entrar |
+| Nombre que se muestra | Lo de antes del `@` de su correo |
+| Giro del negocio | Se le pregunta **ya adentro**, y puede decir «Ahora no» |
 
-**Estructura de una cuenta:**
-```json
-{
-  "usuario": "MariaTelar23",
-  "nombre": "MariaTelar23",
-  "telefono": "+52 5512345678",
-  "giro": "mezcal",
-  "giroTexto": "Mezcal, palenque y bebidas",
-  "codigo": "473921",
-  "alta": "2026-08-22T06:15:00.000Z"
-}
-```
+El giro es lo único que se pregunta además del correo, y **no bloquea nada**:
+aparece como una tira arriba del chat, con botón para cerrarla. Sirve para que
+el asistente responda con ejemplos del oficio de cada quien.
 
 ---
 
-## LA PORTADA QUE BLOQUEA (`#portada`)
+## Qué se quitó exactamente
 
-Overlay a pantalla completa, `z-index: 200`, que **impide usar la app** hasta
-autenticarse.
-
-```js
-function mostrarPortada() {
-  document.getElementById('portada').hidden = false;
-  document.body.style.overflow = 'hidden';   // bloquea el scroll detrás
-  verPestanaAuth('entrar');
-}
-function ocultarPortada() {
-  document.getElementById('portada').hidden = true;
-  document.body.style.overflow = '';
-}
-// Al arrancar:
-if (sesion) { cargarConvs(); ocultarPortada(); } else { mostrarPortada(); }
-// Al cerrar sesión: mostrarPortada()
-```
+| Se fue | Dónde estaba |
+|---|---|
+| Usuario + código de 6 dígitos | `#casillas`, `#casillas-entrar` |
+| Pestañas Regístrate / Iniciar sesión | `#tab-registro`, `#tab-entrar` |
+| Teléfono y selector de país | `#reg-telefono`, `#reg-lada`, tabla `PAISES` |
+| Verificación por WhatsApp | `#paso-whatsapp`, `#casillas-wa`, `backend/otp-core.js` |
+| Cuentas en `localStorage` | `leerCuentas()`, `guardarCuenta()` |
+| Aviso de alta por webhook de n8n | `CONFIG.WEBHOOK_REGISTRO` |
 
 ---
 
-## ADVERTENCIA DE SEGURIDAD (importante para Claude Code)
+## Lo que sí se conservó
 
-**Esto NO es seguridad real.** Todo vive en el navegador:
-- Cualquiera puede abrir la consola y leer todos los códigos
-- Los datos solo existen en ese dispositivo/navegador
-- Borrar los datos del navegador borra todas las cuentas
-- No hay recuperación si se pierde el código
+- El chat **sigue abierto para todos**. Entrar no es requisito para probarlo;
+  solo sirve para que te reconozca y guarde tus conversaciones.
+- La portada sigue apareciendo primero, con el chapulín y la marca.
+- El modo día / noche, las medallas, las publicaciones guardadas: intactos.
 
-Es aceptable para un prototipo/demo. Para producción hace falta backend real:
-ver `backend/schema.sql` para el esquema propuesto, y usar hash (bcrypt) para
-los códigos, nunca texto plano.
+---
+
+## Detalles que importan
+
+**La sesión se confirma contra Supabase, no contra `localStorage`.** Lo
+guardado en el navegador solo sirve para pintar la pantalla sin parpadeo
+mientras se confirma. Si Supabase dice que no, se borra y aparece la portada.
+Cualquiera puede escribir en el `localStorage` de su propio navegador; creerle
+sería dejar la puerta abierta.
+
+**El token se borra de la barra de direcciones** en cuanto se lee. Si no,
+queda en el historial del navegador.
+
+**Se puede cerrar sesión desde el celular.** El chip de la barra de arriba solo
+existe en pantalla grande; en el menú móvil hay ahora su propio botón. Antes no
+lo había — ver BUG-27.
+
+Todo el detalle técnico, en `docs/08-magic-link.md`.

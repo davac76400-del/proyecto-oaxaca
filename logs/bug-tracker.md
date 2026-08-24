@@ -640,6 +640,66 @@ declarar una variable, buscar si ya existe más arriba.
 
 ---
 
+## BUG-26 · El aviso del correo mal escrito nunca salía ✅ RESUELTO (24 ago 2026)
+
+**Síntoma:** escribes cualquier cosa en el campo del correo, le das al botón y
+no pasa nada. Ni entra, ni te dice qué está mal. Parece que la página se trabó.
+
+**Causa:** `validarCampo()` busca la caja del error por convención de nombre:
+`document.getElementById('error-' + campo.id)`. El campo se llama
+`correo-acceso`, así que la caja tenía que llamarse `error-correo-acceso`. Yo la
+llamé `error-acceso`. Como el `getElementById` devuelve `null` y el código
+comprueba `if (caja)`, **no reventaba nada**: simplemente no se pintaba el
+mensaje.
+
+**Arreglo:** renombrada a `error-correo-acceso` en los 9 lugares donde aparecía.
+
+**Lección:** este tipo de convención implícita —«el id de la caja se deriva del
+id del campo»— es cómoda pero silenciosa cuando se rompe. Lo cazó la prueba de
+Playwright, no la lectura del código.
+
+---
+
+## BUG-27 · En celular no había manera de cerrar sesión ✅ RESUELTO (24 ago 2026)
+
+**Síntoma:** entras desde el teléfono y no hay botón de salir por ningún lado.
+
+**Causa:** el chip de sesión con el botón «salir» vive dentro del `<nav>` de la
+cabecera, que es `hidden lg:flex`. En pantallas menores a 1024 px simplemente no
+existe. El menú móvil tenía «Mi perfil» y el cambio de tema, pero nunca se le
+añadió la salida. Venía arrastrándose desde el BUG-19, cuando el punto de
+quiebre de la navegación subió a `lg`.
+
+**Por qué importa más ahora:** con enlaces mágicos la sesión se renueva sola y
+dura indefinidamente. Antes al menos caducaba al borrar los datos del navegador.
+Y el público de esta app entra casi todo desde el teléfono.
+
+**Arreglo:** `#sesion-chip-movil` en el menú móvil, con el nombre y un botón
+«Cerrar sesión». `pintarSesion()` pinta los dos, y los dos botones llaman a la
+misma función `cerrarSesion()`.
+
+---
+
+## BUG-28 · El enlace del correo no hacía nada si la app ya estaba abierta ✅ RESUELTO (24 ago 2026)
+
+**Síntoma:** con la app abierta en una pestaña, pegas ahí el enlace del correo y
+no entra. En una pestaña nueva sí.
+
+**Causa:** ir de `http://localhost:3000/` a `http://localhost:3000/#access_token=…`
+es una navegación **dentro del mismo documento**. El navegador solo cambia el
+fragmento: no recarga, no dispara `load`, y `arrancarAuth()` —que es quien lee
+el token— nunca se vuelve a ejecutar.
+
+**Arreglo:** un `hashchange` que vuelve a llamar a `arrancarAuth()` si aparece
+un `access_token` y todavía no hay sesión.
+
+**Cómo salió:** la prueba automática hacía `goto()` a la misma dirección con
+distinto `#`, que resultó ser justo el caso raro. Iba a "arreglar la prueba"
+hasta ver que el escenario es real: mucha gente pega el enlace en la pestaña
+que ya tiene abierta.
+
+---
+
 ## Resumen
 
 | # | Problema | Estado |
@@ -669,3 +729,6 @@ declarar una variable, buscar si ya existe más arriba.
 | 23 | Contraste bajo en verde, ámbar y cian | ✅ |
 | 24 | Teléfono exigía 10 dígitos a todos los países | ✅ |
 | 25 | `var` que borraba su propia asignación | ✅ |
+| 26 | El aviso del correo mal escrito no salía | ✅ |
+| 27 | En celular no se podía cerrar sesión | ✅ |
+| 28 | El enlace no servía con la app ya abierta | ✅ |

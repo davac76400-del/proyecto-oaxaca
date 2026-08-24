@@ -264,7 +264,6 @@
   .campo[aria-invalid="true"]{ border-color:rgb(var(--naranja)); }
   .campo[data-valido="si"]{ border-color:rgba(140,219,43,.55); }
   select.campo{ appearance:none; background-image:linear-gradient(45deg,transparent 50%,rgb(var(--tenue)) 50%),linear-gradient(135deg,rgb(var(--tenue)) 50%,transparent 50%); background-position:calc(100% - 20px) 50%, calc(100% - 15px) 50%; background-size:5px 5px, 5px 5px; background-repeat:no-repeat; }
-  .select-lada{ width:auto; min-width:98px; flex-shrink:0; padding-right:1.8rem; }
   .error-campo{ color:rgb(var(--naranja)); font-size:.82rem; margin-top:.4rem; }
 
   /* ---------- navegación ---------- */
@@ -933,7 +932,17 @@
         <svg class="ico-luna" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
         <span id="texto-tema-movil">Modo noche</span>
       </button>
-      <button type="button" data-portada="si" class="btn-neon mt-2 w-full">Mi perfil</button>
+      <button type="button" data-portada="si" id="btn-perfil-movil" class="btn-neon mt-2 w-full">Mi perfil</button>
+
+      <!-- El chip de la barra de arriba solo existe en pantalla grande (lg:).
+           Sin esto, en un celular no había manera de cerrar sesión. -->
+      <div id="sesion-chip-movil" class="mt-2 pt-4 border-t border-borde flex items-center justify-between gap-3" hidden>
+        <span class="flex items-center gap-2 text-[0.95rem] min-w-0">
+          <span class="w-1.5 h-1.5 bg-verde rotate-45 inline-block shrink-0" aria-hidden="true"></span>
+          <span id="sesion-nombre-movil" class="text-texto truncate"></span>
+        </span>
+        <button type="button" id="btn-salir-movil" class="btn-linea shrink-0" style="margin:0">Cerrar sesión</button>
+      </div>
     </nav>
   </div>
 </header>
@@ -1330,6 +1339,16 @@
               <button type="button" id="estado-conexion" class="rotulo !text-[0.6rem] border border-borde px-2 py-1 rounded-[2px] shrink-0 cursor-pointer hover:border-cian transition-colors" title="Toca para revisar si el asistente está conectado">Modo local</button>
             </div>
 
+            <!-- Se pregunta el giro DESPUÉS de entrar, no antes: el acceso
+                 no se alarga y quien no quiera contestar, la cierra. -->
+            <div id="tira-giro" class="px-5 sm:px-8 py-3.5 border-b border-borde flex flex-wrap items-center gap-3" hidden>
+              <label for="giro-rapido" class="text-[0.9rem] text-texto">¿De qué es tu negocio?</label>
+              <select id="giro-rapido" class="campo flex-1" style="min-width:190px; padding-top:.5rem; padding-bottom:.5rem">
+                <option value="">Elige el tuyo…</option>
+              </select>
+              <button type="button" id="cerrar-tira-giro" class="btn-suave shrink-0" style="margin:0">Ahora no</button>
+            </div>
+
             <div id="hilo" class="hilo p-5 sm:p-8 space-y-6" role="log" aria-live="polite" aria-label="Conversación con el asistente"></div>
 
             <div id="sugerencias" class="px-5 sm:px-8 pb-5 flex flex-wrap gap-2.5"></div>
@@ -1528,9 +1547,9 @@
         <p class="error-campo" id="error-nombre" hidden></p>
       </div>
       <div>
-        <label for="telefono" class="block text-[0.9rem] text-tenue mb-2">Número de teléfono</label>
-        <input id="telefono" name="telefono" type="tel" class="campo" placeholder="10 dígitos" autocomplete="tel" inputmode="tel" data-regla="telefono">
-        <p class="error-campo" id="error-telefono" hidden></p>
+        <label for="correo-contacto" class="block text-[0.9rem] text-tenue mb-2">Tu correo</label>
+        <input id="correo-contacto" name="correo" type="email" class="campo" placeholder="tucorreo@ejemplo.com" autocomplete="email" inputmode="email" data-regla="correo">
+        <p class="error-campo" id="error-correo-contacto" hidden></p>
       </div>
       <div>
         <label for="mensaje" class="block text-[0.9rem] text-tenue mb-2">Mensaje</label>
@@ -1606,173 +1625,82 @@
       </h1>
       <p class="text-tenue text-[1.05rem] leading-relaxed" style="max-width:38ch; margin-inline:auto">
         Tu asistente con inteligencia artificial, hecho para el emprendedor oaxaqueño.
-        Crea tu cuenta o entra con la que ya tienes para empezar.
+        Entra con tu correo y empieza. Sin contraseñas.
       </p>
     </div>
 
     <div class="tarjeta-auth">
-      <div class="flex border-b border-borde mb-7">
-        <button type="button" class="pestana-auth" id="tab-registro" data-activo="si">Regístrate</button>
-        <button type="button" class="pestana-auth" id="tab-entrar">Iniciar sesión</button>
-      </div>
 
-      <!-- ============ REGISTRO ============ -->
-      <div id="vista-registro">
-
-        <div class="flex items-center gap-3 mb-7">
-          <span class="h-[3px] flex-1 bg-cian" style="box-shadow:0 0 10px #00f2fe"></span>
-          <span id="linea-paso2" class="h-[3px] flex-1 bg-borde"></span>
-        </div>
-
-        <div id="paso-datos">
-          <p class="rotulo mb-4">Paso 1 de 2 · Personaliza tu asistente</p>
-          <h3 id="titulo-registro" class="text-3xl mb-3">Que te hable por tu nombre.</h3>
-          <p class="text-tenue leading-relaxed mb-5 text-[0.98rem]">
-            Elige un usuario y dinos tu giro. En el siguiente paso eliges tu código
-            de acceso, que deberás guardar para volver a entrar.
-          </p>
-
-          <form id="form-registro" class="space-y-5" novalidate>
-            <div>
-              <label for="reg-usuario" class="block text-[0.9rem] text-tenue mb-2">Usuario</label>
-              <input id="reg-usuario" type="text" class="campo" placeholder="Ej. MariaTelar23" autocomplete="username" data-regla="usuario">
-              <p class="text-[0.78rem] text-tenue mt-1.5">Sin espacios, mínimo 4 caracteres y al menos una mayúscula.</p>
-              <p class="error-campo" id="error-reg-usuario" hidden></p>
-            </div>
-            <div>
-              <label for="reg-telefono" class="block text-[0.9rem] text-tenue mb-2">Número de teléfono <span class="text-tenue">(opcional)</span></label>
-              <div class="flex gap-2">
-                <select id="reg-lada" class="campo select-lada" aria-label="Código de país"></select>
-                <input id="reg-telefono" type="tel" class="campo flex-1" placeholder="10 dígitos" autocomplete="tel" inputmode="tel" data-regla="telefono-opcional">
-              </div>
-              <p class="text-[0.78rem] text-tenue mt-1.5" id="pista-telefono">Por si pierdes tu código, para recuperar tu cuenta. Puedes dejarlo vacío.</p>
-              <p class="error-campo" id="error-reg-telefono" hidden></p>
-            </div>
-            <div>
-              <label for="reg-negocio" class="block text-[0.9rem] text-tenue mb-2">Tipo de negocio o emprendimiento</label>
-              <select id="reg-negocio" class="campo" data-regla="seleccion">
-                <option value="">Elige el tuyo…</option>
-                <option value="textil">Textiles, telar y bordado</option>
-                <option value="barro">Barro, talla de madera y alebrijes</option>
-                <option value="mezcal">Mezcal, palenque y bebidas</option>
-                <option value="comida">Cocina, comedor y antojitos</option>
-                <option value="cafe">Café, cacao y agroindustria</option>
-                <option value="turismo">Turismo, hospedaje y recorridos</option>
-                <option value="comercio">Comercio y abarrotes</option>
-                <option value="servicios">Servicios y oficios</option>
-                <option value="otro">Otro</option>
-              </select>
-              <p class="error-campo" id="error-reg-negocio" hidden></p>
-            </div>
-
-            <button type="submit" class="btn-neon w-full">
-              <span id="texto-btn-registro">Crear mi cuenta</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-              <span id="girador-registro" class="girador" hidden></span>
-            </button>
-          </form>
-        </div>
-
-        <!-- ====== PASO INTERMEDIO · verificar el WhatsApp ====== -->
-        <div id="paso-whatsapp" hidden>
-          <p class="rotulo mb-4">Verifica tu WhatsApp</p>
-          <h3 class="text-3xl mb-3">Te mandé un código.</h3>
-          <p class="text-tenue leading-relaxed mb-2 text-[0.98rem]">
-            Revisa tu WhatsApp en <b id="wa-numero" class="text-texto"></b> y escribe
-            aquí los seis números que te llegaron.
-          </p>
-          <p class="text-tenue text-[0.84rem] mb-6" id="wa-vigencia"></p>
-
-          <div id="casillas-wa" class="flex gap-2 sm:gap-2.5 mb-2" role="group" aria-label="Código que te llegó por WhatsApp">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 1">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 2">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 3">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 4">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 5">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 6">
-          </div>
-          <p class="error-campo" id="error-wa" hidden></p>
-
-          <div class="flex flex-wrap gap-3 mt-6">
-            <button type="button" id="btn-wa-comprobar" class="btn-neon flex-1 justify-center">
-              Comprobar mi código
-            </button>
-            <button type="button" id="btn-wa-reenviar" class="btn-linea">Mandar otro</button>
-          </div>
-          <div class="flex flex-wrap gap-3 mt-3">
-            <button type="button" id="btn-wa-volver" class="btn-suave">Cambiar mi número</button>
-            <button type="button" id="btn-wa-saltar" class="btn-suave">Seguir sin verificar</button>
-          </div>
-        </div>
-
-        <div id="paso-codigo" hidden>
-          <p class="rotulo mb-4">Paso 2 de 2 · Tu código de acceso</p>
-          <h3 class="text-3xl mb-3">Elige tu código.</h3>
-          <p class="text-tenue leading-relaxed mb-6 text-[0.98rem]">
-            Escribe seis números que solo tú sepas. Con tu usuario y este código vuelves
-            a entrar cada vez, así que elígelo de algo que recuerdes.
-          </p>
-
-          <div class="border-l-4 rounded-[2px] p-4 mb-6" style="border-color:rgb(var(--ambar)); background:color-mix(in srgb, rgb(var(--ambar)) 12%, transparent)">
-            <p class="text-[1rem] sm:text-[1.1rem] leading-snug font-medium" style="color:rgb(var(--ambar))">
-              ⚠️ Recuerda guardar tu usuario y tu código de 6 dígitos.
-            </p>
-            <p class="text-[0.95rem] text-texto mt-1.5 leading-snug">
-              Los necesitarás para ingresar cada vez que entres.
-            </p>
-          </div>
-
-          <div class="grid grid-cols-6 gap-2 sm:gap-3" id="casillas" role="group" aria-label="Elige tu código de seis dígitos">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 1">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 2">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 3">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 4">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 5">
-            <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 6">
-          </div>
-          <p class="error-campo text-center" id="error-codigo" hidden></p>
-
-          <button type="button" id="btn-verificar" class="btn-neon w-full mt-7">
-            <span id="texto-btn-verificar">Crear mi cuenta y entrar</span>
-            <span id="girador-codigo" class="girador" hidden></span>
-          </button>
-
-          <button type="button" id="btn-volver-datos" class="btn-suave mt-5">Cambiar mis datos</button>
-        </div>
-      </div>
-
-      <!-- ============ INICIAR SESIÓN ============ -->
-      <div id="vista-entrar" hidden>
-        <p class="rotulo mb-4">Ya tengo cuenta</p>
-        <h3 class="text-3xl mb-3">Bienvenida de vuelta.</h3>
-        <p class="text-tenue leading-relaxed mb-8 text-[0.98rem]">
-          Escribe tu usuario y el código de 6 dígitos que te dimos al registrarte.
+      <!-- ============ PASO 1 · pedir el enlace ============ -->
+      <div id="vista-correo">
+        <p class="rotulo mb-4">Entrar</p>
+        <h3 class="text-3xl mb-3">Solo tu correo.</h3>
+        <p class="text-tenue leading-relaxed mb-7 text-[0.98rem]">
+          Escribe tu correo y te mandamos un enlace. Le das clic y ya estás dentro.
+          No hay contraseña que recordar ni formulario que llenar.
         </p>
 
-        <div class="space-y-5">
+        <form id="form-acceso" class="space-y-5" novalidate>
           <div>
-            <label for="log-usuario" class="block text-[0.9rem] text-tenue mb-2">Usuario</label>
-            <input id="log-usuario" type="text" class="campo" placeholder="El mismo con el que te registraste" autocomplete="username">
+            <label for="correo-acceso" class="block text-[0.9rem] text-tenue mb-2">Tu correo</label>
+            <input id="correo-acceso" type="email" class="campo" placeholder="tucorreo@ejemplo.com"
+                   autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"
+                   data-regla="correo">
+            <p class="error-campo" id="error-correo-acceso" hidden></p>
           </div>
-          <div>
-            <label class="block text-[0.9rem] text-tenue mb-2">Tu código de acceso</label>
-            <div class="grid grid-cols-6 gap-2 sm:gap-3" id="casillas-entrar" role="group" aria-label="Tu código de seis dígitos">
-              <input class="casilla" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Dígito 1">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 2">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 3">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 4">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 5">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 6">
-            </div>
-          </div>
-          <p class="error-campo" id="error-entrar" hidden></p>
 
-          <button type="button" id="btn-entrar" class="btn-neon w-full">
-            <span id="texto-btn-entrar">Entrar al asistente</span>
-            <span id="girador-entrar" class="girador" hidden></span>
+          <button type="submit" class="btn-neon w-full" id="btn-acceso">
+            <span id="texto-btn-acceso">Mándame mi enlace</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <span id="girador-acceso" class="girador" hidden></span>
           </button>
-        </div>
+        </form>
+
+        <p class="text-[0.8rem] text-tenue mt-5 leading-relaxed">
+          Si es tu primera vez, con esto queda hecha tu cuenta. Es el mismo paso.
+        </p>
       </div>
+
+      <!-- ============ PASO 2 · «revisa tu correo» ============ -->
+      <div id="vista-enviado" hidden>
+        <div class="mb-6" aria-hidden="true">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--verde))" stroke-width="1.6">
+            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/>
+          </svg>
+        </div>
+        <p class="rotulo mb-4">Ya va en camino</p>
+        <h3 class="text-3xl mb-3">Revisa tu correo.</h3>
+        <p class="text-tenue leading-relaxed mb-2 text-[0.98rem]">
+          Te lo mandamos a <b id="correo-enviado" class="text-texto"></b>.
+          Abre el mensaje y dale clic al enlace: entras solo, aquí mismo.
+        </p>
+        <p class="text-tenue text-[0.88rem] leading-relaxed mb-7">
+          Si no lo ves en un minuto, búscalo en <b class="text-texto">correo no deseado</b>.
+          El enlace sirve una sola vez y vence en una hora.
+        </p>
+
+        <div class="flex flex-wrap gap-3">
+          <button type="button" id="btn-reenviar" class="btn-neon flex-1 justify-center">
+            <span id="texto-btn-reenviar">Mandar otro</span>
+            <span id="girador-reenviar" class="girador" hidden></span>
+          </button>
+          <button type="button" id="btn-otro-correo" class="btn-linea">Usar otro correo</button>
+        </div>
+        <p class="error-campo mt-4" id="error-enviado" hidden></p>
+      </div>
+
+      <!-- ============ PASO 3 · procesando el regreso del enlace ============ -->
+      <div id="vista-entrando" hidden>
+        <div class="flex items-center gap-3 mb-5">
+          <span class="girador"></span>
+          <p class="rotulo" style="margin:0">Entrando…</p>
+        </div>
+        <h3 class="text-3xl mb-3">Un segundo.</h3>
+        <p class="text-tenue leading-relaxed text-[0.98rem]">
+          Estamos abriendo tu cuenta.
+        </p>
+      </div>
+
     </div>
 
   </div>
@@ -2090,12 +2018,12 @@
      Esto es solo para avisar de altas nuevas y del formulario.
      ========================================================= */
   var CONFIG = {
-    // Altas de cuenta. Recibe { accion:'registro', nombre, correo, telefono, giro }.
-    WEBHOOK_REGISTRO: 'https://davidrr7630.app.n8n.cloud/webhook/3ffe0c04-73c3-42a7-973d-2b5f8ec4d37d',
-    // Formulario de contacto. Vacío = muestra el modal de éxito sin enviar nada.
-    WEBHOOK_CONTACTO: '',
-    // Número de WhatsApp en formato internacional, sin signos.
+    // Número de WhatsApp del negocio, para el botón «Escríbenos».
+    // Es solo un enlace a wa.me, no hay ninguna integración con Meta.
     WHATSAPP: '529514614505',
+    // Correo del negocio para el formulario de contacto.
+    // Vacío = el mensaje se abre en WhatsApp, ya escrito.
+    CORREO_CONTACTO: '',
     // Cuánto se espera a cada ayudante antes de pasar al siguiente.
     LIMITE_MS: 20000
   };
@@ -2258,7 +2186,7 @@
     var pt = document.getElementById('portada');
     if (pt) { pt.hidden = false; }
     document.body.style.overflow = 'hidden';
-    verPestanaAuth('entrar');
+    verVistaAuth('correo');
   }
   function ocultarPortada() {
     var pt = document.getElementById('portada');
@@ -2315,23 +2243,6 @@
     correo:    { probar: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()); }, error: 'Revisa tu correo: parece que le falta algo.' },
     mensaje:   { probar: function (v) { return v.trim().length >= 10; }, error: 'Cuéntanos un poco más (mínimo 10 letras).' },
     usuario:   { probar: function (v) { var t=v.trim(); return /^[A-Za-z0-9._-]{4,20}$/.test(t) && /[A-Z]/.test(t); }, error: 'Sin espacios, 4 a 20 caracteres y al menos una mayúscula.' },
-    telefono:  { probar: function (v) { return v.replace(/\D/g, '').length >= 10; }, error: 'Escribe los 10 números de tu teléfono.' },
-    /* El teléfono sigue siendo opcional (BUG-04 y BUG-06: si esto se rompe,
-       el registro se bloquea entero). Lo que cambió es que el largo ya no es
-       10 para todos, sino el del país elegido. */
-    'telefono-opcional': {
-      probar: function (v) {
-        var d = v.replace(/\D/g, '');
-        if (d.length === 0) { return true; }
-        var p = paisElegido();
-        return d.length >= p[2] && d.length <= p[3];
-      },
-      error: function () {
-        var p = paisElegido();
-        return 'Para ' + p[1].replace(/^\S+\s/, '') + ' el teléfono lleva ' +
-               textoDigitos(p) + ' (o déjalo vacío).';
-      }
-    },
     seleccion: { probar: function (v) { return v !== ''; },              error: 'Elige una opción de la lista.' }
   };
 
@@ -2349,7 +2260,7 @@
       campo.dataset.valido = 'no';
       if (caja) {
         caja.hidden = false;
-        /* algunos mensajes cambian según el país (el del teléfono) */
+        /* la regla puede traer texto fijo o una función que lo arma */
         caja.textContent = (typeof regla.error === 'function') ? regla.error() : regla.error;
       }
     }
@@ -2373,16 +2284,23 @@
   var CLAVE_GUARDADAS = 'oaxintegra.publicaciones';
   var sesion = null;
 
+  /* Lo guardado aquí es solo para pintar la interfaz sin parpadeo mientras
+     Supabase confirma. Si no confirma, arrancarAuth() lo borra. */
   try { sesion = JSON.parse(almacen.leer(CLAVE_SESION) || 'null'); } catch (e) { sesion = null; }
 
   function pintarSesion() {
     var chip = $('#sesion-chip'), boton = $('#btn-empieza');
+    var chipMovil = $('#sesion-chip-movil'), botonMovil = $('#btn-perfil-movil');
     if (sesion) {
-      $('#sesion-nombre').textContent = sesion.nombre.split(' ')[0];
+      var apodo = sesion.nombre.split(' ')[0];
+      $('#sesion-nombre').textContent = apodo;
+      $('#sesion-nombre-movil').textContent = apodo;
       chip.hidden = false; boton.hidden = true;
+      chipMovil.hidden = false; botonMovil.hidden = true;
       $('#btn-guardadas').hidden = false;
     } else {
       chip.hidden = true; boton.hidden = false;
+      chipMovil.hidden = true; botonMovil.hidden = false;
       $('#btn-guardadas').hidden = true;
     }
     actualizarCuentaGuardadas();
@@ -2398,445 +2316,426 @@
   }
 
   /* =========================================================
-     5b. CUENTAS: REGISTRO CON CÓDIGO PROPIO E INICIO DE SESIÓN
+     5b. ACCESO POR ENLACE MÁGICO (Supabase)
+     ---------------------------------------------------------
+     Se entra escribiendo el correo. Supabase manda un enlace,
+     la persona le da clic y vuelve aquí ya identificada.
+     No hay contraseña, ni código de seis dígitos, ni teléfono.
+
+     SOBRE LA LLAVE DE AQUÍ ABAJO — no es una contradicción con
+     lo de la IA. La «anon key» de Supabase está DISEÑADA para
+     vivir en el navegador: es un identificador público del
+     proyecto. Lo que protege los datos no es esconderla, son
+     las políticas de Row Level Security del propio Supabase.
+     La que NUNCA puede salir del servidor es la «service_role»,
+     y esa no aparece en ningún lado de este archivo.
      ========================================================= */
-  var CLAVE_CUENTAS = 'oaxintegra.cuentas';
-  var datosPendientes = null;
+  var CONFIG_AUTH = {
+    URL:   '__SUPABASE_URL__',
+    CLAVE: '__SUPABASE_ANON__'
+  };
 
-  function leerCuentas() {
-    try { return JSON.parse(almacen.leer(CLAVE_CUENTAS) || '{}'); } catch (e) { return {}; }
-  }
-  function guardarCuenta(cuenta) {
-    var todas = leerCuentas();
-    todas[cuenta.usuario.toLowerCase()] = cuenta;
-    almacen.guardar(CLAVE_CUENTAS, JSON.stringify(todas));
+  var CLAVE_TOKENS = 'oaxintegra.tokens';
+  var CLAVE_PERFIL = 'oaxintegra.perfil';
+
+  /* Sin configurar, la portada lo dice en vez de fallar en silencio. */
+  function authListo() {
+    return CONFIG_AUTH.URL.indexOf('http') === 0 && CONFIG_AUTH.CLAVE.length > 20;
   }
 
-  /* --- conecta un grupo de seis casillas: avance, borrado, pegado, Enter --- */
-  function conectarCasillas(selector, alCompletar) {
-    var casillas = $$(selector + ' .casilla');
-    if (!casillas.length) {
-      return { limpiar: function(){}, leer: function(){return '';}, marcarMal: function(){}, primera: null };
-    }
-    function limpiar() {
-      casillas.forEach(function (c) { c.value = ''; c.removeAttribute('data-lleno'); c.removeAttribute('data-mal'); });
-    }
-    function leer() { return casillas.map(function (c) { return c.value; }).join(''); }
-    function marcarMal() {
-      casillas.forEach(function (c) { c.dataset.mal = 'si'; });
-      setTimeout(function () { limpiar(); casillas[0].focus(); }, 700);
-    }
-    casillas.forEach(function (casilla, i) {
-      casilla.addEventListener('input', function () {
-        casilla.value = casilla.value.replace(/[^0-9]/g, '').slice(0, 1);
-        if (casilla.value) {
-          casilla.dataset.lleno = 'si';
-          if (i < casillas.length - 1) { casillas[i + 1].focus(); }
-        } else { casilla.removeAttribute('data-lleno'); }
-        casillas.forEach(function (c) { c.removeAttribute('data-mal'); });
-        if (casillas.every(function (c) { return c.value; })) { setTimeout(alCompletar, 180); }
-      });
-      casilla.addEventListener('keydown', function (e) {
-        if (e.key === 'Backspace' && !casilla.value && i > 0) {
-          e.preventDefault();
-          casillas[i - 1].value = ''; casillas[i - 1].removeAttribute('data-lleno'); casillas[i - 1].focus();
+  function urlAuth(camino) { return CONFIG_AUTH.URL.replace(/\/+$/, '') + '/auth/v1' + camino; }
+
+  function pedirAuth(camino, opciones) {
+    var o = opciones || {};
+    var cab = { 'apikey': CONFIG_AUTH.CLAVE, 'Content-Type': 'application/json' };
+    if (o.token) { cab['Authorization'] = 'Bearer ' + o.token; }
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var corte = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, CONFIG.LIMITE_MS);
+    var peticion = { method: o.metodo || 'GET', headers: cab };
+    if (o.cuerpo) { peticion.body = JSON.stringify(o.cuerpo); }
+    if (ctrl) { peticion.signal = ctrl.signal; }
+    return fetch(urlAuth(camino), peticion).then(function (r) {
+      clearTimeout(corte);
+      return r.text().then(function (t) {
+        var datos = null;
+        try { datos = t ? JSON.parse(t) : null; } catch (e) { datos = null; }
+        if (!r.ok) {
+          var e2 = new Error((datos && (datos.error_description || datos.msg || datos.message)) || ('Error ' + r.status));
+          e2.estado = r.status;
+          throw e2;
         }
-        if (e.key === 'ArrowLeft'  && i > 0) { casillas[i - 1].focus(); }
-        if (e.key === 'ArrowRight' && i < casillas.length - 1) { casillas[i + 1].focus(); }
-        if (e.key === 'Enter') { e.preventDefault(); alCompletar(); }
+        return datos;
       });
-      casilla.addEventListener('paste', function (e) {
-        e.preventDefault();
-        var pegado = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);
-        if (!pegado) { return; }
-        for (var j = 0; j < pegado.length && (i + j) < casillas.length; j++) {
-          casillas[i + j].value = pegado[j]; casillas[i + j].dataset.lleno = 'si';
-        }
-        casillas[Math.min(i + pegado.length, casillas.length - 1)].focus();
-        if (casillas.every(function (c) { return c.value; })) { setTimeout(alCompletar, 180); }
-      });
+    }, function (err) { clearTimeout(corte); throw err; });
+  }
+
+  /* --- guardar y leer los tokens de la sesión ------------------------------ */
+  function guardarTokens(t) {
+    if (!t || !t.access_token) { return; }
+    /* expires_at viene en segundos desde 1970; si no viene, se calcula. */
+    var vence = t.expires_at
+      ? Number(t.expires_at) * 1000
+      : Date.now() + (Number(t.expires_in || 3600) * 1000);
+    almacen.guardar(CLAVE_TOKENS, JSON.stringify({
+      access_token: t.access_token,
+      refresh_token: t.refresh_token || '',
+      vence: vence
+    }));
+  }
+  function leerTokens() {
+    try { return JSON.parse(almacen.leer(CLAVE_TOKENS) || 'null'); } catch (e) { return null; }
+  }
+  function borrarTokens() { almacen.borrar(CLAVE_TOKENS); }
+
+  /* --- el giro del negocio: se guarda aquí y también en Supabase ----------- */
+  var GIROS_TEXTO = {
+    textil:    'Textiles, telar y bordado',
+    barro:     'Barro, talla de madera y alebrijes',
+    mezcal:    'Mezcal, palenque y bebidas',
+    comida:    'Cocina, comedor y antojitos',
+    cafe:      'Café, cacao y agroindustria',
+    turismo:   'Turismo, hospedaje y recorridos',
+    comercio:  'Comercio y abarrotes',
+    servicios: 'Servicios y oficios',
+    otro:      'Otro'
+  };
+
+  function leerPerfil() {
+    try { return JSON.parse(almacen.leer(CLAVE_PERFIL) || '{}'); } catch (e) { return {}; }
+  }
+  function guardarGiro(giro) {
+    if (!sesion) { return; }
+    sesion.giro = giro;
+    sesion.giroTexto = GIROS_TEXTO[giro] || 'Otro';
+    var perfil = leerPerfil();
+    perfil[sesion.id] = { giro: giro, giroTexto: sesion.giroTexto };
+    almacen.guardar(CLAVE_PERFIL, JSON.stringify(perfil));
+    almacen.guardar(CLAVE_SESION, JSON.stringify(sesion));
+    /* Que viaje con la cuenta, para que en otro teléfono ya lo sepa.
+       Si falla, ni modo: el giro ya quedó guardado aquí. */
+    var t = leerTokens();
+    if (t) {
+      pedirAuth('/user', { metodo: 'PUT', token: t.access_token, cuerpo: { data: { giro: giro } } })
+        .catch(function () {});
+    }
+  }
+
+  /* Convierte el usuario de Supabase en la 'sesion' que ya usaba la app. */
+  function armarSesion(usuario) {
+    var correo = (usuario && usuario.email) || '';
+    var apodo = correo.split('@')[0] || 'amiga';
+    var meta = (usuario && usuario.user_metadata) || {};
+    var perfil = leerPerfil()[usuario.id] || {};
+    var giro = meta.giro || perfil.giro || '';
+    return {
+      id: usuario.id,
+      correo: correo,
+      usuario: apodo,
+      nombre: apodo,
+      giro: giro,
+      giroTexto: giro ? (GIROS_TEXTO[giro] || 'Otro') : '',
+      alta: usuario.created_at || new Date().toISOString()
+    };
+  }
+
+  /* La dirección a la que Supabase debe regresar. Se manda como parámetro
+     para que funcione igual en tu computadora que ya publicado. */
+  function direccionRegreso() {
+    return window.location.origin + window.location.pathname;
+  }
+
+  function enviarEnlace(correo, cajaError, textoBtn, girador, etiquetaNormal) {
+    cajaError.hidden = true;
+    girador.hidden = false;
+    textoBtn.textContent = 'Mandando…';
+
+    var camino = '/otp?redirect_to=' + encodeURIComponent(direccionRegreso());
+    return pedirAuth(camino, {
+      metodo: 'POST',
+      cuerpo: { email: correo, create_user: true }
+    }).then(function () {
+      girador.hidden = true;
+      textoBtn.textContent = etiquetaNormal;
+      return true;
+    }).catch(function (err) {
+      girador.hidden = true;
+      textoBtn.textContent = etiquetaNormal;
+      cajaError.hidden = false;
+      cajaError.textContent = explicarFalloAuth(err);
+      return false;
     });
-    return { limpiar: limpiar, leer: leer, marcarMal: marcarMal, primera: casillas[0] };
   }
 
-  /* ladas de América + España; se muestra bandera, nombre corto y código */
-  /* Cada país con sus dígitos: [lada, etiqueta, mínimo, máximo].
-     Antes se exigían 10 dígitos a todo el mundo y eso dejaba fuera a media
-     América: en Bolivia son 8, en Chile 9, en España 9. Ahora cada quien
-     escribe los suyos.
-     (De paso: México estaba repetido dos veces en la lista.) */
-  var PAISES = [
-    ['+52',  '🇲🇽 México',            10, 10],
-    ['+1',   '🇺🇸 EE.UU. / Canadá',   10, 10],
-    ['+54',  '🇦🇷 Argentina',         10, 11],
-    ['+591', '🇧🇴 Bolivia',            8,  8],
-    ['+55',  '🇧🇷 Brasil',            10, 11],
-    ['+56',  '🇨🇱 Chile',              9,  9],
-    ['+57',  '🇨🇴 Colombia',          10, 10],
-    ['+506', '🇨🇷 Costa Rica',         8,  8],
-    ['+53',  '🇨🇺 Cuba',               6,  8],
-    ['+593', '🇪🇨 Ecuador',            8,  9],
-    ['+503', '🇸🇻 El Salvador',        8,  8],
-    ['+502', '🇬🇹 Guatemala',          8,  8],
-    ['+509', '🇭🇹 Haití',              8,  8],
-    ['+504', '🇭🇳 Honduras',           8,  8],
-    ['+505', '🇳🇮 Nicaragua',          8,  8],
-    ['+507', '🇵🇦 Panamá',             7,  8],
-    ['+595', '🇵🇾 Paraguay',           9,  9],
-    ['+51',  '🇵🇪 Perú',               8,  9],
-    ['+1',   '🇩🇴 Rep. Dominicana',   10, 10],
-    ['+598', '🇺🇾 Uruguay',            8,  9],
-    ['+58',  '🇻🇪 Venezuela',         10, 10],
-    ['+34',  '🇪🇸 España',             9,  9]
-  ];
-
-  /* el país que esté elegido ahora mismo en el desplegable */
-  function paisElegido() {
-    var sel = document.getElementById('reg-lada');
-    var i = sel ? sel.selectedIndex : 0;
-    return PAISES[i >= 0 ? i : 0] || PAISES[0];
+  /* Los errores de Supabase vienen en inglés y de poco sirven así. */
+  function explicarFalloAuth(err) {
+    var m = String((err && err.message) || '');
+    if (!authListo()) {
+      return 'El acceso todavía no está configurado. Avísale a quien administra el sitio.';
+    }
+    if (err && err.estado === 429) {
+      return 'Ya mandamos varios enlaces a ese correo. Espera un minuto y vuelve a intentar.';
+    }
+    if (/rate|too many/i.test(m)) {
+      return 'Espera un minuto antes de pedir otro enlace.';
+    }
+    if (/invalid.*email|email.*invalid/i.test(m)) {
+      return 'Ese correo no se ve bien. Revísalo y vuelve a intentar.';
+    }
+    if (/signups.*disabled|not allowed/i.test(m)) {
+      return 'Ese correo no tiene permiso de entrar todavía.';
+    }
+    if (/failed to fetch|networkerror|aborted/i.test(m)) {
+      return 'No hay internet o no alcancé el servidor. Revisa tu conexión.';
+    }
+    return 'No pude mandar el enlace: ' + m;
   }
 
-  /* "10 dígitos" o "8 a 9 dígitos", según el país */
-  function textoDigitos(pais) {
-    return pais[2] === pais[3] ? (pais[2] + ' dígitos')
-                               : (pais[2] + ' a ' + pais[3] + ' dígitos');
+  /* --- el regreso desde el correo ------------------------------------------
+     Supabase deja los tokens en el fragmento de la dirección (#access_token=…).
+     El fragmento NO viaja al servidor, por eso se usa ese y no la query.
+     Si algo sale mal, deja error= y error_description= en el mismo lugar.  */
+  function leerRegreso() {
+    var bruto = window.location.hash || '';
+    if (bruto.indexOf('access_token') === -1 && bruto.indexOf('error') === -1) { return null; }
+    var trozos = {};
+    bruto.replace(/^#/, '').split('&').forEach(function (par) {
+      if (!par) { return; }
+      var i = par.indexOf('=');
+      var k = i === -1 ? par : par.slice(0, i);
+      var v = i === -1 ? '' : par.slice(i + 1);
+      try { trozos[decodeURIComponent(k)] = decodeURIComponent(v.replace(/\+/g, ' ')); }
+      catch (e) { trozos[k] = v; }
+    });
+    return trozos;
   }
-  (function poblarLadas() {
-    var sel = document.getElementById('reg-lada');
+
+  /* Se borra el fragmento en cuanto se leyó: si no, los tokens se quedan
+     visibles en la barra del navegador y en el historial. */
+  function limpiarDireccion() {
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else {
+      window.location.hash = '';
+    }
+  }
+
+  /* --- mantener viva la sesión --------------------------------------------- */
+  function refrescarSesion() {
+    var t = leerTokens();
+    if (!t || !t.refresh_token) { return Promise.reject(new Error('sin refresh')); }
+    return pedirAuth('/token?grant_type=refresh_token', {
+      metodo: 'POST',
+      cuerpo: { refresh_token: t.refresh_token }
+    }).then(function (datos) {
+      guardarTokens(datos);
+      return datos;
+    });
+  }
+
+  /* Se renueva un minuto antes de vencer, no cuando ya venció. */
+  var relojRefresco = null;
+  function programarRefresco() {
+    if (relojRefresco) { clearTimeout(relojRefresco); relojRefresco = null; }
+    var t = leerTokens();
+    if (!t) { return; }
+    var falta = t.vence - Date.now() - 60000;
+    if (falta < 5000) { falta = 5000; }
+    if (falta > 1800000) { falta = 1800000; }   /* como mucho, media hora */
+    relojRefresco = setTimeout(function () {
+      refrescarSesion().then(programarRefresco).catch(function () {});
+    }, falta);
+  }
+
+  function traerUsuario(token) {
+    return pedirAuth('/user', { token: token }).then(function (u) {
+      if (!u || !u.id) { throw new Error('respuesta sin usuario'); }
+      return u;
+    });
+  }
+
+  function entrarConTokens(tokens) {
+    guardarTokens(tokens);
+    var t = leerTokens();
+    return traerUsuario(t.access_token).then(function (u) {
+      sesion = armarSesion(u);
+      almacen.guardar(CLAVE_SESION, JSON.stringify(sesion));
+      programarRefresco();
+      return sesion;
+    });
+  }
+
+  /* --- las tres vistas de la portada --------------------------------------- */
+  function verVistaAuth(cual) {
+    var v = { correo: 'vista-correo', enviado: 'vista-enviado', entrando: 'vista-entrando' };
+    Object.keys(v).forEach(function (k) {
+      var el = document.getElementById(v[k]);
+      if (el) { el.hidden = (k !== cual); }
+    });
+  }
+
+  /* --- paso 1: el formulario del correo ------------------------------------ */
+  var correoPendiente = '';
+
+  $('#form-acceso').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var campo = $('#correo-acceso');
+    if (!validarGrupo([campo])) { return; }
+    correoPendiente = campo.value.trim().toLowerCase();
+
+    enviarEnlace(correoPendiente, $('#error-correo-acceso'), $('#texto-btn-acceso'),
+                 $('#girador-acceso'), 'Mándame mi enlace')
+      .then(function (bien) {
+        if (!bien) { return; }
+        $('#correo-enviado').textContent = correoPendiente;
+        verVistaAuth('enviado');
+      });
+  });
+
+  $('#btn-reenviar').addEventListener('click', function () {
+    if (!correoPendiente) { verVistaAuth('correo'); return; }
+    enviarEnlace(correoPendiente, $('#error-enviado'), $('#texto-btn-reenviar'),
+                 $('#girador-reenviar'), 'Mandar otro')
+      .then(function (bien) { if (bien) { avisar('Listo, va otro enlace en camino.'); } });
+  });
+
+  $('#btn-otro-correo').addEventListener('click', function () {
+    verVistaAuth('correo');
+    $('#error-correo-acceso').hidden = true;
+    $('#correo-acceso').value = correoPendiente;
+    $('#correo-acceso').focus();
+    $('#correo-acceso').select();
+  });
+
+  /* --- preguntar el giro, ya adentro y sin estorbar ------------------------ */
+  function pintarTiraGiro() {
+    var tira = document.getElementById('tira-giro');
+    if (!tira) { return; }
+    tira.hidden = !(sesion && !sesion.giro);
+  }
+
+  (function conectarTiraGiro() {
+    var sel = document.getElementById('giro-rapido');
     if (!sel) { return; }
-
-    /* cuando cambia el país, el campo dice cuántos dígitos lleva y se vuelve
-       a revisar lo que ya estuviera escrito */
-    setTimeout(function () {
-      var tel = document.getElementById('reg-telefono');
-      var pista = document.getElementById('pista-telefono');
-      function refrescar() {
-        var p = paisElegido();
-        if (tel) { tel.placeholder = textoDigitos(p); }
-        if (pista) {
-          pista.textContent = 'Por si pierdes tu código, para recuperar tu cuenta. ' +
-                              'En ' + p[1].replace(/^\S+\s/, '') + ' son ' + textoDigitos(p) +
-                              '. Puedes dejarlo vacío.';
-        }
-        if (tel && tel.value.trim()) { validarCampo(tel, true); }
-      }
-      sel.addEventListener('change', refrescar);
-      refrescar();
-    }, 0);
-    PAISES.forEach(function (l) {
+    Object.keys(GIROS_TEXTO).forEach(function (k) {
       var o = document.createElement('option');
-      o.value = l[0]; o.textContent = l[1] + ' ' + l[0];
+      o.value = k; o.textContent = GIROS_TEXTO[k];
       sel.appendChild(o);
     });
-    sel.value = '+52';  /* México por defecto */
+    sel.addEventListener('change', function () {
+      if (!sel.value) { return; }
+      guardarGiro(sel.value);
+      pintarTiraGiro();
+      avisar('Perfecto. De aquí en adelante te respondo con ejemplos de lo tuyo.');
+    });
+    var cerrar = document.getElementById('cerrar-tira-giro');
+    if (cerrar) {
+      cerrar.addEventListener('click', function () {
+        document.getElementById('tira-giro').hidden = true;
+      });
+    }
   })();
 
-  var codigoRegistro = conectarCasillas('#casillas', function () { crearCuenta(); });
-  /* al completar los 6 números del WhatsApp se comprueba solo */
-  var codigoWa = conectarCasillas('#casillas-wa', function () { comprobarCodigoWa(); });
-  var codigoEntrar   = conectarCasillas('#casillas-entrar', function () { iniciarSesion(); });
-
-  /* --- pestañas Regístrate / Iniciar sesión --- */
-  function verPestanaAuth(cual) {
-    $('#tab-registro').dataset.activo = cual === 'registro' ? 'si' : '';
-    $('#tab-entrar').dataset.activo   = cual === 'entrar' ? 'si' : '';
-    if (cual === 'registro') { $('#tab-entrar').removeAttribute('data-activo'); }
-    else { $('#tab-registro').removeAttribute('data-activo'); }
-    $('#vista-registro').hidden = cual !== 'registro';
-    $('#vista-entrar').hidden   = cual !== 'entrar';
-  }
-  $('#tab-registro').addEventListener('click', function () { verPestanaAuth('registro'); });
-  $('#tab-entrar').addEventListener('click', function () { verPestanaAuth('entrar'); $('#log-usuario').focus(); });
-
-  /* --- paso 1: datos --- */
-  $('#form-registro').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var usu = $('#reg-usuario'), tel = $('#reg-telefono'), neg = $('#reg-negocio');
-    if (!validarGrupo([usu, neg])) { return; }
-
-    var clave = usu.value.trim().toLowerCase();
-    if (leerCuentas()[clave]) {
-      avisar('Ese usuario ya existe. Entra con tu código desde «Iniciar sesión».');
-      verPestanaAuth('entrar');
-      $('#log-usuario').value = usu.value.trim();
-      if (codigoEntrar.primera) { codigoEntrar.primera.focus(); }
-      return;
+  /* --- salir ---------------------------------------------------------------- */
+  function cerrarSesion() {
+    var t = leerTokens();
+    if (t) {
+      /* Se le avisa a Supabase para que invalide el refresh_token del lado
+         de allá. Si no responde, la sesión de aquí se borra igual. */
+      pedirAuth('/logout', { metodo: 'POST', token: t.access_token }).catch(function () {});
     }
-
-    datosPendientes = {
-      usuario: usu.value.trim(),
-      nombre: usu.value.trim(),          /* la interfaz saluda con el usuario */
-      telefono: tel.value.trim() ? (($('#reg-lada') ? $('#reg-lada').value : '') + ' ' + tel.value.replace(/\D/g,'')).trim() : '',
-      giro: neg.value,
-      giroTexto: neg.options[neg.selectedIndex].text,
-      alta: new Date().toISOString()
-    };
-
-    /* Si dejó teléfono, primero se verifica por WhatsApp. Si no, se va
-       derecho a elegir su código, como toda la vida. */
-    if (datosPendientes.telefono) {
-      irAVerificarWhatsApp();
-    } else {
-      irAElegirCodigo();
-    }
-  });
-
-  /* ---------------------------------------------------------
-     VERIFICAR EL WHATSAPP
-     Regla de oro: esto NUNCA puede impedir que alguien se
-     registre. Si el servidor no tiene WhatsApp configurado, o
-     si algo falla, se sigue de largo y el teléfono se guarda
-     sin verificar. (El BUG-04 fue justo eso: el teléfono
-     bloqueando el registro entero.)
-     --------------------------------------------------------- */
-  /* OJO: codigoWa se asigna más arriba, junto a codigoRegistro. Aquí NO se
-     vuelve a poner en null, porque con var el hoisting hace que esta línea
-     se ejecute después y borraría la asignación. Costó un rato encontrarlo. */
-  var esperaWa = 0, relojWa = null;
-
-  function irAElegirCodigo() {
-    $('#paso-datos').hidden = true;
-    $('#paso-whatsapp').hidden = true;
-    $('#paso-codigo').hidden = false;
-    $('#linea-paso2').className = 'h-[3px] flex-1 bg-cian';
-    $('#linea-paso2').style.boxShadow = '0 0 10px #00f2fe';
-    codigoRegistro.limpiar();
-    setTimeout(function () { if (codigoRegistro.primera) { codigoRegistro.primera.focus(); } }, 60);
-  }
-
-  function telefonoPlano() {
-    return (datosPendientes && datosPendientes.telefono || '').replace(/\D/g, '');
-  }
-
-  function irAVerificarWhatsApp() {
-    $('#paso-datos').hidden = true;
-    $('#paso-whatsapp').hidden = false;
-    $('#wa-numero').textContent = datosPendientes.telefono;
-    $('#error-wa').hidden = true;
-    if (codigoWa) { codigoWa.limpiar(); }
-    mandarCodigoWa(true);
-  }
-
-  function mandarCodigoWa(primeraVez) {
-    var pista = $('#wa-vigencia');
-    pista.textContent = 'Mandando tu código…';
-
-    fetch('/api/otp/enviar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telefono: telefonoPlano(), usuario: datosPendientes.usuario })
-    })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) {
-        if (!d) { throw new Error('sin respuesta'); }
-        if (!d.ok) {
-          pista.textContent = '';
-          mostrarErrorWa(d.motivo || 'No pude mandar el código.');
-          if (d.esperar) { arrancarEspera(d.esperar); }
-          return;
-        }
-        pista.textContent = 'El código vence en ' + (d.vigencia_minutos || 10) + ' minutos.' +
-          (d.modo_prueba ? ' (Modo de prueba: el código sale en la terminal del servidor.)' : '');
-        arrancarEspera(d.esperar || 60);
-        if (primeraVez) {
-          setTimeout(function () { if (codigoWa && codigoWa.primera) { codigoWa.primera.focus(); } }, 80);
-        }
-        avisar('Te mandé un código por WhatsApp.');
-      })
-      .catch(function () {
-        /* Sin servidor de WhatsApp no se deja a nadie atorado: se sigue. */
-        console.info('[OaxIntegra] no hay verificación por WhatsApp; sigo sin ella.');
-        avisar('No pude verificar tu WhatsApp ahorita. Tu número queda guardado igual.');
-        if (datosPendientes) { datosPendientes.telefonoVerificado = false; }
-        irAElegirCodigo();
-      });
-  }
-
-  function arrancarEspera(seg) {
-    esperaWa = seg;
-    var boton = $('#btn-wa-reenviar');
-    if (relojWa) { clearInterval(relojWa); }
-    function pintar() {
-      if (esperaWa <= 0) {
-        clearInterval(relojWa); relojWa = null;
-        boton.disabled = false; boton.textContent = 'Mandar otro';
-        return;
-      }
-      boton.disabled = true;
-      boton.textContent = 'Mandar otro (' + esperaWa + ')';
-      esperaWa--;
-    }
-    pintar();
-    relojWa = setInterval(pintar, 1000);
-  }
-
-  function mostrarErrorWa(txt) {
-    var e = $('#error-wa');
-    e.hidden = false;
-    e.textContent = txt;
-  }
-
-  function comprobarCodigoWa() {
-    var codigo = codigoWa ? codigoWa.leer() : '';
-    if (codigo.length < 6) { mostrarErrorWa('Escribe los seis números que te llegaron.'); return; }
-    $('#error-wa').hidden = true;
-
-    fetch('/api/otp/verificar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telefono: telefonoPlano(), codigo: codigo })
-    })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) {
-        if (d && d.ok) {
-          if (datosPendientes) { datosPendientes.telefonoVerificado = true; }
-          avisar('Listo, tu WhatsApp quedó verificado.');
-          if (relojWa) { clearInterval(relojWa); relojWa = null; }
-          irAElegirCodigo();
-        } else {
-          mostrarErrorWa((d && d.motivo) || 'Ese código no es. Revísalo.');
-          if (codigoWa) { codigoWa.limpiar(); if (codigoWa.primera) { codigoWa.primera.focus(); } }
-        }
-      })
-      .catch(function () { mostrarErrorWa('No pude comprobarlo ahorita. Inténtalo otra vez.'); });
-  }
-
-  $('#btn-volver-datos').addEventListener('click', function () {
-    $('#paso-codigo').hidden = true;
-    $('#paso-datos').hidden = false;
-    $('#linea-paso2').className = 'h-[3px] flex-1 bg-borde';
-    $('#linea-paso2').style.boxShadow = 'none';
-    $('#reg-usuario').focus();
-  });
-
-  /* --- paso 2: el código ya está generado; solo se confirma y entra --- */
-  function crearCuenta() {
-    if (!datosPendientes) { return; }
-    var codigo = codigoRegistro.leer();
-    if (codigo.length < 6) {
-      $('#error-codigo').hidden = false;
-      $('#error-codigo').textContent = 'Escribe los seis números de tu código.';
-      return;
-    }
-    $('#error-codigo').hidden = true;
-
-    var cuenta = datosPendientes;
-    cuenta.codigo = codigo;
-    /* queda constancia de si el número se verificó o no */
-    cuenta.telefonoVerificado = !!cuenta.telefonoVerificado;
-    guardarCuenta(cuenta);
-    sesion = cuenta;
-    almacen.guardar(CLAVE_SESION, JSON.stringify(sesion));
-    datosPendientes = null;
-
-    /* avisar del alta nueva (no bloquea el acceso si falla) */
-    enviarWebhook(CONFIG.WEBHOOK_REGISTRO, {
-      accion: 'registro', username: cuenta.usuario, usuario: cuenta.usuario,
-      code: cuenta.codigo, telefono: cuenta.telefono || 'No proporcionado',
-      phone: cuenta.telefono || 'No proporcionado',
-      telefonoVerificado: cuenta.telefonoVerificado,
-      businessType: cuenta.giroTexto, origen: 'oaxintegra-landing'
-    });
-
-    codigoRegistro.limpiar();
-    pintarSesion();
-  pintarMedallas();
-    cargarConvs();
-    ocultarPortada();
-    irA('#demo');
-    saludoInicial();
-    mensajeIA({
-      texto: 'Mucho gusto, ' + sesion.usuario + '. Ya sé que tu negocio es de ' +
-             sesion.giroTexto.toLowerCase() + ', así que de aquí en adelante te respondo con ejemplos de lo tuyo.',
-      chips: ['Hazme un plan de contenido para 7 días', '¿Cómo le pongo precio a lo que vendo?', 'Escríbeme una publicación para vender esta semana']
-    });
-  }
-  $('#btn-verificar').addEventListener('click', crearCuenta);
-
-  $('#btn-wa-comprobar').addEventListener('click', comprobarCodigoWa);
-  $('#btn-wa-reenviar').addEventListener('click', function () { mandarCodigoWa(false); });
-  $('#btn-wa-volver').addEventListener('click', function () {
-    if (relojWa) { clearInterval(relojWa); relojWa = null; }
-    $('#paso-whatsapp').hidden = true;
-    $('#paso-datos').hidden = false;
-    $('#reg-telefono').focus();
-  });
-  /* Salida de emergencia: nadie se queda fuera por no recibir el mensaje.
-     El teléfono se guarda, pero marcado como no verificado. */
-  $('#btn-wa-saltar').addEventListener('click', function () {
-    if (relojWa) { clearInterval(relojWa); relojWa = null; }
-    if (datosPendientes) { datosPendientes.telefonoVerificado = false; }
-    avisar('Tu número queda guardado sin verificar. Lo puedes verificar después.');
-    irAElegirCodigo();
-  });
-
-  /* --- iniciar sesión con correo + código --- */
-  function iniciarSesion() {
-    var clave = $('#log-usuario').value.trim().toLowerCase();
-    var codigo = codigoEntrar.leer();
-    var caja = $('#error-entrar');
-
-    if (clave.length < 3) {
-      caja.hidden = false; caja.textContent = 'Escribe el usuario con el que te registraste.';
-      $('#log-usuario').focus();
-      return;
-    }
-    if (codigo.length < 6) {
-      caja.hidden = false; caja.textContent = 'Faltan números de tu código.';
-      return;
-    }
-
-    var girador = $('#girador-entrar'), texto = $('#texto-btn-entrar');
-    girador.hidden = false; texto.textContent = 'Entrando…';
-
-    setTimeout(function () {
-      girador.hidden = true; texto.textContent = 'Entrar al asistente';
-      var cuenta = leerCuentas()[clave];
-
-      if (!cuenta) {
-        caja.hidden = false;
-        caja.textContent = 'No encontramos ese usuario en este dispositivo. Regístrate primero.';
-        codigoEntrar.marcarMal();
-        return;
-      }
-      if (cuenta.codigo !== codigo) {
-        caja.hidden = false;
-        caja.textContent = 'Ese código no coincide con el de esta cuenta.';
-        codigoEntrar.marcarMal();
-        return;
-      }
-
-      caja.hidden = true;
-      sesion = cuenta;
-      almacen.guardar(CLAVE_SESION, JSON.stringify(sesion));
-      codigoEntrar.limpiar();
-      pintarSesion();
-      cargarConvs();
-      ocultarPortada();
-      irA('#demo');
-      avisar('Qué gusto verte de nuevo, ' + sesion.nombre.split(' ')[0] + '.');
-    }, 450);
-  }
-  $('#btn-entrar').addEventListener('click', iniciarSesion);
-  $('#log-usuario').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); if (codigoEntrar.primera) { codigoEntrar.primera.focus(); } }
-  });
-
-  $('#btn-salir').addEventListener('click', function () {
+    if (relojRefresco) { clearTimeout(relojRefresco); relojRefresco = null; }
     sesion = null;
+    borrarTokens();
     almacen.borrar(CLAVE_SESION);
     almacen.borrar(CLAVE_GUARDADAS);
+    correoPendiente = '';
     pintarSesion();
-    verPestanaAuth('registro');
-    $('#paso-codigo').hidden = true;
-    $('#paso-datos').hidden = false;
     convs = []; idConv = null;
     pintarListaConvs();
+    verVistaAuth('correo');
+    $('#correo-acceso').value = '';
     mostrarPortada();
     saludoInicial();
-    avisar('Listo, se borraron tus datos de este dispositivo.');
+    avisar('Listo, cerraste sesión.');
+  }
+  ['#btn-salir', '#btn-salir-movil'].forEach(function (sel) {
+    var b = $(sel);
+    if (b) { b.addEventListener('click', cerrarSesion); }
   });
+
+  /* --- arranque: ¿venimos del correo, o ya había sesión guardada? ---------- */
+  function arrancarAuth() {
+    if (!authListo()) {
+      verVistaAuth('correo');
+      $('#error-correo-acceso').hidden = false;
+      $('#error-correo-acceso').textContent =
+        'El acceso por correo todavía no está configurado en este sitio.';
+      $('#btn-acceso').disabled = true;
+      return Promise.resolve(false);
+    }
+
+    var regreso = leerRegreso();
+
+    if (regreso && regreso.error) {
+      limpiarDireccion();
+      verVistaAuth('correo');
+      $('#error-correo-acceso').hidden = false;
+      $('#error-correo-acceso').textContent = /expired/i.test(regreso.error_description || regreso.error)
+        ? 'Ese enlace ya venció. Pide uno nuevo aquí abajo.'
+        : 'Ese enlace ya no sirve. Pide uno nuevo aquí abajo.';
+      return Promise.resolve(false);
+    }
+
+    if (regreso && regreso.access_token) {
+      verVistaAuth('entrando');
+      limpiarDireccion();
+      return entrarConTokens(regreso).then(function () {
+        pintarSesion();
+        pintarMedallas();
+        cargarConvs();
+        ocultarPortada();
+        pintarTiraGiro();
+        irA('#demo');
+        avisar('¡Bienvenida! Ya estás dentro.');
+        return true;
+      }).catch(function () {
+        verVistaAuth('correo');
+        $('#error-correo-acceso').hidden = false;
+        $('#error-correo-acceso').textContent = 'No pude abrir tu cuenta con ese enlace. Pide uno nuevo.';
+        return false;
+      });
+    }
+
+    /* Sin enlace: ¿hay tokens guardados de la vez pasada? */
+    var t = leerTokens();
+    if (!t) { verVistaAuth('correo'); return Promise.resolve(false); }
+
+    var vigente = t.vence > Date.now() + 30000;
+    var paso = vigente ? Promise.resolve() : refrescarSesion();
+
+    return paso
+      .then(function () { return traerUsuario(leerTokens().access_token); })
+      .then(function (u) {
+        sesion = armarSesion(u);
+        almacen.guardar(CLAVE_SESION, JSON.stringify(sesion));
+        programarRefresco();
+        pintarSesion();
+        cargarConvs();
+        ocultarPortada();
+        pintarTiraGiro();
+        return true;
+      })
+      .catch(function () {
+        /* El token ya no vale. Se limpia y se pide el correo otra vez,
+           sin dejar a nadie mirando una pantalla a medias. */
+        borrarTokens();
+        almacen.borrar(CLAVE_SESION);
+        sesion = null;
+        pintarSesion();
+        verVistaAuth('correo');
+        return false;
+      });
+  }
 
   /* =========================================================
      6. ARTE GENERADO PARA LAS PUBLICACIONES
@@ -3075,42 +2974,6 @@
       texto: 'Puedo ayudarte con eso. Para darte algo que de verdad sirva, dime dos cosas: qué vendes y qué quieres lograr esta semana. Entre más concreto me lo digas, mejor te sale.',
       chips: ['Escríbeme un anuncio para vender', '¿Cómo le pongo precio a lo que vendo?', '¿Qué necesito para facturar?', 'Hazme un plan de contenido para 7 días']
     };
-  }
-
-  /* envío de avisos (altas de cuenta y formulario de contacto) */
-  function enviarWebhook(url, datos) {
-    if (!url) { return Promise.resolve(null); }
-    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    var corte = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, CONFIG.LIMITE_MS);
-    var opc = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) };
-    if (ctrl) { opc.signal = ctrl.signal; }
-    return fetch(url, opc)
-      .then(function (r) { clearTimeout(corte); if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.text(); })
-      .then(function (t) { if (!t) { return {}; } try { return JSON.parse(t); } catch (e) { return { respuesta: t }; } })
-      .catch(function (err) {
-        clearTimeout(corte);
-        /* AbortError = se cumplió el tiempo de espera; es esperado, no un fallo real */
-        if (err && err.name === 'AbortError') {
-          console.info('[OaxIntegra] el aviso tardó más de ' + (CONFIG.LIMITE_MS/1000) + ' s.');
-        } else {
-          console.info('[OaxIntegra] no se pudo enviar el aviso.');
-        }
-        return null;
-      });
-  }
-
-  /* extractor genérico: la respuesta puede venir con distintas llaves */
-  function extraerTexto(d) {
-    if (!d) { return ''; }
-    if (typeof d === 'string') { return d; }
-    if (Array.isArray(d)) { return d.length ? extraerTexto(d[0]) : ''; }
-    var llaves = ['output', 'respuesta', 'reply', 'text', 'message', 'answer', 'content', 'result', 'data'];
-    for (var i = 0; i < llaves.length; i++) {
-      var v = d[llaves[i]];
-      if (typeof v === 'string' && v.trim()) { return v; }
-      if (v && typeof v === 'object') { var an = extraerTexto(v); if (an) { return an; } }
-    }
-    return '';
   }
 
   /* =========================================================
@@ -4025,35 +3888,40 @@
   /* =========================================================
      10. FORMULARIO DE CONTACTO
      ========================================================= */
+  /* Ya no hay webhook de por medio. El mensaje se arma aquí y se abre en
+     el correo o en el WhatsApp del negocio, con todo escrito. Así nunca se
+     pierde en un servidor que se cayó y la persona ve que sí salió. */
   $('#formulario').addEventListener('submit', function (e) {
     e.preventDefault();
-    var nom = $('#nombre'), cor = $('#telefono'), men = $('#mensaje');
+    var nom = $('#nombre'), cor = $('#correo-contacto'), men = $('#mensaje');
     if (!validarGrupo([nom, cor, men])) {
       avisar('Revisa los campos marcados en naranja.');
       return;
     }
-    var boton = $('#btn-enviar-contacto'), texto = $('#texto-btn-contacto');
-    var flecha = $('#flecha-contacto'), girador = $('#girador-contacto');
 
-    boton.disabled = true; texto.textContent = 'Enviando…';
-    flecha.hidden = true; girador.hidden = false;
+    var cuerpo = 'Hola, soy ' + nom.value.trim() + '.\n\n' +
+                 men.value.trim() + '\n\n' +
+                 'Mi correo: ' + cor.value.trim();
+    var asunto = 'Mensaje desde OaxIntegra IA · ' + nom.value.trim();
 
-    var datos = {
-      nombre: nom.value.trim(), telefono: cor.value.trim(), mensaje: men.value.trim(),
-      usuario: sesion, origen: 'oaxintegra-landing', fecha: new Date().toISOString()
-    };
+    var destino = CONFIG.CORREO_CONTACTO
+      ? 'mailto:' + CONFIG.CORREO_CONTACTO +
+        '?subject=' + encodeURIComponent(asunto) +
+        '&body=' + encodeURIComponent(cuerpo)
+      : 'https://wa.me/' + CONFIG.WHATSAPP + '?text=' + encodeURIComponent(cuerpo);
 
-    enviarWebhook(CONFIG.WEBHOOK_CONTACTO, datos).then(function (r) {
-      boton.disabled = false; texto.textContent = 'Enviar mensaje';
-      flecha.hidden = false; girador.hidden = true;
-      e.target.reset();
-      $$('[data-regla]', e.target).forEach(function (c) { c.removeAttribute('data-valido'); c.removeAttribute('data-tocado'); });
-      modalExito(
-        '¡Gracias por escribirnos!',
-        r ? 'Recibimos tu mensaje. Te marcamos o te escribimos al número que dejaste.'
-          : 'Te contactamos en breve al número que dejaste. Si es urgente, márcanos al 951 461 4505.'
-      );
+    window.open(destino, '_blank', 'noopener');
+
+    e.target.reset();
+    $$('[data-regla]', e.target).forEach(function (c) {
+      c.removeAttribute('data-valido'); c.removeAttribute('data-tocado');
     });
+    modalExito(
+      '¡Listo, ya va tu mensaje!',
+      CONFIG.CORREO_CONTACTO
+        ? 'Se abrió tu correo con todo escrito. Solo dale enviar y te contestamos a ' + cor.value.trim() + '.'
+        : 'Se abrió WhatsApp con tu mensaje ya escrito. Solo dale enviar. Si prefieres, márcanos al 951 461 4505.'
+    );
   });
 
   /* =========================================================
@@ -4873,7 +4741,22 @@
   pintarSesion();
   pintarPaso();
   saludoInicial();
-  if (sesion) { cargarConvs(); ocultarPortada(); } else { mostrarPortada(); }
+
+  /* La portada se muestra siempre primero. arrancarAuth() decide si la
+     quita: o porque venimos del enlace del correo, o porque los tokens
+     guardados siguen valiendo. Nunca se deja entrar solo porque haya algo
+     en localStorage — eso lo puede escribir cualquiera. */
+  mostrarPortada();
+  arrancarAuth();
+
+  /* Si la app YA estaba abierta y le pegan el enlace en la misma pestaña,
+     el navegador solo cambia el fragmento y no recarga nada: arrancarAuth()
+     no se volvería a ejecutar y parecería que el enlace no sirve. */
+  window.addEventListener('hashchange', function () {
+    if (!sesion && (window.location.hash || '').indexOf('access_token') !== -1) {
+      arrancarAuth();
+    }
+  });
 })();
 </script>
 </body>

@@ -24,32 +24,29 @@ local, y la insignia dice "Modo local".
 
 ## 🟡 PRIORIDAD 2 — Funcionalidad prometida
 
-### Envío del código por WhatsApp/SMS
-El registro ya manda al webhook de n8n el usuario, el código y el teléfono con
-lada. **Falta el nodo que efectivamente envíe el mensaje.**
+### Poner las llaves de Supabase
+Sin `SUPABASE_URL` y `SUPABASE_ANON_KEY` en el `.env`, la portada avisa que el
+acceso no está configurado y el botón queda apagado. Son cinco minutos:
+**`docs/08-magic-link.md`**.
 
-Opciones: Twilio, WhatsApp Business API, o CallMeBot (gratis para uso personal).
-El payload ya está listo:
-```json
-{ "accion":"registro", "username":"...", "code":"473921",
-  "phone":"+52 5512345678", "businessType":"..." }
-```
+### Un servidor de correo propio
+El servidor que Supabase presta manda **3 correos por hora** y cae en spam
+seguido. Para que lo use gente de verdad hace falta conectar Resend, Brevo o
+Mailgun en *Settings → Authentication → SMTP*. Todos tienen plan gratis
+suficiente.
 
-### Recuperación de cuenta
-Hoy: si pierdes el código, pierdes la cuenta. No hay recuperación.
-Requiere lo anterior (envío por WhatsApp) más la tabla
-`codigos_recuperacion` de `backend/schema.sql`.
+### Cambiar el texto del correo
+La plantilla lista para copiar está en `docs/08-magic-link.md`. Se pega en
+*Authentication → Emails → Magic Link*. No es código: es una pantalla del panel.
+
+### Las conversaciones solo viven en el navegador
+El acceso ya te sigue de un teléfono a otro, pero tus pláticas guardadas no:
+siguen en el `localStorage` de cada aparato. Las tablas para moverlas a
+Supabase, con sus políticas de seguridad, están en `backend/schema.sql`.
 
 ---
 
 ## 🟢 PRIORIDAD 3 — Mejoras de calidad
-
-### Validación de teléfono por país
-Hoy exige 10 dígitos para todos. España usa 9, otros países varían.
-Mejora: validar según la lada elegida.
-```js
-var LARGOS = { '+52':10, '+1':10, '+34':9, '+57':10, '+54':10, '+56':9, ... };
-```
 
 ### Vectorizar el chapulín a SVG
 El autor pidió que se vea "más animado, tipo ilustración, padrísimo".

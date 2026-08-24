@@ -57,14 +57,16 @@ OaxIntegra-Export/
 ├── api/ia.js                        ← el asistente, para Vercel
 ├── netlify/functions/ia.js          ← el asistente, para Netlify
 │
-├── backend/                         ← IA, webhooks, base de datos
+├── backend/                         ← IA y base de datos
 │   ├── ia-core.js                   ← EL CEREBRO. Aquí viven las llaves.
 │   ├── servidor.js                  ← servidor local (app + asistente)
-│   ├── n8n-webhooks.md              ← URLs reales y configuración
 │   ├── ai_service_directo.js        ← RETIRADO (exponía la llave)
 │   ├── ai_service_directo.py        ← alternativa opcional en Python
-│   ├── schema.sql                   ← esquema para migrar de localStorage
-│   └── n8n-flujo-ejemplo.json       ← flujo n8n importable
+│   └── schema.sql                   ← tablas para Supabase, con RLS
+│
+├── pruebas/                         ← pruebas automáticas
+│   ├── acceso.mjs                   ← el flujo del enlace, de punta a punta
+│   └── supabase-falso.js            ← un Supabase de mentiras para probar
 │
 ├── logs/                            ← historia, errores, pendientes
 │   ├── bug-tracker.md               ← TODOS los errores y cómo se resolvieron
@@ -88,10 +90,9 @@ internet ni instalación. Es un archivo único autocontenido.
 
 **Para modificarla:**
 ```bash
-cd frontend
-npm install
-python3 build.py        # regenera dist/OaxIntegra-IA-app.html
+cd frontend && python3 build.py     # regenera dist/OaxIntegra-IA-app.html
 ```
+No hace falta `npm install`: el proyecto ya no tiene ninguna dependencia.
 
 **Para probarla con la IA de verdad:**
 ```bash
@@ -103,18 +104,21 @@ Nunca edites `dist/`. Edita `frontend/app.src.html` y reconstruye.
 
 ## La IA: qué falta para encenderla
 
-Ya está conectada, sin n8n: **Llama 3.2 (gratis) → Gemini Flash (gratis) →
-motor local**. Las llaves viven en el servidor, nunca en el HTML.
+Ya está conectada: **Llama 3.2 (gratis) → Gemini Flash (gratis) → motor
+local**. Las llaves viven en el servidor, nunca en el HTML.
 
-Falta un paso de 5 minutos que solo tú puedes hacer:
+Faltan dos pasos que solo tú puedes hacer, de unos minutos cada uno:
 
 ```bash
-cp .env.example .env        # y pega tus dos llaves gratuitas adentro
+cp .env.example .env        # y pega adentro:
+                            #   · SUPABASE_URL y SUPABASE_ANON_KEY  (para entrar)
+                            #   · OPENROUTER_API_KEY y GEMINI_API_KEY  (la IA)
 cd frontend && python3 build.py && cd ..
-node backend/servidor.js    # abre http://localhost:3000
+npm start                   # abre http://localhost:3000
 ```
 
-Paso a paso en **`docs/06-ia-directa.md`**.
+Paso a paso: **`docs/08-magic-link.md`** (el acceso) y
+**`docs/06-ia-directa.md`** (la IA).
 
 Mientras tanto la app funciona igual, respondiendo con el motor local que trae
 adentro, y la insignia del chat dice "Modo local".
