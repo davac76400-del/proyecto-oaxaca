@@ -226,6 +226,35 @@ portada medía 1148px contra 844 de pantalla). El primero casi se descarta como
 cosa de la herramienta de pruebas; lo que lo destapó fue probar con un toque de
 verdad, emulando un Pixel 5.
 
+**27 · La base aplicada de verdad (24 ago 2026).** El conector de Supabase se
+enciende y por fin se pueden aplicar las migraciones al proyecto real
+(`OaxIntegra-IA`, `vocnopafmgeiaehugche`).
+
+Y revisar la base ya aplicada enseñó **tres cosas que leer el código no
+enseñaba**:
+
+1. Supabase le da EXECUTE a `anon` por defecto a toda función nueva de
+   `public`. El `REVOKE ALL ... FROM PUBLIC` de las migraciones 001 y 003 no
+   lo deshacía, porque el permiso de anon es directo, no heredado. Así que
+   `fijar_usuario`, `fijar_giro` y `fijar_recuperacion` se podían llamar sin
+   sesión. No era explotable —las tres comprueban `auth.uid()`— pero se cerró
+   (migración 004).
+2. `crear_perfil()` seguía abierta después de eso: su permiso venía de PUBLIC,
+   que es otro camino (migración 005).
+3. Las tres políticas de RLS resolvían `auth.uid()` una vez por fila en vez de
+   una sola vez (migración 006, lint 0003 de Supabase).
+
+Se probó el ciclo entero de la recuperación contra la base real: que el
+disparador cree el perfil solo, que el código quede cifrado con bcrypt y no en
+claro, que el correcto abra, que el incorrecto avise cuántos intentos quedan,
+que a los cinco fallos bloquee quince minutos, que el mismo código cifrado dos
+veces dé hashes distintos, y que al borrar la cuenta caiga el perfil con ella.
+Siete comprobaciones, todas en verde, y sin dejar rastro: 0 filas al terminar.
+
+Los 7 avisos de seguridad que quedan son todos «esta función SECURITY DEFINER
+se puede llamar desde la API» — que es justamente el diseño. Ninguno sobre RLS
+ni sobre tablas expuestas.
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

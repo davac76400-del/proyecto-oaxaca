@@ -125,15 +125,40 @@ Tu código para entrar a OaxIntegra IA
 
 `{{ .Token }}` son los números. **Sin eso no llega ningún código.**
 
-### 3 · Las tablas
+### 3 · Las tablas — ✅ aplicadas el 24 de agosto de 2026
 
-En el **SQL Editor**, en este orden:
+Ya están puestas en el proyecto `OaxIntegra-IA` y comprobadas. Para montarlo
+desde cero, los seis archivos de `backend/migraciones/` en orden.
 
-1. `backend/migraciones/001_perfiles.sql`
-2. `backend/migraciones/002_codigo_seguridad.sql`
-3. `backend/migraciones/003_recuperacion.sql`
+Al revisar la base ya aplicada salieron **cuatro cosas que el código no
+enseñaba**, y de ahí las migraciones 004 a 006:
 
-El 003 depende del 002, y el 002 del 001.
+| | Qué salió |
+|---|---|
+| 004 | `fijar_usuario`, `fijar_giro` y `fijar_recuperacion` se podían llamar **sin sesión**. Supabase le da EXECUTE a `anon` por defecto a toda función nueva de `public`, y un `REVOKE ... FROM PUBLIC` no lo deshace. No era explotable (las tres comprueban `auth.uid()`), pero estaba mal. |
+| 005 | `crear_perfil()` seguía abierta: el permiso le venía de PUBLIC, otro camino distinto. |
+| 006 | Las tres políticas de RLS resolvían `auth.uid()` **una vez por fila**. Envuelto en `(SELECT ...)` se resuelve una sola vez. |
+
+Después de aplicarlas, el revisor de rendimiento de Supabase quedó limpio.
+
+### Los avisos que quedan, y por qué se quedan
+
+El revisor de seguridad marca 7 avisos, todos del mismo tipo: «esta función
+`SECURITY DEFINER` se puede llamar desde la API». **Son esperados: es
+exactamente el diseño.** La tabla está cerrada con RLS y estas funciones son
+las puertas controladas.
+
+Se revisó una por una:
+
+| Función | Quién puede | Por qué es seguro |
+|---|---|---|
+| `usuario_libre` | sin sesión | Solo devuelve sí/no. Nunca dice de quién es ni cuántos hay. Cualquier registro necesita esto. |
+| `usar_recuperacion` | sin sesión | La usa quien no puede entrar. Freno de 5 intentos y 15 min, y contesta igual para un correo que no existe. |
+| `fijar_usuario` | con sesión | Solo toca la fila de quien llama (`auth.uid()`) |
+| `fijar_giro` | con sesión | Igual |
+| `fijar_recuperacion` | con sesión | Igual, y cifra antes de guardar |
+
+Lo importante: **ningún aviso sobre RLS ni sobre tablas expuestas.**
 
 ---
 

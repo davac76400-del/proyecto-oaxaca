@@ -55,15 +55,13 @@ Tu código para entrar a OaxIntegra IA
 
 ---
 
-## 3 · Las tablas de la base
+## 3 · Las tablas de la base — ✅ YA ESTÁ HECHO
 
-En el **SQL Editor** de Supabase, **en este orden**, dándole a *Run* a cada uno:
+Las apliqué yo el 24 de agosto con el conector, y las comprobé una por una.
+No tienes que hacer nada aquí.
 
-1. `backend/migraciones/001_perfiles.sql`
-2. `backend/migraciones/002_codigo_seguridad.sql`
-3. `backend/migraciones/003_recuperacion.sql`
-
-El 003 depende del 002, y el 002 del 001.
+Si algún día montas el proyecto desde cero, es pegar en el **SQL Editor**, en
+orden, los seis archivos de `backend/migraciones/`.
 
 ---
 
