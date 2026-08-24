@@ -5,6 +5,7 @@
   "private": true,
   "main": "backend/servidor.js",
   "scripts": {
+    "revisar": "node revisar.js",
     "start": "node backend/servidor.js",
     "app": "node backend/servidor.js",
     "construir": "cd frontend && python3 build.py"

@@ -153,6 +153,19 @@ const servidor = http.createServer(async (req, res) => {
 
 servidor.listen(PUERTO, () => {
   const e = ia.estado();
+  /* Antes que nada: si el .env trae texto de plantilla, decirlo aquí. Vale más
+     verlo al arrancar que descubrirlo cuando nadie puede entrar. */
+  try {
+    const { esDePlantilla } = require('../revisar.js');
+    const plantillas = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'OPENROUTER_API_KEY', 'GEMINI_API_KEY']
+      .filter(k => esDePlantilla((process.env[k] || '').trim()));
+    if (plantillas.length) {
+      console.log('');
+      console.log('  \x1b[31m✗ El .env trae texto de plantilla en: ' + plantillas.join(', ') + '\x1b[0m');
+      console.log('    Eso es el hueco donde va el dato, no el dato.');
+      console.log('    Para ver qué falta:  node revisar.js');
+    }
+  } catch (err) { /* si revisar.js no está, el servidor arranca igual */ }
   console.log('');
   console.log('  OaxIntegra IA — servidor de desarrollo');
   console.log('  ─────────────────────────────────────');

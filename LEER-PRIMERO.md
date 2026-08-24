@@ -1,5 +1,9 @@
 # OaxIntegra IA — Exportación total del proyecto
 
+> **¿Primera vez, o algo no jala?** → **[`EMPIEZA-AQUI.md`](EMPIEZA-AQUI.md)**
+> y `node revisar.js`, que te dice en qué vas y qué falta.
+
+
 **Autor:** David Alfredo Romero Rendón (Oaxaca, México)
 **Fecha de exportación:** 22 de agosto de 2026
 **Estado:** funcional. La IA quedó conectada el 23 ago 2026 con un backend

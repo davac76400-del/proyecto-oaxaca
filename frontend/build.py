@@ -181,6 +181,27 @@ def resolver_endpoint(src):
     return nuevo
 
 
+# Un valor de plantilla se ve así. Misma lista que en revisar.js — si cambias
+# una, cambia la otra. (Están en dos lenguajes; no hay forma de compartirla.)
+SEÑAS_DE_PLANTILLA = [
+    r'^tu[_-]', r'\btu[_-](proyecto|clave|token|id|dominio|correo|llave)',
+    r'^your[_-]', r'^pega', r'aqui$', r'^<.*>$',
+    r'^(xxx+|placeholder|cambiar|reemplazar|ejemplo|example|todo)$', r'^\.{3,}$',
+]
+VALORES_DE_PLANTILLA = {
+    'https://tu-proyecto.supabase.co', 'https://tudominio.supabase.co',
+    'https://tu-dominio-ngrok.ngrok-free.app', 'https://abcdefghijk.supabase.co',
+}
+
+
+def es_de_plantilla(v):
+    if not v:
+        return False
+    if v in VALORES_DE_PLANTILLA:
+        return True
+    return any(re.search(p, v, re.I) for p in SEÑAS_DE_PLANTILLA)
+
+
 def resolver_supabase(src):
     """Mete la dirección y la anon key de Supabase, que se leen del entorno
        o del .env. Sin ellas la app construye igual, pero la portada avisa
@@ -191,6 +212,17 @@ def resolver_supabase(src):
     for valor, nombre in ((url, 'SUPABASE_URL'), (clave, 'SUPABASE_ANON_KEY')):
         if "'" in valor or '\\' in valor or '\n' in valor:
             print('✗ ' + nombre + ' tiene caracteres no válidos'); sys.exit(1)
+        if es_de_plantilla(valor):
+            print('')
+            print('✗ ALTO. ' + nombre + ' trae texto de plantilla, no tu dato real:')
+            print('      ' + valor[:60])
+            print('')
+            print('  Eso es el hueco donde va el dato, no el dato. Un .env de')
+            print('  ejemplo se ve IGUAL que uno real; la diferencia es que dice')
+            print('  cosas como «tu_clave» en lugar de la clave.')
+            print('')
+            print('  Para ver qué falta y de dónde sacarlo:   node revisar.js')
+            sys.exit(1)
 
     # El Supabase de la nube es siempre https. El local (supabase start) es
     # http://localhost:54321, y ese sí vale para desarrollo.
