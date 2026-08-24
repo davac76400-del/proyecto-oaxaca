@@ -7,22 +7,37 @@ uno de mentiras que responde a las mismas cuatro llamadas.
 ## Correrlas
 
 ```bash
-# 1. Playwright, solo la primera vez
+# Playwright, solo la primera vez
 npm install -D playwright && npx playwright install chromium
+```
 
-# 2. El Supabase de mentiras (déjalo corriendo en su propia terminal)
-node pruebas/supabase-falso.js "una-llave-cualquiera"
+Hay **dos escenarios**, y los dos deben pasar.
 
-# 3. Construir la app apuntando a ese servidor
-SUPABASE_URL=http://localhost:54321 \
-SUPABASE_ANON_KEY="una-llave-cualquiera" \
+### A · Supabase sin configurar (lo que le pasa a quien acaba de empezar)
+
+```bash
+node pruebas/supabase-falso.js "una-llave-cualquiera"     # sin variables: 6 dígitos, plantilla de enlace
+
+SUPABASE_URL=http://localhost:54321 SUPABASE_ANON_KEY="una-llave-cualquiera" \
   python3 frontend/build.py
+npm start                                                  # otra terminal
 
-# 4. La app (otra terminal)
+node pruebas/sin-configurar.mjs
+```
+
+Comprueba que la app funciona **aunque nunca se toque el panel de Supabase**:
+el correo trae un enlace, la persona le da clic, y la app le inventa su código.
+
+### B · Supabase ya configurado (8 dígitos y plantilla con el código)
+
+```bash
+LARGO_FALSO=8 PLANTILLA_FALSA=codigo node pruebas/supabase-falso.js "una-llave-cualquiera"
+
+SUPABASE_URL=http://localhost:54321 SUPABASE_ANON_KEY="una-llave-cualquiera" \
+  python3 frontend/build.py
 npm start
 
-# 5. Y ya
-node pruebas/acceso.mjs
+ANON_KEY="una-llave-cualquiera" node pruebas/acceso.mjs
 ```
 
 Al terminar, **vuelve a construir sin esas variables** para que `dist/` no se

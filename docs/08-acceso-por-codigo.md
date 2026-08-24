@@ -85,45 +85,64 @@ comprueba dentro de una función que nadie puede leer por fuera
 
 ---
 
-## ⚠️ Lo que hay que configurar en Supabase
+## Configurar Supabase: nada es obligatorio
 
-### 1 · Que el correo lleve el código, y de 8 números
+**La app funciona con Supabase tal como viene de fábrica.** Lo de abajo son
+mejoras, no requisitos.
 
-**Authentication → Sign In / Providers → Email:**
+### Cómo funciona sin tocar nada
 
-| Ajuste | Ponlo en |
-|---|---|
-| **Email OTP Length** | **8** |
-| **Email OTP Expiration** | **600** (10 minutos) |
-
-Los 8 tienen que coincidir con `LARGO_CODIGO` en la app. Si algún día lo
-cambias, avísame para cambiar las casillas de la pantalla.
-
-### 2 · La plantilla del correo
-
-**Authentication → Emails → Magic Link:**
-
-**Asunto:**
+De fábrica, la plantilla de correo de Supabase manda un **enlace**, no
+números. La app lo atiende:
 
 ```
-Tu código para entrar a OaxIntegra IA
+se registra  →  correo con enlace  →  le da clic
+                                       │
+                                       ▼
+                    la app le INVENTA un código de 8 números
+                    (crypto.getRandomValues), lo fija como su
+                    contraseña, y se lo enseña en pantalla
+                                       │
+                                       ▼
+                    con ese código entra siempre después
 ```
 
-**Cuerpo:**
+Queda constancia en `user_metadata.clave_puesta`, así que volver a darle clic
+al mismo enlace **no le cambia el código**: entra directo.
+
+Probado en `pruebas/sin-configurar.mjs`, 16 comprobaciones, con el Supabase de
+mentiras arrancado sin configurar (6 dígitos, plantilla de enlace).
+
+### Mejora 1 · que el correo traiga los números
+
+**Authentication → Emails → Magic Link**, cuerpo:
 
 ```html
 <p>Hola, somos de OaxIntegra IA y te enviamos tu código de acceso.</p>
 
-<p style="font-size:15px">Escribe estos 8 números en la página:</p>
+<p style="font-size:15px">Escribe estos números en la página:</p>
 
 <p style="font-size:34px; font-weight:bold; letter-spacing:8px; margin:18px 0">{{ .Token }}</p>
 
-<p style="font-size:14px"><b>Guarda este número.</b> Con tu correo y estos 8 números entras siempre.</p>
+<p style="font-size:14px"><b>Guarda este número.</b> Con tu correo y estos números entras siempre.</p>
 
 <p style="font-size:13px; color:#666">Si no pediste entrar, no hagas nada.</p>
 ```
 
-`{{ .Token }}` son los números. **Sin eso no llega ningún código.**
+Con esto, el número del correo **es** el que se queda como contraseña, en vez
+de uno inventado. Más claro para quien lo usa.
+
+### Mejora 2 · códigos de 8 en vez de 6
+
+**Authentication → Sign In / Providers → Email:**
+
+| Ajuste | De fábrica | Recomendado |
+|---|---|---|
+| **Email OTP Length** | 6 | **8** |
+| **Email OTP Expiration** | 3600 | **600** |
+
+La app **acepta 6 u 8** (`MIN_CODIGO_CORREO`), así que esto solo sube de un
+millón de combinaciones a cien millones.
 
 ### 3 · Las tablas — ✅ aplicadas el 24 de agosto de 2026
 

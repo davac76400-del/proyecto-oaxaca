@@ -1765,6 +1765,10 @@
           Te mandamos 8 números a <b id="correo-enviado" class="text-texto"></b>.
           Escríbelos aquí.
         </p>
+        <p class="text-tenue text-[0.86rem] mb-2">
+          <b class="text-texto">¿El correo trae un enlace en vez de números?</b>
+          Dale clic y entras igual: aquí te enseñamos tu código.
+        </p>
         <p class="text-tenue text-[0.86rem] mb-6">
           Si no lo ves en un minuto, búscalo en <b class="text-texto">correo no deseado</b>.
         </p>
@@ -2600,7 +2604,23 @@
 
   var CLAVE_TOKENS = 'oaxintegra.tokens';
   var CLAVE_PERFIL = 'oaxintegra.perfil';
-  var LARGO_CODIGO = 8;      /* debe coincidir con Email OTP Length en Supabase */
+  /* El código que ESTA app genera cuando le toca inventarlo. */
+  var LARGO_CODIGO = 8;
+  /* El que puede LLEGAR por correo. Supabase manda 6 de fábrica y se puede
+     subir a 8 en su panel, así que se aceptan los dos y no hay que configurar
+     nada para que funcione. */
+  var MIN_CODIGO_CORREO = 6;
+
+  /* Uno al azar, del generador criptográfico del navegador. Se usa cuando la
+     persona entra por el ENLACE del correo en vez de escribir un código: ahí
+     la app no sabe ningún número, así que se inventa uno y se lo enseña. */
+  function generarCodigo() {
+    var n = new Uint32Array(LARGO_CODIGO);
+    (window.crypto || window.msCrypto).getRandomValues(n);
+    var s = '';
+    for (var i = 0; i < LARGO_CODIGO; i++) { s += (n[i] % 10); }
+    return s;
+  }
 
   function authListo() {
     return CONFIG_AUTH.URL.indexOf('http') === 0 && CONFIG_AUTH.CLAVE.length > 20;
@@ -2793,6 +2813,35 @@
     relojRefresco = setTimeout(function () {
       refrescarSesion().then(programarRefresco).catch(function () {});
     }, falta);
+  }
+
+  /* --- volver desde el ENLACE del correo -----------------------------------
+     Supabase manda un enlace de fábrica; solo manda números si le cambias la
+     plantilla. Para que la app funcione SIN configurar nada, se atiende el
+     enlace también: los tokens llegan en el fragmento (#access_token=…), que
+     no viaja al servidor y por eso se usa ese y no la parte normal. */
+  function leerRegreso() {
+    var bruto = window.location.hash || '';
+    if (bruto.indexOf('access_token') === -1 && bruto.indexOf('error') === -1) { return null; }
+    var trozos = {};
+    bruto.replace(/^#/, '').split('&').forEach(function (par) {
+      if (!par) { return; }
+      var i = par.indexOf('=');
+      var k = i === -1 ? par : par.slice(0, i);
+      var v = i === -1 ? '' : par.slice(i + 1);
+      try { trozos[decodeURIComponent(k)] = decodeURIComponent(v.replace(/\+/g, ' ')); }
+      catch (e) { trozos[k] = v; }
+    });
+    return trozos;
+  }
+
+  /* Los tokens no se quedan en la barra de direcciones ni en el historial. */
+  function limpiarDireccion() {
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else {
+      window.location.hash = '';
+    }
   }
 
   /* --- las vistas de la portada -------------------------------------------- */
@@ -2994,6 +3043,13 @@
       });
   });
 
+  /* 48207391 → «4820 7391»;  482913 → «482 913» */
+  function agrupar(c) {
+    return c.length === 8 ? c.slice(0, 4) + ' ' + c.slice(4)
+         : c.length === 6 ? c.slice(0, 3) + ' ' + c.slice(3)
+         : c;
+  }
+
   function irAEscribirCodigo(rotulo) {
     $('#rotulo-codigo').textContent = rotulo;
     $('#correo-enviado').textContent = correoPendiente;
@@ -3008,8 +3064,10 @@
      --------------------------------------------------------------- */
   function comprobarCodigo() {
     var codigo = codCorreo.leer(), caja = $('#error-codigo');
-    if (codigo.length < LARGO_CODIGO) {
-      caja.hidden = false; caja.textContent = 'Faltan números del código.';
+    if (codigo.length < MIN_CODIGO_CORREO) {
+      caja.hidden = false;
+      caja.textContent = 'Escribe el código que te llegó (son ' +
+                         MIN_CODIGO_CORREO + ' u ' + LARGO_CODIGO + ' números).';
       return;
     }
     caja.hidden = true;
@@ -3026,7 +3084,10 @@
         /* AQUÍ está el paso clave: el código que llegó se queda fijado como
            contraseña. Si esto no se hiciera, mañana ya no serviría. */
         return pedirAuth('/user', {
-          metodo: 'PUT', token: t.access_token, cuerpo: { password: codigo }
+          metodo: 'PUT', token: t.access_token,
+          /* clave_puesta va en los datos de la cuenta, no en la tabla: así no
+             hace falta tocar la base para saber si ya tiene código fijado. */
+          cuerpo: { password: codigo, data: { clave_puesta: true } }
         }).then(function () {
           return traerUsuarioAuth(t.access_token);
         }).then(function (u) {
@@ -3048,7 +3109,7 @@
           guardarPerfilLocal();
           programarRefresco();
           codCorreo.limpiar();
-          $('#codigo-guardalo').textContent = codigo.replace(/(\d{4})(\d{4})/, '$1 $2');
+          $('#codigo-guardalo').textContent = agrupar(codigo);
           verVistaAuth('guardalo');
         });
       })
@@ -3331,6 +3392,32 @@
       return Promise.resolve(false);
     }
 
+    /* ¿Venimos de darle clic al enlace del correo? */
+    var regreso = leerRegreso();
+
+    if (regreso && regreso.error) {
+      limpiarDireccion();
+      verVistaAuth('entrar');
+      $('#error-entrar').hidden = false;
+      $('#error-entrar').textContent = /expired/i.test(regreso.error_description || regreso.error)
+        ? 'Ese enlace ya venció. Pide otro desde «Registrarme» o «Olvidé mi código».'
+        : 'Ese enlace ya no sirve. Pide otro.';
+      return Promise.resolve(false);
+    }
+
+    if (regreso && regreso.access_token) {
+      verVistaAuth('entrando');
+      limpiarDireccion();
+      guardarTokens(regreso);
+      return entrarPorEnlace().catch(function () {
+        borrarTokens();
+        verVistaAuth('entrar');
+        $('#error-entrar').hidden = false;
+        $('#error-entrar').textContent = 'No pude abrir tu cuenta con ese enlace. Pide otro.';
+        return false;
+      });
+    }
+
     var t = leerTokens();
     if (!t) { verVistaAuth('inicio'); return Promise.resolve(false); }
 
@@ -3344,6 +3431,49 @@
       pintarSesion();
       verVistaAuth('inicio');
       return false;
+    });
+  }
+
+  /* Entró por el enlace. Aquí la app NO sabe ningún código, así que:
+       · si todavía no tiene clave fijada, se le inventa una y se le enseña
+       · si ya tiene, se pasa de largo y entra
+     Con esto la app funciona con la plantilla de correo que trae Supabase de
+     fábrica, sin configurar nada. Poner {{ .Token }} en la plantilla es una
+     mejora, no un requisito. */
+  function entrarPorEnlace() {
+    var t = leerTokens();
+    return traerUsuarioAuth(t.access_token).then(function (u) {
+      var yaTiene = !!(u.user_metadata && u.user_metadata.clave_puesta);
+      return traerPerfil(t.access_token, u.id).then(function (perfil) {
+        sesion = armarSesion(u, perfil);
+        guardarPerfilLocal();
+        programarRefresco();
+
+        if (yaTiene) {
+          pintarSesion(); cargarConvs(); ocultarPortada(); pintarTiraGiro();
+          return true;
+        }
+
+        var nueva = generarCodigo();
+        return pedirAuth('/user', {
+          metodo: 'PUT', token: t.access_token,
+          cuerpo: { password: nueva, data: { clave_puesta: true } }
+        }).then(function () {
+          /* Si venía de un registro y todavía no eligió usuario, se guarda. */
+          if (usuarioPendiente && !sesion.usuario) {
+            return llamarFuncion('fijar_usuario', { nombre: usuarioPendiente })
+              .then(function (r) {
+                if (r && r.ok) { sesion.usuario = usuarioPendiente; sesion.nombre = usuarioPendiente; }
+              }).catch(function () {});
+          }
+        }).then(function () {
+          motivoCodigo = 'registro';
+          guardarPerfilLocal();
+          $('#codigo-guardalo').textContent = agrupar(nueva);
+          verVistaAuth('guardalo');
+          return false;
+        });
+      });
     });
   }
 

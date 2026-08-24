@@ -1,17 +1,35 @@
 # Empieza aquí
 
-Tus llaves de Supabase **ya están puestas** (proyecto `OaxIntegra-IA`). Lo que
-falta son dos cosas que solo se pueden hacer desde tu panel de Supabase.
+## ✅ No tienes que configurar nada
 
-Para ver en qué vas, en cualquier momento:
+Las llaves están puestas, las tablas aplicadas, y la app **funciona con
+Supabase tal como viene de fábrica**. Solo:
 
 ```bash
-node revisar.js
+cd frontend && python3 build.py && cd ..
+npm start
 ```
+
+Abre `http://localhost:3000`, regístrate con **tu propio correo**, y listo.
+
+### Qué va a pasar
+
+De fábrica, Supabase manda un correo con un **enlace**, no con números. No
+importa: le das clic, entras, y **la app te inventa tu código de 8 números y
+te lo enseña en pantalla**. Con ese código entras siempre después.
+
+Probado: `node pruebas/sin-configurar.mjs` → 16 de 16.
+
+Para ver el estado de tus llaves en cualquier momento: `node revisar.js`
 
 ---
 
-## ⚠️ 1 · Que el código sea de 8 números
+## Lo opcional · que el correo traiga los números
+
+Si prefieres que el correo llegue con el código escrito en vez de un enlace,
+son dos cambios en tu panel de Supabase. **La app funciona igual sin esto.**
+
+### 1 · Que el código sea de 8 números
 
 **Authentication → Sign In / Providers → Email:**
 
@@ -20,13 +38,11 @@ node revisar.js
 | **Email OTP Length** | **8** |
 | **Email OTP Expiration** | **600** (10 minutos) |
 
-Si esto queda en 6, llegarán 6 números y la pantalla pedirá 8.
+La app acepta 6 u 8, así que esto es solo para que sea más difícil de adivinar.
 
----
+### 2 · La plantilla del correo
 
-## ⚠️ 2 · La plantilla del correo — SIN ESTO NO LLEGA NINGÚN CÓDIGO
-
-**Authentication → Emails → Magic Link.** Ahí se cambian las dos cosas:
+**Authentication → Emails → Magic Link:**
 
 **Asunto:**
 
@@ -39,29 +55,17 @@ Tu código para entrar a OaxIntegra IA
 ```html
 <p>Hola, somos de OaxIntegra IA y te enviamos tu código de acceso.</p>
 
-<p style="font-size:15px">Escribe estos 8 números en la página:</p>
+<p style="font-size:15px">Escribe estos números en la página:</p>
 
 <p style="font-size:34px; font-weight:bold; letter-spacing:8px; margin:18px 0">{{ .Token }}</p>
 
-<p style="font-size:14px"><b>Guarda este número.</b> Con tu correo y estos 8 números entras siempre.</p>
+<p style="font-size:14px"><b>Guarda este número.</b> Con tu correo y estos números entras siempre.</p>
 
 <p style="font-size:13px; color:#666">Si no pediste entrar, no hagas nada.</p>
 ```
 
-`{{ .Token }}` son los números. **Es lo único imprescindible.**
-
-> `{{ .Token }}` **no es un número fijo**: es un hueco que Supabase rellena con
-> uno recién generado al azar para cada persona y cada petición.
-
----
-
-## 3 · Las tablas de la base — ✅ YA ESTÁ HECHO
-
-Las apliqué yo el 24 de agosto con el conector, y las comprobé una por una.
-No tienes que hacer nada aquí.
-
-Si algún día montas el proyecto desde cero, es pegar en el **SQL Editor**, en
-orden, los seis archivos de `backend/migraciones/`.
+`{{ .Token }}` **no es un número fijo**: es un hueco que Supabase rellena con
+uno recién generado al azar para cada persona.
 
 ---
 

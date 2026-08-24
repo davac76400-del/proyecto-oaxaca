@@ -255,6 +255,29 @@ Los 7 avisos de seguridad que quedan son todos «esta función SECURITY DEFINER
 se puede llamar desde la API» — que es justamente el diseño. Ninguno sobre RLS
 ni sobre tablas expuestas.
 
+**28 · Que no haya nada que configurar (24 ago 2026).** El autor pide que haga
+yo lo que quedaba pendiente. Los dos pendientes eran configuración de correo en
+el panel de Supabase, y no hay forma de tocarla desde aquí: el conector solo
+trae herramientas de base de datos, y `api.supabase.com` está bloqueada en esta
+máquina (`000`), así que la API de gestión tampoco sirve ni con un token.
+
+Así que en vez de hacer los pasos, **se quitaron los pasos**.
+
+La plantilla de correo de Supabase manda de fábrica un ENLACE, no números. La
+app ahora lo atiende: al darle clic, si la persona todavía no tiene clave
+fijada, la app **le inventa un código de 8 números** con
+`crypto.getRandomValues`, lo fija como su contraseña y se lo enseña. Queda
+constancia en `user_metadata.clave_puesta`, así que volver a darle clic al
+mismo enlace no le cambia el código.
+
+Y como Supabase manda 6 dígitos de fábrica, la app acepta **6 u 8**
+(`MIN_CODIGO_CORREO`), así que tampoco hay que tocar Email OTP Length.
+
+Resultado: cambiar la plantilla y la longitud pasan de **requisitos** a
+**mejoras opcionales**. Prueba nueva `sin-configurar.mjs`, 16 comprobaciones,
+contra el Supabase de mentiras arrancado tal cual. La suite de siempre sigue
+en 51 con la configuración recomendada.
+
 ---
 
 ## Patrones del autor (importante para Claude Code)

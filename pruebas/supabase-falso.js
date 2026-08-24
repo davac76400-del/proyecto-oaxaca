@@ -6,11 +6,17 @@ const { randomInt } = require('crypto');
 
 const ANON = process.argv[2] || 'anon';
 const PUERTO = Number(process.env.PUERTO_FALSO || 54321);
-const LARGO = 8;                    // Email OTP Length en Supabase
+/* Email OTP Length. De FÁBRICA Supabase manda 6; se puede subir a 8 en su
+   panel. La prueba usa lo que diga PUERTO_FALSO... digo, LARGO_FALSO, para
+   comprobar que la app aguanta las dos. */
+const LARGO = Number(process.env.LARGO_FALSO || 6);
 const MINIMO_CONTRASENA = 6;
 
-let ultimoCodigo = null;
+let ultimoCodigo = null, ultimoEnlace = null;
 const CODIGOS_EMITIDOS = [];
+/* La plantilla de correo de fábrica solo trae el enlace. Con PLANTILLA=codigo
+   se simula la plantilla ya cambiada, con {{ .Token }}. */
+const PLANTILLA = process.env.PLANTILLA_FALSA || 'enlace';
 
 /* Como el de verdad: uno nuevo, al azar, cada vez que se pide. */
 function nuevoCodigo() {
@@ -56,7 +62,8 @@ http.createServer((req, res) => {
     /* --- ayudas solo para la prueba (no existen en Supabase) --- */
     if (url.pathname === '/__ultimo') {
       return json(res, 200, {
-        codigo: ultimoCodigo, correo: USUARIO.email,
+        codigo: ultimoCodigo, enlace: ultimoEnlace, plantilla: PLANTILLA,
+        metadatos: USUARIO.user_metadata, correo: USUARIO.email,
         emitidos: CODIGOS_EMITIDOS.slice(),
         hayContrasena: CONTRASENA !== null,
         hayRecuperacion: RECUPERACION !== null,
@@ -65,7 +72,7 @@ http.createServer((req, res) => {
       });
     }
     if (url.pathname === '/__reset') {
-      ultimoCodigo = null; CODIGOS_EMITIDOS.length = 0;
+      ultimoCodigo = null; ultimoEnlace = null; CODIGOS_EMITIDOS.length = 0;
       USUARIO.email = ''; USUARIO.user_metadata = {};
       PERFILES = {}; CONTRASENA = null; RECUPERACION = null; FALLOS_REC = 0;
       return json(res, 200, { ok: true });
@@ -94,7 +101,10 @@ http.createServer((req, res) => {
       USUARIO.email = datos.email;
       ultimoCodigo = nuevoCodigo();
       CODIGOS_EMITIDOS.push(ultimoCodigo);
-      console.log('[falso] código para ' + datos.email + ' → ' + ultimoCodigo);
+      ultimoEnlace = (url.searchParams.get('redirect_to') || 'http://localhost:3000/') +
+        '#access_token=TOKEN_BUENO&refresh_token=REFRESCO&expires_in=3600&token_type=bearer&type=magiclink';
+      console.log('[falso] correo a ' + datos.email +
+                  (PLANTILLA === 'codigo' ? ' → código ' + ultimoCodigo : ' → enlace (plantilla de fábrica)'));
       return json(res, 200, {});
     }
 
