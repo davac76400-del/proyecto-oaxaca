@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 const APP   = process.env.APP_URL   || 'http://localhost:3000/';
 const FALSO = process.env.FALSO_URL || 'http://localhost:54321';
 const CHROME = process.env.CHROME_PATH || undefined;
+const ANON  = process.env.ANON_KEY || 'anon';
 
 let fallos = 0, pasos = 0;
 const ok   = t => { pasos++; console.log('  ✓ ' + t); };
@@ -74,6 +75,35 @@ comprobar(await pag.locator('#casillas-codigo .casilla').count() === 6, 'hay 6 c
 const { codigo } = await ultimo();
 comprobar(/^\d{6}$/.test(codigo || ''), `el servidor generó un código de 6 números: ${codigo}`);
 
+// ═══════════════════════════════════════════════ 3b
+console.log('\n3b · CADA CÓDIGO ES DISTINTO (nadie recibe el mismo)');
+// El miedo legítimo: si el número fuera fijo, cualquiera que lo supiera
+// entraría a la cuenta de cualquiera. Aquí se comprueba que no lo es.
+const vistos = new Set([codigo]);
+for (let i = 0; i < 5; i++) {
+  await fetch(`${FALSO}/auth/v1/otp`, {
+    method: 'POST',
+    headers: { apikey: ANON, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: `persona${i}@ejemplo.com`, create_user: true })
+  });
+  vistos.add((await ultimo()).codigo);
+}
+comprobar(vistos.size === 6, `6 peticiones → ${vistos.size} códigos distintos`);
+comprobar(![...vistos].some(c => c === '482913'), 'ninguno es un número fijo del código fuente');
+
+// Y el viejo deja de valer en cuanto se pide otro.
+const codigoViejo = codigo;
+await pag.click('#btn-reenviar');
+await pag.waitForTimeout(1200);
+const codigoNuevo = (await ultimo()).codigo;
+comprobar(codigoNuevo !== codigoViejo, 'al pedir otro, el anterior cambia');
+const rViejo = await fetch(`${FALSO}/auth/v1/verify`, {
+  method: 'POST',
+  headers: { apikey: ANON, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: 'maria@ejemplo.com', token: codigoViejo, type: 'email' })
+});
+comprobar(rViejo.status === 403, `el código viejo ya no abre nada (HTTP ${rViejo.status})`);
+
 // ═══════════════════════════════════════════════ 4
 console.log('\n4 · CÓDIGO EQUIVOCADO');
 await pag.fill('#casillas-codigo .casilla >> nth=0', '0');
@@ -85,7 +115,8 @@ comprobar(await pag.isVisible('#vista-codigo'), 'no deja pasar');
 // ═══════════════════════════════════════════════ 5
 console.log('\n5 · CÓDIGO CORRECTO → PEDIR USUARIO');
 await pag.waitForTimeout(900);   // el marcarMal limpia solo a los 700ms
-for (let i = 0; i < 6; i++) await pag.fill(`#casillas-codigo .casilla >> nth=${i}`, codigo[i]);
+const vigente = (await ultimo()).codigo;   // el de ahora, no el de hace rato
+for (let i = 0; i < 6; i++) await pag.fill(`#casillas-codigo .casilla >> nth=${i}`, vigente[i]);
 await pag.waitForSelector('#vista-usuario:not([hidden])', { timeout: 8000 });
 ok('entra y pide elegir usuario (obligatorio la 1ª vez)');
 comprobar((await pag.textContent('#vista-usuario')).includes('Paso 3 de 3'), 'dice «Paso 3 de 3»');

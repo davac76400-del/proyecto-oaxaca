@@ -89,21 +89,65 @@ esto, pero mejor déjalo puesto.
 
 ---
 
-## El código NO es una contraseña fija
+## ⚠️ El código NO es fijo: cada quien recibe el suyo
 
-Esto importa entenderlo:
+Esta es **la duda correcta** que hay que hacerse, porque si el número fuera el
+mismo para todos, cualquiera que lo supiera entraría a la cuenta de cualquiera.
+
+**No lo es.** `{{ .Token }}` no es un número: es un **hueco** que Supabase
+rellena, en el momento de mandar el correo, con un número recién generado al
+azar para esa persona y esa petición.
+
+```
+María pide entrar   →  correo a María   →  748103
+Pedro pide entrar   →  correo a Pedro   →  219576
+María pide otro     →  correo a María   →  360942   ← el 748103 ya no sirve
+```
 
 | | |
 |---|---|
-| **Cada vez que entras** | Se manda un código **nuevo** |
-| **Sirve** | Una sola vez |
-| **Vence** | En una hora |
+| ¿El mismo para todos? | **No.** Uno nuevo por cada petición |
+| ¿Se puede reusar? | **No.** Una sola vez |
+| ¿Y si pido otro? | El anterior **deja de valer al instante** |
+| ¿Vence? | Sí. Por defecto en 1 hora — mejor bájalo (ver abajo) |
+| ¿La app lo conoce? | **Nunca.** Solo manda al servidor lo que se escribió |
 
-Un código de 6 números que nunca cambiara y viajara por correo sin cifrar se
-adivina en un rato: son un millón de combinaciones, nada para una computadora.
-Así, aunque alguien vea el correo viejo, ese número ya no abre nada.
+**Comprobado, no supuesto.** La prueba `pruebas/acceso.mjs` pide seis códigos
+seguidos y verifica que salgan seis distintos, que ninguno sea un número fijo
+del código fuente, y que el viejo devuelva 403 en cuanto se pide otro.
 
-**Para quien lo usa se siente igual:** escribe el número que le llegó y entra.
+```
+3b · CADA CÓDIGO ES DISTINTO (nadie recibe el mismo)
+  ✓ 6 peticiones → 6 códigos distintos
+  ✓ ninguno es un número fijo del código fuente
+  ✓ al pedir otro, el anterior cambia
+  ✓ el código viejo ya no abre nada (HTTP 403)
+```
+
+### Y aunque alguien adivinara un código
+
+No le serviría para robar una cuenta, porque **el código va al correo de esa
+persona, no al de quien lo pide**. Para entrar a la cuenta de alguien habría
+que tener acceso a su bandeja de entrada. Aquí no existen los «correos
+secundarios»: la cuenta *es* el correo.
+
+---
+
+## Dos ajustes que conviene tocar
+
+En **Authentication → Sign In / Providers → Email**:
+
+| Ajuste | Viene así | Ponlo en | Por qué |
+|---|---|---|---|
+| **Email OTP Expiration** | 3600 s (1 hora) | **600 s (10 min)** | Una hora es mucho margen para un correo que se queda abierto en una computadora prestada |
+| **Email OTP Length** | 6 | **8**, si quieres | Pasa de un millón de combinaciones a cien millones. Cuesta escribir dos números más |
+
+Con 6 dígitos y el límite de intentos de Supabase ya es razonable; con 10
+minutos de vigencia, más. Lo de 8 dígitos es opcional — es la balanza de
+siempre entre seguridad y comodidad, y tu público valora lo cómodo.
+
+**Si cambias la longitud a 8, avísame**: hay que poner 8 casillas en la
+pantalla en vez de 6.
 
 ---
 

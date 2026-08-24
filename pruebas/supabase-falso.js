@@ -7,6 +7,16 @@ const ANON = process.argv[2] || 'anon';
 const PUERTO = Number(process.env.PUERTO_FALSO || 54321);
 
 let ultimoCodigo = null, ultimoEnlace = null;
+/* Todos los códigos que se han emitido, para poder comprobar en la prueba
+   que nunca se repiten y que los viejos dejan de servir. */
+const CODIGOS_EMITIDOS = [];
+
+/* Como el de verdad: uno nuevo, al azar, cada vez que se pide.
+   Supabase usa un generador criptográfico; aquí basta con que cambie. */
+function nuevoCodigo() {
+  const { randomInt } = require('crypto');
+  return String(randomInt(0, 1000000)).padStart(6, '0');
+}
 
 const USUARIO = {
   id: '11111111-2222-3333-4444-555555555555',
@@ -42,10 +52,13 @@ http.createServer((req, res) => {
   req.on('end', () => {
     /* --- ayudas solo para la prueba (no existen en Supabase) --- */
     if (url.pathname === '/__ultimo') {
-      return json(res, 200, { codigo: ultimoCodigo, enlace: ultimoEnlace, correo: USUARIO.email });
+      return json(res, 200, {
+        codigo: ultimoCodigo, enlace: ultimoEnlace, correo: USUARIO.email,
+        emitidos: CODIGOS_EMITIDOS.slice()
+      });
     }
     if (url.pathname === '/__reset') {
-      ultimoCodigo = null; ultimoEnlace = null;
+      ultimoCodigo = null; ultimoEnlace = null; CODIGOS_EMITIDOS.length = 0;
       USUARIO.email = ''; USUARIO.user_metadata = {};
       PERFILES = {};
       return json(res, 200, { ok: true });
@@ -68,7 +81,8 @@ http.createServer((req, res) => {
         return json(res, 429, { msg: 'For security purposes, you can only request this after 47 seconds' });
       }
       USUARIO.email = datos.email;
-      ultimoCodigo = '482913';
+      ultimoCodigo = nuevoCodigo();
+      CODIGOS_EMITIDOS.push(ultimoCodigo);
       ultimoEnlace = (url.searchParams.get('redirect_to') || '') +
         '#access_token=TOKEN_BUENO&refresh_token=REFRESCO&expires_in=3600&token_type=bearer&type=magiclink';
       console.log('[falso] código para ' + datos.email + ' → ' + ultimoCodigo);
@@ -77,9 +91,8 @@ http.createServer((req, res) => {
 
     /* ---------------- 2. comprobar el código ---------------- */
     if (url.pathname === '/auth/v1/verify' && req.method === 'POST') {
-      if (datos.token === '000000') {
-        return json(res, 403, { msg: 'Token has expired or is invalid' });
-      }
+      /* Solo vale el ÚLTIMO. Pedir otro código invalida el anterior, igual
+         que en Supabase: si no, un código viejo seguiría abriendo la cuenta. */
       if (datos.token !== ultimoCodigo) {
         return json(res, 403, { msg: 'Token has expired or is invalid' });
       }

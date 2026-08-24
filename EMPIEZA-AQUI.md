@@ -42,6 +42,18 @@ Si no pediste entrar, no hagas nada.
 
 `{{ .Token }}` son los 6 números. **Es lo único imprescindible.**
 
+> **Ojo, que es importante:** `{{ .Token }}` **no es un número fijo.** Es un
+> hueco que Supabase rellena, al mandar cada correo, con un número recién
+> generado al azar para esa persona. María recibe uno, Pedro otro, y si María
+> pide otro el suyo anterior deja de servir en ese instante.
+>
+> Está comprobado en `pruebas/acceso.mjs`: seis peticiones dan seis códigos
+> distintos, y el viejo devuelve 403 en cuanto se pide uno nuevo.
+>
+> Y aunque alguien adivinara un código, no le serviría: **el número va al
+> correo de esa persona**, no al de quien lo pide. Aquí no hay «correos
+> secundarios» — la cuenta *es* el correo.
+
 > El nombre va tal cual: **OaxIntegra IA**. (Confirmado el 24 de agosto: lo
 > de «Wax, integra IA» era la marca dictada en voz alta y partida en dos.)
 
