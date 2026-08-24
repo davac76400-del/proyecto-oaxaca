@@ -33,10 +33,18 @@ Supabase, que es quien manda el correo y quien recuerda quién es quién.
 correo.** Si te saltas esto, la gente recibe un correo sin ningún número y la
 pantalla del código se queda esperando algo que nunca llegó.
 
-**Authentication → Emails → Magic Link**, y pega esto en el cuerpo:
+**Authentication → Emails → Magic Link**. Ahí se cambian las dos cosas:
+
+**Asunto:**
+
+```
+Tu código para entrar a OaxIntegra IA
+```
+
+**Cuerpo:**
 
 ```html
-<p>Hola, somos de Wax, integra IA y te enviamos este enlace de acceso para entrar a tu cuenta.</p>
+<p>Hola, somos de OaxIntegra IA y te enviamos este enlace de acceso para entrar a tu cuenta.</p>
 
 <p style="font-size:15px">Escribe estos 6 números en la página:</p>
 
@@ -60,9 +68,10 @@ Las dos etiquetas entre llaves son lo único que no se puede cambiar:
 Los dos caminos funcionan y llevan al mismo lugar. La app está hecha para el
 código, pero si alguien le da clic al enlace, entra igual.
 
-> **Sobre el texto:** quedó tal cual lo pediste. Pero «Wax, integra IA» se lee
-> como tu marca dictada en voz alta — **OaxIntegra IA** partido en dos. Si era
-> eso, cámbialo ahí mismo.
+> **Sobre el nombre:** va **OaxIntegra IA**, con espacio y las dos letras de
+> «IA» en mayúscula, igual que en toda la app. Confirmado el 24 de agosto de
+> 2026: lo que se había puesto antes («Wax, integra IA») era el nombre dictado
+> en voz alta y partido en dos.
 
 ---
 

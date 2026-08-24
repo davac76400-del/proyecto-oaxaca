@@ -15,10 +15,18 @@ node revisar.js
 
 Supabase manda un **enlace**, no un código, hasta que le digas lo contrario.
 
-**Authentication → Emails → Magic Link**, y pega esto en el cuerpo:
+**Authentication → Emails → Magic Link**. Ahí se cambian las dos cosas:
+
+**Asunto:**
+
+```
+Tu código para entrar a OaxIntegra IA
+```
+
+**Cuerpo:**
 
 ```html
-<p>Hola, somos de Wax, integra IA y te enviamos este enlace de acceso para entrar a tu cuenta.</p>
+<p>Hola, somos de OaxIntegra IA y te enviamos este enlace de acceso para entrar a tu cuenta.</p>
 
 <p style="font-size:15px">Escribe estos 6 números en la página:</p>
 
@@ -34,9 +42,8 @@ Si no pediste entrar, no hagas nada.
 
 `{{ .Token }}` son los 6 números. **Es lo único imprescindible.**
 
-> El texto quedó como lo pediste. Pero «Wax, integra IA» se lee como tu marca
-> dictada en voz alta — **OaxIntegra IA** partido en dos. Si era eso, cámbialo
-> ahí mismo.
+> El nombre va tal cual: **OaxIntegra IA**. (Confirmado el 24 de agosto: lo
+> de «Wax, integra IA» era la marca dictada en voz alta y partida en dos.)
 
 ---
 
