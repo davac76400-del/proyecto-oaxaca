@@ -1,0 +1,26 @@
+# Repos clonados por descargar-arsenal.sh: no se versionan.
+# Lo que se versiona es TU trabajo (plantillas, workflows, runbooks, contratos).
+*/*/*/.git
+01_NUCLEO_IA/claude/skills/skills/
+01_NUCLEO_IA/claude/mcp-servers/*/
+01_NUCLEO_IA/modelos-locales/*/
+02_CHATBOTS_Y_AUTOMATIZACION/motores-de-chat/*/
+02_CHATBOTS_Y_AUTOMATIZACION/n8n/docker/*/
+02_CHATBOTS_Y_AUTOMATIZACION/rag-y-conocimiento/*/
+02_CHATBOTS_Y_AUTOMATIZACION/whatsapp/no-oficial-RIESGO/*/
+03_WEBS_Y_RESERVAS/stacks/*/
+03_WEBS_Y_RESERVAS/componentes-ui/*/
+03_WEBS_Y_RESERVAS/motores-de-reserva/*/
+04_GEO_Y_VISIBILIDAD/medicion-de-citas/*/
+05_DATOS_E_INTELIGENCIA/scraping-tarifas/*/
+05_DATOS_E_INTELIGENCIA/dashboards/*/
+06_INFRAESTRUCTURA/hostinger-vps/*/
+06_INFRAESTRUCTURA/monitoreo/*/
+06_INFRAESTRUCTURA/seguridad-y-respaldos/*/
+00_COMANDO/legal/documenso/
+
+# NUNCA versionar credenciales de clientes
+07_CLIENTES/*/credenciales/
+**/.env
+**/*.key
+**/*.pem
