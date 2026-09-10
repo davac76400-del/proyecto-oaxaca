@@ -1,0 +1,16 @@
+{
+  "name": "oaxaca-local",
+  "description": "Marketplace local del proyecto Oaxaca.",
+  "owner": {
+    "name": "David Alfredo Romero Rendon",
+    "url": "https://github.com/davac76400-del"
+  },
+  "plugins": [
+    {
+      "name": "omniroute",
+      "source": "./.claude/plugins/omniroute",
+      "description": "Gateway de IA con 45 skills: proveedores, routing, compresion, claves, cache y despliegue.",
+      "category": "productivity"
+    }
+  ]
+}

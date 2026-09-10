@@ -1,0 +1,20 @@
+{
+  "name": "omniroute",
+  "displayName": "OmniRoute",
+  "description": "Gateway de IA: 45 skills para operar OmniRoute desde Claude Code — proveedores, routing, compresion RTK/Caveman, claves, cache, presupuesto, MCP, tuneles y despliegue.",
+  "version": "3.8.51",
+  "author": {
+    "name": "Diego Souza",
+    "url": "https://github.com/diegosouzapw"
+  },
+  "homepage": "https://github.com/diegosouzapw/OmniRoute",
+  "license": "MIT",
+  "keywords": [
+    "ai-gateway",
+    "llm",
+    "routing",
+    "compression",
+    "providers",
+    "omniroute"
+  ]
+}

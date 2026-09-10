@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "oaxaca-local": {
+      "source": {
+        "source": "directory",
+        "path": "."
+      }
+    }
+  },
+  "enabledPlugins": {
+    "omniroute@oaxaca-local": true
+  }
+}
