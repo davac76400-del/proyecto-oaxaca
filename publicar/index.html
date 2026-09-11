@@ -43,7 +43,24 @@
     --glow:0;
     --greca-fondo:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cpath d='M0 64H16V48H32V32H48V16H64V0' fill='none' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E");
     --greca-banda:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='14' viewBox='0 0 48 14'%3E%3Cpath d='M0 13H6V9H12V5H18V1H30V5H36V9H42V13H48' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E");
+    /* las curvas no cambian entre modo día/noche: viven en :root, no
+       repetidas dentro de cada bloque de tema (23 sep 2026). */
+    --ease-salida:cubic-bezier(.23,1,.32,1); --ease-vaiven:cubic-bezier(.77,0,.175,1);
   }
+
+  /* --rx/--ry/--ty/--sc mueven el giro 3D de .tarjeta y del chapulín
+     (sección 13 del JS). Sin registrar, un custom property es heredable
+     por definición: cambiarlo obliga al navegador a recalcular estilo de
+     TODO el subárbol de hijos en cada fotograma del tilt (el ícono SVG, el
+     título, el párrafo, el botón…), no solo del propio elemento — justo el
+     costo que se quería evitar al dejar de tocar el transform inline desde
+     JS. "inherits:false" se lo dice al navegador de forma explícita.
+     Donde @property no exista todavía (Firefox viejo), esto simplemente no
+     aplica y el sitio sigue funcionando igual, solo sin esta ganancia. */
+  @property --rx { syntax:'<angle>'; inherits:false; initial-value:0deg; }
+  @property --ry { syntax:'<angle>'; inherits:false; initial-value:0deg; }
+  @property --ty { syntax:'<length>'; inherits:false; initial-value:0px; }
+  @property --sc { syntax:'<number>'; inherits:false; initial-value:1; }
 
   /* ===== MODO DÍA · tonos tierra claros (por defecto) ===== */
   /* ---------------------------------------------------------------------
@@ -100,7 +117,6 @@
     --sombra-media:0 2px 6px rgba(60,45,25,.08), 0 14px 28px rgba(60,45,25,.13);
     --sombra-alta:0 8px 16px rgba(60,45,25,.12), 0 30px 60px rgba(60,45,25,.18);
     --radio:3px; --radio-card:4px;
-    --ease-salida:cubic-bezier(.23,1,.32,1); --ease-vaiven:cubic-bezier(.77,0,.175,1);
   }
   /* ===== MODO NOCHE · obsidiana cálida con acentos de piedra ===== */
   [data-tema="noche"]{
@@ -122,7 +138,6 @@
     --sombra-media:0 2px 8px rgba(0,0,0,.38), 0 16px 34px rgba(0,0,0,.45);
     --sombra-alta:0 10px 20px rgba(0,0,0,.45), 0 34px 70px rgba(0,0,0,.6);
     --radio:3px; --radio-card:4px;
-    --ease-salida:cubic-bezier(.23,1,.32,1); --ease-vaiven:cubic-bezier(.77,0,.175,1);
   }
   html{ transition:background-color .4s ease; }
   body{ transition:background-color .4s ease, color .4s ease; }
@@ -222,7 +237,18 @@
      de fondo: se reservan para los dos momentos donde el chapulín es
      protagonista. En el encabezado y el pie se queda quieto (44px no
      necesita un aro animado, y en una barra fija se sentiría inquieto). */
-  .medallon-chapulin--vivo{ perspective:900px; }
+  /* mismo mecanismo que .tarjeta: el JS solo mueve --rx/--ry, nunca la
+     propiedad "transition" del elemento. El perspective() va DENTRO de la
+     función transform, no como propiedad "perspective" aparte: esa segunda
+     forma solo perfila a los descendientes transformados en 3D, no al
+     propio elemento, y el giro se veía plano/sesgado en vez de con
+     profundidad real. */
+  .medallon-chapulin--vivo{
+    transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+    transition:transform .5s var(--ease-salida);
+    will-change:transform;
+  }
+  .medallon-chapulin--vivo[data-inclinando="si"]{ transition:transform 80ms linear; }
   .medallon-chapulin--vivo .chapulin{ animation:flota 5.5s ease-in-out infinite; transform-style:preserve-3d; }
   .medallon-chapulin--vivo::after{
     content:''; position:absolute; inset:-2%; z-index:1; border-radius:50%; pointer-events:none;
@@ -269,7 +295,7 @@
     padding:1rem 1.9rem; border-radius:var(--radio); cursor:pointer; border:0;
     font-family:inherit; font-size:1rem;
     box-shadow:0 0 0 1px color-mix(in srgb, rgb(var(--cian)) 55%, transparent), var(--sombra-suave);
-    transition:box-shadow .25s var(--ease-salida), transform .25s var(--ease-salida);
+    transition:box-shadow .25s var(--ease-salida), transform .25s var(--ease-salida), opacity .2s ease;
   }
   .btn-neon:hover{
     box-shadow:0 0 0 1px rgb(var(--cian)), var(--sombra-alta);
@@ -300,11 +326,16 @@
   .btn-suave:hover{ border-color:rgb(var(--verde)); color:rgb(var(--verde)); }
 
   /* ---------- tarjetas · con profundidad real ----------
-     El giro 3D (rotateX/rotateY según la posición del cursor) lo aplica el
-     JS de la sección 13 directo en el estilo inline del elemento: es más
-     barato que animar custom properties heredables y no pelea con esta
-     transición, que solo entra en juego cuando el mouse SALE (vuelta a
-     reposo) o en foco por teclado. */
+     El giro 3D (rotateX/rotateY según la posición del cursor, sección 13 del
+     JS) mueve solo las variables --rx/--ry/--ty/--sc, nunca la propiedad
+     "transition" del elemento: esa es la razón de fondo. "transition" es un
+     atajo (shorthand) — fijarla inline pisa TODA la lista completa, no solo
+     la parte de transform, y así se apagaban sin querer el fundido de
+     border-color/box-shadow del hover y el achique de :active mientras el
+     mouse estaba encima. Con las variables, esta única transición de aquí
+     sirve para hover, active y el regreso del giro por igual; el JS solo
+     acelera el tramo de "transform" con el atributo data-inclinando de
+     abajo mientras el cursor se mueve. */
   .tarjeta{
     position:relative; overflow:hidden; cursor:pointer; text-align:left;
     /* El degradado original terminaba en rgba(19,27,46,.55): un azul oscuro
@@ -312,8 +343,32 @@
        Se cambió por la variable de superficie: mismo efecto, sigue el tema. */
     background:linear-gradient(180deg, rgb(var(--barro)) 0%, rgb(var(--barroalto)) 100%);
     border:1px solid rgb(var(--borde)); border-radius:var(--radio-card);
-    transition:border-color .45s ease, transform .5s var(--ease-salida), box-shadow .5s var(--ease-salida);
+    transform:perspective(900px) translateY(var(--ty,0px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));
+    transition:border-color .45s ease, box-shadow .5s var(--ease-salida), transform .5s var(--ease-salida);
     will-change:transform;
+  }
+  .tarjeta[data-inclinando="si"]{
+    transition:border-color .45s ease, box-shadow .5s var(--ease-salida), transform 80ms linear;
+  }
+  /* Las 4 tarjetas de herramientas también llevan la clase .revela (más
+     abajo), que trae su PROPIA transición y su PROPIO transform para el
+     efecto de aparecer al hacer scroll (.revela.visible fuerza
+     transform:none una vez revelada). Un selector de una clase contra otro
+     de una clase empata en especificidad, y en un empate gana el que esté
+     último en la hoja: .revela iba después y se comía tanto la transición
+     (border-color y box-shadow dejaban de suavizar en :hover) como el
+     transform (el giro 3D del cursor quedaba calculado en las variables,
+     pero invisible). Un selector con más clases pesa más y no depende del
+     orden: aquí se repite la transición Y el transform con la especificidad
+     que hace falta para ganarle a .revela.visible sin dejarlo de usar. */
+  .tarjeta.revela{
+    transition:opacity .8s ease, border-color .45s ease, box-shadow .5s var(--ease-salida), transform .5s var(--ease-salida);
+  }
+  .tarjeta.revela.visible{
+    transform:perspective(900px) translateY(var(--ty,0px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));
+  }
+  .tarjeta.revela[data-inclinando="si"]{
+    transition:opacity .8s ease, border-color .45s ease, box-shadow .5s var(--ease-salida), transform 80ms linear;
   }
   .tarjeta::before{
     content:''; position:absolute; inset:0; pointer-events:none; background-color:var(--acento);
@@ -327,7 +382,7 @@
   }
   .tarjeta > *{ position:relative; z-index:2; }
   .tarjeta:hover, .tarjeta:focus-within{
-    transform:translateY(-6px); box-shadow:var(--sombra-alta);
+    --ty:-6px; box-shadow:var(--sombra-alta);
     border-color:color-mix(in srgb, var(--acento) 55%, rgb(var(--borde)));
   }
   .tarjeta:hover::before, .tarjeta:focus-within::before{ opacity:.16; }
@@ -513,7 +568,7 @@
   button:disabled{ opacity:.45; cursor:not-allowed; }
   button:disabled:active{ transform:none; }
   button:active, .chip:active, .btn-neon:active, .btn-linea:active, .btn-suave:active, .disparo-ejemplo:active{ transform:scale(.97); }
-  .tarjeta:active{ transform:translateY(-2px) scale(.995); }
+  .tarjeta:active{ --ty:-2px; --sc:.995; }
 
   .ico-tema{
     display:grid; place-items:center; width:40px; height:40px; flex-shrink:0;
@@ -623,6 +678,14 @@
     .pulso,.particula{ animation:none; opacity:.25; stroke-dasharray:none; stroke-dashoffset:0; }
     .revela{ opacity:1; transform:none; transition:none; }
     .tarjeta:hover{ transform:none; }
+    /* .tarjeta.revela y .tarjeta.revela.visible (arriba) pesan más que
+       .revela sola a propósito, para ganarle al conflicto de cascada con
+       la transición de aparecer al hacer scroll. Ese mismo peso de más
+       también les gana a las dos reglas de aquí arriba si no se repiten
+       con las mismas clases: sin esto, alguien que pidió menos movimiento
+       seguía viendo el giro 3D y el fundido de las tarjetas. */
+    .tarjeta.revela{ transition:none; }
+    .tarjeta.revela.visible{ transform:none; }
     .modal__panel,.msg,.paso{ animation:none; }
   }
 
@@ -1137,7 +1200,7 @@
         Impulsamos tu emprendimiento tradicional hacia el futuro digital,
         <span class="text-texto">sin perder tus raíces.</span>
       </p>
-      <p class="text-lg sm:text-xl mb-10"><span class="destaca-naranja">El Chapulín de la Innovación ya saltó.</span></p>
+      <p class="text-lg sm:text-xl mb-10"><span class="destaca-cochinilla">El Chapulín de la Innovación ya saltó.</span></p>
 
       <div class="flex flex-wrap items-center gap-4">
         <a href="#demo" class="btn-neon">
@@ -5661,38 +5724,41 @@
   var haySoportePuntero = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
 
   if (animar && haySoportePuntero) {
-    /* inclinación 3D que sigue al cursor: perspective + rotateX/rotateY,
-       con requestAnimationFrame para no recalcular más de una vez por
-       fotograma. Al salir el cursor, una transición con la misma curva
-       de salida regresa la pieza a su sitio. */
-    function inclinar(el, fuerza, elevar) {
-      var activo = false, marco = null, ultimo = null;
+    /* inclinación 3D que sigue al cursor: solo mueve las variables --rx/--ry
+       (el elemento define su propio "transform:rotateX(var(--rx))…" en CSS).
+       A propósito NUNCA se toca la propiedad "transition" ni "transform"
+       del elemento desde aquí: ese shorthand pisaría también el fundido de
+       color y sombra del :hover, y el achique del :active, que viven en la
+       misma lista de transición. En vez de eso, el atributo data-inclinando
+       activa (en CSS) una transición más rápida solo mientras el cursor se
+       mueve; al soltar, vuelve a la transición normal de salida. */
+    function inclinar(el, fuerza) {
+      var marco = null, ultimo = null;
       function aplicar() {
         marco = null;
         var rect = el.getBoundingClientRect();
         var dx = (ultimo.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
         var dy = (ultimo.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
-        el.style.transition = activo ? 'transform 80ms linear' : 'none';
-        activo = true;
-        el.style.transform = 'perspective(900px) translateY(' + elevar + 'px) rotateX(' +
-          (-dy * fuerza).toFixed(2) + 'deg) rotateY(' + (dx * fuerza).toFixed(2) + 'deg)';
+        el.dataset.inclinando = 'si';
+        el.style.setProperty('--rx', (-dy * fuerza).toFixed(2) + 'deg');
+        el.style.setProperty('--ry', (dx * fuerza).toFixed(2) + 'deg');
       }
       el.addEventListener('mousemove', function (e) {
         ultimo = e;
         if (marco === null) { marco = requestAnimationFrame(aplicar); }
       });
       el.addEventListener('mouseleave', function () {
-        activo = false;
         if (marco !== null) { cancelAnimationFrame(marco); marco = null; }
-        el.style.transition = 'transform .6s cubic-bezier(.23,1,.32,1)';
-        el.style.transform = '';
+        delete el.dataset.inclinando;
+        el.style.removeProperty('--rx');
+        el.style.removeProperty('--ry');
       });
     }
-    $$('.tarjeta').forEach(function (t) { inclinar(t, 6, -6); });
+    $$('.tarjeta').forEach(function (t) { inclinar(t, 6); });
     var chapuHero = document.getElementById('escenario-chapulin-hero');
     var chapuPortada = document.getElementById('escenario-chapulin-portada');
-    if (chapuHero)    { inclinar(chapuHero, 9, 0); }
-    if (chapuPortada) { inclinar(chapuPortada, 7, 0); }
+    if (chapuHero)    { inclinar(chapuHero, 9); }
+    if (chapuPortada) { inclinar(chapuPortada, 7); }
   }
 
   /* el circuito de fondo del hero se desplaza un poco más despacio que la
