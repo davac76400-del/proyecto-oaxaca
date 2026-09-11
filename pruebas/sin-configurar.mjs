@@ -12,6 +12,14 @@
 
    O sea: cambiar la plantilla del correo en Supabase es una MEJORA, no un
    requisito. Si nunca se toca, la app sigue funcionando.
+
+   RETIRADO el 11 de septiembre de 2026: esto prueba que el código inventado
+   quedaba fijo COMO LA CONTRASEÑA — la forma de entrar anterior. Ahora, tras
+   el enlace o el código, se crea un usuario y una contraseña propios (ver
+   docs/08-acceso-por-codigo.md), así que el final de esta prueba ya no
+   aplica. Sigue sirviendo la idea de fondo (la app no exige tocar el panel
+   de Supabase), pero el archivo en sí no corre contra la app actual. Se deja
+   como referencia histórica.
    ============================================================================ */
 import { chromium } from 'playwright';
 

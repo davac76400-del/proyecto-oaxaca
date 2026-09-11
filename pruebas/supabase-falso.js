@@ -49,7 +49,14 @@ function json(res, codigo, datos) {
 }
 
 function reglaUsuario(n) {
-  return typeof n === 'string' && /^[A-Za-z0-9._-]{4,20}$/.test(n) && /[A-Z]/.test(n);
+  return typeof n === 'string' && /^[A-Za-z0-9_-]{5,15}$/.test(n);
+}
+/* El formato viejo (001_perfiles.sql, antes de 007): 4-20, admite el punto,
+   con al menos una mayúscula. correo_por_usuario tiene que reconocer las
+   cuentas de antes de 007 tanto como las nuevas — ver el porqué en el
+   comentario de esa función en 007_usuario_contrasena.sql. */
+function reglaUsuarioAmplia(n) {
+  return typeof n === 'string' && /^[A-Za-z0-9._-]{4,20}$/.test(n);
 }
 
 http.createServer((req, res) => {
@@ -75,6 +82,18 @@ http.createServer((req, res) => {
       ultimoCodigo = null; ultimoEnlace = null; CODIGOS_EMITIDOS.length = 0;
       USUARIO.email = ''; USUARIO.user_metadata = {};
       PERFILES = {}; CONTRASENA = null; RECUPERACION = null; FALLOS_REC = 0;
+      return json(res, 200, { ok: true });
+    }
+    /* Deja lista una cuenta como las de ANTES de 007: usuario con punto y
+       mayúscula (formato viejo), ya con contraseña puesta — para probar que
+       007 no las deja fuera. */
+    if (url.pathname === '/__sembrar_vieja' && req.method === 'POST') {
+      let datos = {};
+      try { datos = cuerpo ? JSON.parse(cuerpo) : {}; } catch (e) { datos = {}; }
+      USUARIO.email = datos.correo || 'vieja@ejemplo.com';
+      USUARIO.user_metadata = { clave_puesta: true };
+      PERFILES[USUARIO.id] = { usuario: datos.usuario || 'Maria.Rodriguez23' };
+      CONTRASENA = datos.contrasena || 'ClaveDeAntes1';
       return json(res, 200, { ok: true });
     }
 
@@ -181,6 +200,19 @@ http.createServer((req, res) => {
       PERFILES[USUARIO.id] = Object.assign({}, PERFILES[USUARIO.id], { usuario: n });
       console.log('[falso] usuario → ' + n);
       return json(res, 200, { ok: true, usuario: n });
+    }
+
+    // correo_por_usuario: sin sesión, porque se usa justo para poder entrar.
+    // Regla AMPLIA a propósito (ver reglaUsuarioAmplia): tiene que encontrar
+    // también a las cuentas con el formato viejo, de antes de 007.
+    if (url.pathname === '/rest/v1/rpc/correo_por_usuario' && req.method === 'POST') {
+      const n = datos.nombre;
+      if (!reglaUsuarioAmplia(n)) return json(res, 200, { ok: false });
+      const mio = (PERFILES[USUARIO.id] || {}).usuario;
+      if (mio && mio.toLowerCase() === String(n).toLowerCase()) {
+        return json(res, 200, { ok: true, correo: USUARIO.email });
+      }
+      return json(res, 200, { ok: false });
     }
 
     if (url.pathname === '/rest/v1/rpc/fijar_giro' && req.method === 'POST') {

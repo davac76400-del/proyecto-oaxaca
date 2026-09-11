@@ -1,50 +1,54 @@
 # Cómo se entra a la app
 
-> **Esto cambió por completo el 24 de agosto de 2026.** Antes se entraba con
-> usuario + un código de 6 números que la persona elegía, y opcionalmente un
-> teléfono verificado por WhatsApp. **Todo eso se quitó.**
+> **Esto cambió de nuevo el 11 de septiembre de 2026.** Antes (desde el 24 de
+> agosto) se entraba con correo + un código de 8 números que se quedaba fijo
+> como la contraseña. **Eso se quitó.**
 >
-> Ahora: **el correo y ya**. Lo lleva Supabase.
-> El paso a paso para configurarlo está en `docs/08-acceso-por-codigo.md`.
+> Ahora: **usuario y contraseña**, elegidos por cada quien. El correo y un
+> código siguen existiendo, pero solo para comprobar que un correo es tuyo —
+> al registrarte, o si olvidas tu contraseña.
+> El paso a paso está en `docs/08-acceso-por-codigo.md`.
 
 ---
 
 ## Cómo es ahora
 
-Dos botones y **una sola forma de entrar**: correo + un código de 8 números.
+Dos botones. Registrarte pide pasar por el correo una vez; entrar, no.
 
 ```
-[ Iniciar sesión ]   →   correo + 8 números   →   dentro
-[ Registrarme    ]   →   usuario + correo → te llegan 8 números
-                          → los escribes → ⚠️ GUÁRDALOS → dentro
+[ Iniciar sesión ]   →   usuario + contraseña          →   dentro
+[ Registrarme    ]   →   tu correo → código → eliges tu usuario
+                          y tu contraseña                →   dentro
 ```
 
-El código llega por correo al registrarse y **se queda fijado**: no cambia, no
-vence, y con él se entra siempre sin esperar más correos.
+El código que llega al registrarte (o al recuperar tu cuenta) **ya no se
+guarda como nada**: solo prueba que ese correo es tuyo. Con eso comprobado,
+tú eliges tu usuario (fijo desde entonces) y tu contraseña (la puedes cambiar
+cuando quieras).
 
-Si se pierde, «Olvidé mi código» pide el **código de recuperación** (8 números
-que la persona eligió dentro de la app) y manda uno de entrada nuevo.
+Si se te olvida la contraseña, «Olvidé mi contraseña» manda un código nuevo
+al correo con el que te registraste, y ahí **creas una contraseña nueva** —
+no te la recuerda, porque ni la propia app puede leerla (va cifrada con
+bcrypt). El detalle de por qué, en `docs/08-acceso-por-codigo.md`.
 
 Todo el detalle en `docs/08-acceso-por-codigo.md`.
 
-## Por qué se cambió
+## Por qué se cambió (otra vez)
 
-La versión anterior tenía una razón de fondo buena: el público de esta app
-puede no tener correo activo ni recordar contraseñas largas, pero sí recuerda
-seis números.
+La versión de agosto (correo + código fijo) resolvía el problema de una
+contraseña que se te olvida —no hay nada que olvidar si el código *es* la
+contraseña— pero cambiaba ese problema por otro: nada de eso es memorable ni
+se parece a una contraseña normal, y quien perdía el correo con el código
+perdía la cuenta sin más remedio que el código de recuperación (otro número
+más que recordar o anotar).
 
-En la práctica **no funcionó**. Los seis números se perdían. Tanto, que la
-pantalla acabó con un recuadro amarillo que decía «⚠️ Recuerda guardar tu
-usuario y tu código», y aun así el problema seguía. El teléfono se metió justo
-para poder recuperar la cuenta cuando eso pasara, y eso trajo su propia cola:
-validación por país, verificación por WhatsApp, un servicio que mantener.
+Usuario y contraseña es lo que casi todo el mundo ya sabe usar, y permite lo
+que un código fijo no: **cambiarla** sin tener que perder acceso a la cuenta
+mientras tanto, y tener una de verdad distinta a lo que llega por correo.
 
-El enlace por correo quita las dos cosas de un golpe: no hay nada que
-recordar, y recuperar la cuenta es pedir otro enlace.
-
-**Lo que sí se perdió:** quien no tenga correo se queda fuera. Es un costo
-real y hay que tenerlo presente. La apuesta es que hoy casi cualquier teléfono
-Android llega con una cuenta de Google configurada.
+**Lo que se mantiene igual que en agosto:** sigue haciendo falta un correo
+para registrarte (ahí llega el código que comprueba que es tuyo). Quien no
+tenga correo activo se queda fuera, igual que antes.
 
 ---
 
@@ -52,8 +56,8 @@ Android llega con una cuenta de Google configurada.
 
 | Dato | De dónde sale |
 |---|---|
-| Correo | Lo escribió al entrar |
-| Nombre que se muestra | Lo de antes del `@` de su correo |
+| Correo | Lo escribió al registrarse (Supabase lo confirmó con un código) |
+| Usuario / nombre que se muestra | Lo eligió al registrarse (`perfiles.usuario`) |
 | Giro del negocio | Se le pregunta **ya adentro**, y puede decir «Ahora no» |
 
 El giro es lo único que se pregunta además del correo, y **no bloquea nada**:

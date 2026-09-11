@@ -1,3 +1,16 @@
+/* ============================================================================
+   RETIRADO el 11 de septiembre de 2026: esto prueba la forma de entrar
+   ANTERIOR (código de 8 números que se fijaba como contraseña; usuario
+   elegido antes que el correo, en el mismo paso). Esa pantalla ya no existe
+   — #reg-usuario, #vista-guardalo y #vista-crear-recuperacion se quitaron
+   del HTML — así que este archivo ya no corre contra la app actual.
+
+   La forma de entrar de ahora (usuario + contraseña, elegidos DESPUÉS de
+   comprobar el correo) se prueba en pruebas/usuario-contrasena.mjs. El porqué
+   del cambio está en docs/08-acceso-por-codigo.md.
+
+   Se deja aquí como referencia histórica, no se borra por las dudas.
+   ========================================================================= */
 import { chromium } from 'playwright';
 
 const APP    = process.env.APP_URL   || 'http://localhost:3000/';

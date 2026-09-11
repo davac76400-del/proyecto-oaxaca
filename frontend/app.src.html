@@ -414,6 +414,40 @@
   .error-campo{ color:rgb(var(--naranja)); font-size:.82rem; margin-top:.4rem; min-height:1.1em; }
   .error-campo[hidden]{ display:block; visibility:hidden; }
 
+  /* ---------- contraseña: campo con botón para verla ---------- */
+  .campo-clave{ position:relative; }
+  .campo-clave .campo{ padding-right:3rem; }
+  .btn-ver-clave{
+    position:absolute; top:50%; right:.35rem; transform:translateY(-50%);
+    width:2.25rem; height:2.25rem; display:grid; place-items:center; border-radius:var(--radio);
+    background:transparent; border:0; color:rgb(var(--tenue)); cursor:pointer;
+    transition:color .2s ease;
+  }
+  .btn-ver-clave:hover{ color:rgb(var(--cian)); }
+
+  /* lista de requisitos de la contraseña: cada uno se pone verde y con
+     palomita en cuanto se cumple, para que la persona vea su progreso en
+     vez de toparse con un solo error genérico al final. */
+  .lista-requisitos{ margin-top:.6rem; display:flex; flex-direction:column; gap:.3rem; }
+  .lista-requisitos li{
+    position:relative; padding-left:1.35rem; font-size:.8rem; color:rgb(var(--tenue));
+    transition:color .25s ease;
+  }
+  .lista-requisitos li::before{
+    content:''; position:absolute; left:0; top:.4em; width:9px; height:9px; border-radius:50%;
+    border:1.5px solid rgb(var(--borde)); box-sizing:border-box;
+    transition:background-color .25s ease, border-color .25s ease;
+  }
+  .lista-requisitos li[data-cumplido="si"]{ color:rgb(var(--verde)); }
+  .lista-requisitos li[data-cumplido="si"]::before{
+    background:rgb(var(--verde)); border-color:rgb(var(--verde));
+    box-shadow:0 0 6px color-mix(in srgb, rgb(var(--verde)) 50%, transparent);
+  }
+  .lista-requisitos code{
+    font-family:'Space Mono', ui-monospace, monospace; font-size:.92em;
+    background:rgb(var(--barroalto)); padding:.05em .3em; border-radius:2px;
+  }
+
   /* ---------- navegación ---------- */
   .enlace-nav{ position:relative; white-space:nowrap; color:rgb(var(--tenue)); font-weight:500; transition:color .25s ease; background:none; border:0; font-family:inherit; cursor:pointer; padding:0; }
   .enlace-nav::after{
@@ -1835,7 +1869,7 @@
       </h1>
       <p class="text-tenue text-[1.05rem] leading-relaxed" style="max-width:38ch; margin-inline:auto">
         Tu asistente con inteligencia artificial, hecho para el emprendedor oaxaqueño.
-        Tu asistente con inteligencia artificial. Entra o crea tu cuenta para empezar.
+        Entra o crea tu cuenta para empezar.
       </p>
     </div>
 
@@ -1846,8 +1880,8 @@
         <p class="rotulo mb-4">Bienvenida</p>
         <h3 class="text-3xl mb-3">¿Ya tienes cuenta?</h3>
         <p class="text-tenue leading-relaxed mb-8 text-[0.98rem]">
-          Entrar es con tu correo y tu código de 8 números. Si es tu primera
-          vez, créala aquí: son dos minutos.
+          Entrar es con tu usuario y tu contraseña. Si es tu primera vez,
+          créala aquí: son dos minutos.
         </p>
 
         <button type="button" id="btn-ir-entrar" class="btn-neon w-full mb-3">
@@ -1864,69 +1898,57 @@
         <p class="rotulo mb-4">Iniciar sesión</p>
         <h3 class="text-3xl mb-3">Bienvenida de vuelta.</h3>
         <p class="text-tenue leading-relaxed mb-6 text-[0.98rem]">
-          Tu correo y los <b class="text-texto">8 números</b> que te mandamos
-          cuando te registraste.
+          Tu usuario y tu contraseña.
         </p>
 
-        <div class="space-y-5">
+        <form id="form-entrar" class="space-y-5" novalidate>
           <div>
-            <label for="correo-entrar" class="block text-[0.9rem] text-tenue mb-2">Tu correo</label>
-            <input id="correo-entrar" type="email" class="campo" placeholder="tucorreo@ejemplo.com"
-                   autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"
-                   data-regla="correo">
-            <p class="error-campo" id="error-correo-entrar" hidden></p>
+            <label for="usuario-entrar" class="block text-[0.9rem] text-tenue mb-2">Usuario</label>
+            <!-- maxlength=20, no 15: las cuentas de antes de este cambio pueden
+                 tener un usuario del formato viejo, de hasta 20 caracteres. -->
+            <input id="usuario-entrar" type="text" class="campo" placeholder="Tu usuario"
+                   autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20"
+                   data-regla="usuario-login">
+            <p class="error-campo" id="error-usuario-entrar" hidden></p>
           </div>
 
           <div>
-            <label class="block text-[0.9rem] text-tenue mb-2">Tu código de 8 números</label>
-            <div id="casillas-entrar" class="grid grid-cols-8 gap-1.5 sm:gap-2" role="group" aria-label="Tu código de ocho números">
-              <input class="casilla" type="text" inputmode="numeric" autocomplete="current-password" maxlength="1" aria-label="Número 1">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 2">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 3">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 4">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 5">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 6">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 7">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 8">
+            <label for="contrasena-entrar" class="block text-[0.9rem] text-tenue mb-2">Contraseña</label>
+            <div class="campo-clave">
+              <input id="contrasena-entrar" type="password" class="campo" placeholder="Tu contraseña"
+                     autocomplete="current-password" data-regla="clave-login">
+              <button type="button" class="btn-ver-clave" data-para="contrasena-entrar" aria-label="Mostrar contraseña">
+                <svg class="ico-ojo-ver" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="ico-ojo-oculto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.24 4.24M9.88 5.09A10.9 10.9 0 0 1 12 5c7 0 10.5 7 10.5 7a13.3 13.3 0 0 1-3.06 3.94M6.6 6.6C3.8 8.4 1.5 12 1.5 12s3.5 7 10.5 7a10.6 10.6 0 0 0 4.4-.94"/></svg>
+              </button>
             </div>
           </div>
           <p class="error-campo" id="error-entrar" hidden></p>
 
-          <button type="button" id="btn-entrar" class="btn-neon w-full">
+          <button type="submit" id="btn-entrar" class="btn-neon w-full">
             <span id="texto-btn-entrar">Entrar</span>
             <span id="girador-entrar" class="girador" hidden></span>
           </button>
 
           <div class="flex flex-wrap gap-3">
             <button type="button" id="btn-olvide-codigo" class="btn-suave" style="margin:0">
-              Olvidé mi código
+              Olvidé mi contraseña
             </button>
             <button type="button" class="btn-suave js-volver-inicio" style="margin:0">Volver</button>
           </div>
-        </div>
+        </form>
       </div>
 
       <!-- ============ REGISTRARSE ============ -->
       <div id="vista-registro" hidden>
-        <p class="rotulo mb-4">Paso 1 de 3 · Tus datos</p>
+        <p class="rotulo mb-4">Paso 1 de 3 · Tu correo</p>
         <h3 class="text-3xl mb-3">Vamos a crear tu cuenta.</h3>
         <p class="text-tenue leading-relaxed mb-6 text-[0.98rem]">
-          Elige tu usuario y dinos tu correo. Ahí te mandamos tu código.
+          Dinos tu correo. Ahí te mandamos un código para comprobar que es tuyo,
+          y luego eliges tu usuario y tu contraseña.
         </p>
 
         <form id="form-registro" class="space-y-5" novalidate>
-          <div>
-            <label for="reg-usuario" class="block text-[0.9rem] text-tenue mb-2">Usuario</label>
-            <input id="reg-usuario" type="text" class="campo" placeholder="Ej. MariaTelar23"
-                   autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20"
-                   data-regla="usuario">
-            <p class="text-[0.78rem] text-tenue mt-1.5">
-              Sin espacios, de 4 a 20 letras o números, y al menos una MAYÚSCULA.
-            </p>
-            <p class="text-[0.82rem] mt-1.5" id="pista-usuario" hidden></p>
-            <p class="error-campo" id="error-reg-usuario" hidden></p>
-          </div>
-
           <div>
             <label for="reg-correo" class="block text-[0.9rem] text-tenue mb-2">Tu correo</label>
             <input id="reg-correo" type="email" class="campo" placeholder="tucorreo@ejemplo.com"
@@ -1950,12 +1972,12 @@
         <p class="rotulo mb-4" id="rotulo-codigo">Paso 2 de 3 · Tu código</p>
         <h3 class="text-3xl mb-3">Revisa tu correo.</h3>
         <p class="text-tenue leading-relaxed mb-2 text-[0.98rem]">
-          Te mandamos 8 números a <b id="correo-enviado" class="text-texto"></b>.
-          Escríbelos aquí.
+          Te mandamos un código a <b id="correo-enviado" class="text-texto"></b>.
+          Escríbelo aquí para comprobar que es tu correo.
         </p>
         <p class="text-tenue text-[0.86rem] mb-2">
           <b class="text-texto">¿El correo trae un enlace en vez de números?</b>
-          Dale clic y entras igual: aquí te enseñamos tu código.
+          Dale clic y sigues aquí mismo, sin escribir nada.
         </p>
         <p class="text-tenue text-[0.86rem] mb-6">
           Si no lo ves en un minuto, búscalo en <b class="text-texto">correo no deseado</b>.
@@ -1987,45 +2009,128 @@
         </div>
       </div>
 
-      <!-- ============ GUARDA TU CÓDIGO ============ -->
-      <div id="vista-guardalo" hidden>
-        <p class="rotulo mb-4">Paso 3 de 3 · Guárdalo</p>
-        <h3 class="text-3xl mb-3">Este es tu código.</h3>
+      <!-- ============ CREAR USUARIO Y CONTRASEÑA ============ -->
+      <div id="vista-crear-cuenta" hidden>
+        <p class="rotulo mb-4" id="rotulo-crear-cuenta">Paso 3 de 3 · Tu usuario y tu contraseña</p>
+        <h3 class="text-3xl mb-3">Ya casi. Elige con qué vas a entrar.</h3>
+        <p class="text-tenue leading-relaxed mb-6 text-[0.98rem]">
+          Esto ya no cambia con cada correo: es lo que vas a usar siempre para
+          entrar.
+        </p>
 
-        <div class="rounded-[3px] p-5 mb-5 text-center"
-             style="border:2px solid rgb(var(--cian)); background:color-mix(in srgb, rgb(var(--cian)) 10%, transparent)">
-          <p class="rotulo mb-3" style="color:rgb(var(--cian))">Tu código para entrar</p>
-          <p id="codigo-guardalo" class="tipo-display text-texto"
-             style="font-size:clamp(1.8rem,9vw,2.6rem); letter-spacing:.22em; font-variant-numeric:tabular-nums"></p>
-          <button type="button" id="btn-copiar-codigo" class="btn-linea mt-4 mx-auto">
-            Copiar
+        <form id="form-crear-cuenta" class="space-y-5" novalidate>
+          <div>
+            <label for="cc-usuario" class="block text-[0.9rem] text-tenue mb-2">Usuario</label>
+            <input id="cc-usuario" type="text" class="campo" placeholder="Ej. MariaTelar"
+                   autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="15"
+                   data-regla="usuario">
+            <p class="text-[0.78rem] text-tenue mt-1.5">
+              De 5 a 15 caracteres: letras, números, «_» y «-». Sin espacios.
+            </p>
+            <p class="text-[0.82rem] mt-1.5" id="pista-usuario" hidden></p>
+            <p class="error-campo" id="error-cc-usuario" hidden></p>
+          </div>
+
+          <div>
+            <label for="cc-clave" class="block text-[0.9rem] text-tenue mb-2">Contraseña</label>
+            <div class="campo-clave">
+              <input id="cc-clave" type="password" class="campo" placeholder="Crea tu contraseña"
+                     autocomplete="new-password" data-regla="clave">
+              <button type="button" class="btn-ver-clave" data-para="cc-clave" aria-label="Mostrar contraseña">
+                <svg class="ico-ojo-ver" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="ico-ojo-oculto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.24 4.24M9.88 5.09A10.9 10.9 0 0 1 12 5c7 0 10.5 7 10.5 7a13.3 13.3 0 0 1-3.06 3.94M6.6 6.6C3.8 8.4 1.5 12 1.5 12s3.5 7 10.5 7a10.6 10.6 0 0 0 4.4-.94"/></svg>
+              </button>
+            </div>
+            <ul class="lista-requisitos" id="requisitos-cc-clave" aria-live="polite">
+              <li data-req="largo">Al menos 6 caracteres</li>
+              <li data-req="mayus">Una letra MAYÚSCULA</li>
+              <li data-req="minus">Una letra minúscula</li>
+              <li data-req="num">Un número</li>
+              <li data-req="charset">Solo letras, números y <code>_ - . /</code></li>
+            </ul>
+            <p class="error-campo" id="error-cc-clave" hidden></p>
+          </div>
+
+          <div>
+            <label for="cc-clave-2" class="block text-[0.9rem] text-tenue mb-2">Repite tu contraseña</label>
+            <div class="campo-clave">
+              <input id="cc-clave-2" type="password" class="campo" placeholder="Escríbela otra vez"
+                     autocomplete="new-password" data-regla="clave-repetida">
+              <button type="button" class="btn-ver-clave" data-para="cc-clave-2" aria-label="Mostrar contraseña">
+                <svg class="ico-ojo-ver" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="ico-ojo-oculto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.24 4.24M9.88 5.09A10.9 10.9 0 0 1 12 5c7 0 10.5 7 10.5 7a13.3 13.3 0 0 1-3.06 3.94M6.6 6.6C3.8 8.4 1.5 12 1.5 12s3.5 7 10.5 7a10.6 10.6 0 0 0 4.4-.94"/></svg>
+              </button>
+            </div>
+            <p class="error-campo" id="error-cc-clave-2" hidden></p>
+          </div>
+
+          <button type="submit" class="btn-neon w-full" id="btn-crear-cuenta">
+            <span id="texto-btn-crear-cuenta">Crear mi cuenta y entrar</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <span id="girador-crear-cuenta" class="girador" hidden></span>
           </button>
-        </div>
-
-        <div class="border-l-4 rounded-[2px] p-4 mb-6"
-             style="border-color:rgb(var(--ambar)); background:color-mix(in srgb, rgb(var(--ambar)) 12%, transparent)">
-          <p class="text-[1.05rem] sm:text-[1.15rem] leading-snug font-semibold" style="color:rgb(var(--ambar))">
-            ⚠️ ANÓTALO DONDE NO SE TE PIERDA
-          </p>
-          <p class="text-[0.97rem] text-texto mt-2 leading-snug">
-            Con tu correo y estos 8 números entras siempre. También te quedan en
-            el correo que te mandamos, por si acaso.
-          </p>
-        </div>
-
-        <button type="button" id="btn-ya-lo-anote" class="btn-neon w-full">
-          Ya lo anoté, entrar
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </button>
+        </form>
       </div>
 
-      <!-- ============ OLVIDÉ MI CÓDIGO ============ -->
+      <!-- ============ NUEVA CONTRASEÑA (al recuperar) ============ -->
+      <div id="vista-nueva-clave" hidden>
+        <p class="rotulo mb-4">Recuperar mi cuenta</p>
+        <h3 class="text-3xl mb-3">Elige tu nueva contraseña.</h3>
+        <p class="text-tenue leading-relaxed mb-6 text-[0.98rem]">
+          Ya comprobamos que el correo es tuyo. Tu usuario, <b id="nc-usuario" class="text-texto"></b>,
+          sigue igual.
+        </p>
+
+        <form id="form-nueva-clave" class="space-y-5" novalidate>
+          <div>
+            <label for="nc-clave" class="block text-[0.9rem] text-tenue mb-2">Nueva contraseña</label>
+            <div class="campo-clave">
+              <input id="nc-clave" type="password" class="campo" placeholder="Crea tu contraseña"
+                     autocomplete="new-password" data-regla="clave">
+              <button type="button" class="btn-ver-clave" data-para="nc-clave" aria-label="Mostrar contraseña">
+                <svg class="ico-ojo-ver" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="ico-ojo-oculto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.24 4.24M9.88 5.09A10.9 10.9 0 0 1 12 5c7 0 10.5 7 10.5 7a13.3 13.3 0 0 1-3.06 3.94M6.6 6.6C3.8 8.4 1.5 12 1.5 12s3.5 7 10.5 7a10.6 10.6 0 0 0 4.4-.94"/></svg>
+              </button>
+            </div>
+            <ul class="lista-requisitos" id="requisitos-nc-clave" aria-live="polite">
+              <li data-req="largo">Al menos 6 caracteres</li>
+              <li data-req="mayus">Una letra MAYÚSCULA</li>
+              <li data-req="minus">Una letra minúscula</li>
+              <li data-req="num">Un número</li>
+              <li data-req="charset">Solo letras, números y <code>_ - . /</code></li>
+            </ul>
+            <p class="error-campo" id="error-nc-clave" hidden></p>
+          </div>
+
+          <div>
+            <label for="nc-clave-2" class="block text-[0.9rem] text-tenue mb-2">Repite tu contraseña</label>
+            <div class="campo-clave">
+              <input id="nc-clave-2" type="password" class="campo" placeholder="Escríbela otra vez"
+                     autocomplete="new-password" data-regla="clave-repetida-nueva">
+              <button type="button" class="btn-ver-clave" data-para="nc-clave-2" aria-label="Mostrar contraseña">
+                <svg class="ico-ojo-ver" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="ico-ojo-oculto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.24 4.24M9.88 5.09A10.9 10.9 0 0 1 12 5c7 0 10.5 7 10.5 7a13.3 13.3 0 0 1-3.06 3.94M6.6 6.6C3.8 8.4 1.5 12 1.5 12s3.5 7 10.5 7a10.6 10.6 0 0 0 4.4-.94"/></svg>
+              </button>
+            </div>
+            <p class="error-campo" id="error-nc-clave-2" hidden></p>
+          </div>
+
+          <button type="submit" class="btn-neon w-full" id="btn-nueva-clave">
+            <span id="texto-btn-nueva-clave">Guardar y entrar</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <span id="girador-nueva-clave" class="girador" hidden></span>
+          </button>
+        </form>
+      </div>
+
+      <!-- ============ OLVIDÉ MI CONTRASEÑA ============ -->
       <div id="vista-recuperar" hidden>
         <p class="rotulo mb-4">Recuperar mi cuenta</p>
-        <h3 class="text-3xl mb-3">Tu código de recuperación.</h3>
+        <h3 class="text-3xl mb-3">¿Se te olvidó tu contraseña?</h3>
         <p class="text-tenue leading-relaxed mb-6 text-[0.98rem]">
-          Los <b class="text-texto">8 números</b> que tú elegiste dentro de la
-          app. Con ellos te mandamos un código de entrada nuevo.
+          Dinos el correo con el que te registraste. Te mandamos un código
+          para comprobar que la cuenta es tuya, y ahí eliges una contraseña
+          nueva.
         </p>
 
         <div class="space-y-5">
@@ -2036,77 +2141,21 @@
                    data-regla="correo">
             <p class="error-campo" id="error-correo-recuperar" hidden></p>
           </div>
-
-          <div>
-            <label class="block text-[0.9rem] text-tenue mb-2">Tu código de recuperación</label>
-            <div id="casillas-recuperar" class="grid grid-cols-8 gap-1.5 sm:gap-2" role="group" aria-label="Tu código de recuperación de ocho números">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 1">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 2">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 3">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 4">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 5">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 6">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 7">
-              <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 8">
-            </div>
-          </div>
           <p class="error-campo" id="error-recuperar" hidden></p>
 
           <button type="button" id="btn-recuperar" class="btn-neon w-full">
-            <span id="texto-btn-recuperar">Mándame un código nuevo</span>
+            <span id="texto-btn-recuperar">Mándame un código</span>
             <span id="girador-recuperar" class="girador" hidden></span>
           </button>
 
           <p class="text-[0.82rem] text-tenue leading-relaxed">
-            ¿Nunca pusiste código de recuperación? Entonces hay que entrar con
-            el código de siempre. Si tampoco lo tienes, escríbenos por WhatsApp
-            desde el pie de esta página.
+            No te va a llegar tu contraseña de vuelta: por seguridad, ni
+            nosotros podemos leerla. Lo que sí puedes hacer aquí es crear una
+            nueva.
           </p>
 
           <button type="button" class="btn-suave js-volver-inicio">Volver</button>
         </div>
-      </div>
-
-      <!-- ============ PONER EL CÓDIGO DE RECUPERACIÓN (desde dentro) ============ -->
-      <div id="vista-crear-recuperacion" hidden>
-        <p class="rotulo mb-4">Verificar mi cuenta</p>
-        <h3 class="text-3xl mb-3">Tu código de recuperación.</h3>
-        <p class="text-tenue leading-relaxed mb-5 text-[0.98rem]">
-          Elige <b class="text-texto">8 números</b> que solo tú sepas. Si algún
-          día pierdes tu código de entrada, con estos pides uno nuevo.
-        </p>
-
-        <div class="border-l-4 rounded-[2px] p-4 mb-6"
-             style="border-color:rgb(var(--ambar)); background:color-mix(in srgb, rgb(var(--ambar)) 12%, transparent)">
-          <p class="text-[1.05rem] sm:text-[1.15rem] leading-snug font-semibold" style="color:rgb(var(--ambar))">
-            ⚠️ ANÓTALO APARTE
-          </p>
-          <p class="text-[0.97rem] text-texto mt-2 leading-snug">
-            Guárdalo en otro lugar, no junto al de entrar. Este es el que te
-            salva si pierdes el otro.
-          </p>
-        </div>
-
-        <div id="casillas-crear-rec" class="grid grid-cols-8 gap-1.5 sm:gap-2 mb-2" role="group" aria-label="Elige tu código de recuperación de ocho números">
-          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 1">
-          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 2">
-          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 3">
-          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 4">
-          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 5">
-          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 6">
-          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 7">
-          <input class="casilla" type="text" inputmode="numeric" maxlength="1" aria-label="Número 8">
-        </div>
-        <p class="error-campo" id="error-crear-rec" hidden></p>
-
-        <button type="button" id="btn-guardar-rec" class="btn-neon w-full mt-5">
-          <span id="texto-btn-crear-rec">Guardar mi código</span>
-          <span id="girador-crear-rec" class="girador" hidden></span>
-        </button>
-
-        <button type="button" id="btn-saltar-rec" class="btn-suave mt-4">
-          Ahora no
-        </button>
       </div>
 
       <!-- ============ procesando ============ -->
@@ -2370,6 +2419,74 @@
       <p id="texto-exito" class="text-tenue leading-relaxed mb-8" style="white-space:pre-line">Te responderemos en breve.</p>
       <button type="button" id="btn-accion-exito" class="btn-neon w-full mb-3" hidden></button>
       <button type="button" data-cerrar id="btn-cerrar-exito" class="btn-neon w-full">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cambiar mi contraseña -->
+<div class="modal" id="modal-cambiar-clave" role="dialog" aria-modal="true" aria-labelledby="titulo-cambiar-clave" hidden>
+  <div class="modal__fondo" data-cerrar></div>
+  <div class="modal__panel max-w-md">
+    <button type="button" class="modal__cerrar" data-cerrar aria-label="Cerrar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="banda-greca" style="--acento:#8CDB2B" aria-hidden="true"></div>
+    <div class="modal__cuerpo">
+      <p class="rotulo mb-4">Mi cuenta</p>
+      <h3 id="titulo-cambiar-clave" class="text-3xl mb-6">Cambiar mi contraseña.</h3>
+
+      <form id="form-cambiar-clave" class="space-y-5" novalidate>
+        <div>
+          <label for="ac-clave" class="block text-[0.9rem] text-tenue mb-2">Contraseña actual</label>
+          <div class="campo-clave">
+            <input id="ac-clave" type="password" class="campo" placeholder="Tu contraseña de ahora"
+                   autocomplete="current-password" data-regla="clave-login">
+            <button type="button" class="btn-ver-clave" data-para="ac-clave" aria-label="Mostrar contraseña">
+              <svg class="ico-ojo-ver" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="ico-ojo-oculto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.24 4.24M9.88 5.09A10.9 10.9 0 0 1 12 5c7 0 10.5 7 10.5 7a13.3 13.3 0 0 1-3.06 3.94M6.6 6.6C3.8 8.4 1.5 12 1.5 12s3.5 7 10.5 7a10.6 10.6 0 0 0 4.4-.94"/></svg>
+            </button>
+          </div>
+          <p class="error-campo" id="error-ac-clave" hidden></p>
+        </div>
+
+        <div>
+          <label for="ac-clave-nueva" class="block text-[0.9rem] text-tenue mb-2">Contraseña nueva</label>
+          <div class="campo-clave">
+            <input id="ac-clave-nueva" type="password" class="campo" placeholder="Tu contraseña nueva"
+                   autocomplete="new-password" data-regla="clave">
+            <button type="button" class="btn-ver-clave" data-para="ac-clave-nueva" aria-label="Mostrar contraseña">
+              <svg class="ico-ojo-ver" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="ico-ojo-oculto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.24 4.24M9.88 5.09A10.9 10.9 0 0 1 12 5c7 0 10.5 7 10.5 7a13.3 13.3 0 0 1-3.06 3.94M6.6 6.6C3.8 8.4 1.5 12 1.5 12s3.5 7 10.5 7a10.6 10.6 0 0 0 4.4-.94"/></svg>
+            </button>
+          </div>
+          <ul class="lista-requisitos" id="requisitos-ac-clave-nueva" aria-live="polite">
+            <li data-req="largo">Al menos 6 caracteres</li>
+            <li data-req="mayus">Una letra MAYÚSCULA</li>
+            <li data-req="minus">Una letra minúscula</li>
+            <li data-req="num">Un número</li>
+            <li data-req="charset">Solo letras, números y <code>_ - . /</code></li>
+          </ul>
+          <p class="error-campo" id="error-ac-clave-nueva" hidden></p>
+        </div>
+
+        <div>
+          <label for="ac-clave-nueva-2" class="block text-[0.9rem] text-tenue mb-2">Repite tu contraseña nueva</label>
+          <div class="campo-clave">
+            <input id="ac-clave-nueva-2" type="password" class="campo" placeholder="Escríbela otra vez"
+                   autocomplete="new-password" data-regla="clave-repetida-cambio">
+            <button type="button" class="btn-ver-clave" data-para="ac-clave-nueva-2" aria-label="Mostrar contraseña">
+              <svg class="ico-ojo-ver" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="ico-ojo-oculto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.24 4.24M9.88 5.09A10.9 10.9 0 0 1 12 5c7 0 10.5 7 10.5 7a13.3 13.3 0 0 1-3.06 3.94M6.6 6.6C3.8 8.4 1.5 12 1.5 12s3.5 7 10.5 7a10.6 10.6 0 0 0 4.4-.94"/></svg>
+            </button>
+          </div>
+          <p class="error-campo" id="error-ac-clave-nueva-2" hidden></p>
+        </div>
+
+        <button type="submit" class="btn-neon w-full" id="btn-guardar-clave">
+          <span id="texto-btn-guardar-clave">Guardar mi contraseña nueva</span>
+          <span id="girador-guardar-clave" class="girador" hidden></span>
+        </button>
+      </form>
     </div>
   </div>
 </div>
@@ -2677,11 +2794,55 @@
   /* =========================================================
      4. VALIDACIÓN DE CAMPOS
      ========================================================= */
+  /* La contraseña se evalúa requisito por requisito (no solo un sí/no) para
+     poder pintar la lista de la vista en verde conforme se va cumpliendo.
+     Mismas reglas que revisa la base en 007_usuario_contrasena.sql: más de
+     5 caracteres, una mayúscula, una minúscula, un número, y solo letras,
+     números y estos signos: _ - . / */
+  function evaluarClave(v) {
+    v = v || '';
+    return {
+      largo:   v.length >= 6,
+      mayus:   /[A-Z]/.test(v),
+      minus:   /[a-z]/.test(v),
+      num:     /[0-9]/.test(v),
+      charset: v.length > 0 && /^[A-Za-z0-9_\-./]+$/.test(v)
+    };
+  }
+  function claveValida(v) {
+    var r = evaluarClave(v);
+    return r.largo && r.mayus && r.minus && r.num && r.charset;
+  }
+  /* pinta de verde, con su palomita, cada requisito que ya se cumple */
+  function pintarRequisitosClave(idLista, v) {
+    var lista = document.getElementById(idLista);
+    if (!lista) { return; }
+    var r = evaluarClave(v);
+    $$('li[data-req]', lista).forEach(function (li) {
+      var k = li.dataset.req;
+      if (r[k]) { li.dataset.cumplido = 'si'; } else { li.removeAttribute('data-cumplido'); }
+    });
+  }
+
   var REGLAS = {
     texto:     { probar: function (v) { return v.trim().length >= 3; },  error: 'Escribe al menos 3 letras.' },
     correo:    { probar: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()); }, error: 'Revisa tu correo: parece que le falta algo.' },
     mensaje:   { probar: function (v) { return v.trim().length >= 10; }, error: 'Cuéntanos un poco más (mínimo 10 letras).' },
-    usuario:   { probar: function (v) { var t=v.trim(); return /^[A-Za-z0-9._-]{4,20}$/.test(t) && /[A-Z]/.test(t); }, error: 'Sin espacios, 4 a 20 caracteres y al menos una mayúscula.' },
+    /* El usuario para CREAR cuenta: si no cumple el formato, ni se manda. */
+    usuario:   { probar: function (v) { return /^[A-Za-z0-9_-]{5,15}$/.test(v.trim()); }, error: 'De 5 a 15 caracteres: letras, números, «_» y «-». Sin espacios.' },
+    /* El usuario para ENTRAR: aquí NO se exige el formato nuevo, porque
+       cuentas de antes de esta versión pueden tener un usuario con el
+       formato viejo (con punto, más largo). Si no existe, ya lo dice el
+       servidor; el navegador solo pide que no esté vacío. */
+    'usuario-login': { probar: function (v) { return v.trim().length > 0; }, error: 'Escribe tu usuario.' },
+    clave:     { probar: function (v) { return claveValida(v); }, error: 'Tu contraseña todavía no cumple lo de la lista de abajo.' },
+    /* La clave para ENTRAR: mismo motivo que usuario-login. Cuentas viejas
+       tienen como contraseña el código numérico de siempre, que no cumple
+       "una mayúscula" — y aun así deben poder entrar con él. */
+    'clave-login': { probar: function (v) { return v.length > 0; }, error: 'Escribe tu contraseña.' },
+    'clave-repetida':        { probar: function (v) { var o = $('#cc-clave');        return !!o && v.length > 0 && v === o.value; }, error: 'No es igual a la de arriba.' },
+    'clave-repetida-nueva':  { probar: function (v) { var o = $('#nc-clave');        return !!o && v.length > 0 && v === o.value; }, error: 'No es igual a la de arriba.' },
+    'clave-repetida-cambio': { probar: function (v) { var o = $('#ac-clave-nueva');  return !!o && v.length > 0 && v === o.value; }, error: 'No es igual a la de arriba.' },
     seleccion: { probar: function (v) { return v !== ''; },              error: 'Elige una opción de la lista.' }
   };
 
@@ -2720,6 +2881,29 @@
       validarCampo(campo, true);
     });
   });
+  /* mostrar/ocultar cualquier campo de contraseña de la app: un solo
+     listener delegado, funciona también para los que se agreguen después */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.btn-ver-clave');
+    if (!b) { return; }
+    var campo = document.getElementById(b.dataset.para);
+    if (!campo) { return; }
+    var verse = campo.type === 'password';
+    campo.type = verse ? 'text' : 'password';
+    $('.ico-ojo-ver', b).hidden = verse;
+    $('.ico-ojo-oculto', b).hidden = !verse;
+    b.setAttribute('aria-label', verse ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+
+  /* la lista de requisitos se pinta en vivo mientras se escribe la
+     contraseña nueva (no la de "entrar", esa no tiene lista) */
+  [['cc-clave', 'requisitos-cc-clave'], ['nc-clave', 'requisitos-nc-clave'],
+   ['ac-clave-nueva', 'requisitos-ac-clave-nueva']].forEach(function (par) {
+    var campo = document.getElementById(par[0]);
+    if (!campo) { return; }
+    campo.addEventListener('input', function () { pintarRequisitosClave(par[1], campo.value); });
+  });
+
   function validarGrupo(campos) {
     var todo = true;
     campos.forEach(function (c) { c.dataset.tocado = 'si'; if (!validarCampo(c, true)) { todo = false; } });
@@ -2767,23 +2951,31 @@
   /* =========================================================
      5b. CUENTAS  ·  registro, entrada y recuperación
      ---------------------------------------------------------
-     UNA sola forma de entrar: correo + un código de 8 números.
+     UNA sola forma de entrar: usuario + contraseña, las dos elegidas
+     por la persona. (Ver 007_usuario_contrasena.sql para el cambio
+     completo; esto reemplaza el "código de 8 números como contraseña"
+     de las migraciones 002/003, que se explica más abajo por si una
+     cuenta vieja todavía depende de ese camino.)
 
-     De dónde sale ese código: al registrarse, Supabase manda uno
-     al correo. La persona lo escribe, se comprueba, y la app lo
-     deja fijado como su contraseña. Así el número que le llegó
-     al correo es el mismo con el que entra siempre.
+     REGISTRO, en tres pasos:
+       1. Correo → Supabase manda un código por /auth/v1/otp.
+       2. Ese código se comprueba con /auth/v1/verify. Es SOLO para
+          confirmar que el correo es de quien dice ser: no se guarda
+          como nada, y Supabase lo invalida en cuanto se usa.
+       3. Ya con el correo comprobado (hay sesión), la persona elige su
+          usuario (fijar_usuario, en la base) y su contraseña
+          (PUT /auth/v1/user), que es la que Supabase cifra y guarda.
 
-     POR QUÉ HAY QUE FIJARLO: los códigos que manda Supabase son
-     de un solo uso y vencen. Si no se hiciera este paso, el
-     número dejaría de servir al día siguiente y la persona se
-     quedaría fuera. Fijándolo como contraseña, Supabase lo cifra
-     con bcrypt, lo guarda, y sirve para siempre.
+     ENTRAR: como Supabase entra con correo, no con usuario, primero se
+     pregunta cuál es el correo de ese usuario (correo_por_usuario, sin
+     sesión) y con eso se intenta /auth/v1/token?grant_type=password.
+     Si cualquiera de los dos pasos falla, se contesta el mismo mensaje
+     genérico: no hay forma de que el error diga si el usuario existe.
 
-     Y UN CÓDIGO DE RECUPERACIÓN, aparte: 8 números que la persona
-     elige dentro de la app. No es una segunda forma de entrar —
-     solo sirve para pedir un código de entrada nuevo cuando se
-     perdió el otro. Vive cifrado en la tabla perfiles.
+     OLVIDÉ MI CONTRASEÑA: mismo mecanismo que el paso 1-2 del registro
+     (correo → código → se comprueba), y al final, en vez de elegir
+     usuario, se elige una contraseña nueva. No hay "recordarla": ni
+     Supabase ni esta app pueden leer una contraseña ya guardada.
      ========================================================= */
   var CONFIG_AUTH = {
     URL:   '__SUPABASE_URL__',
@@ -2799,16 +2991,6 @@
      nada para que funcione. */
   var MIN_CODIGO_CORREO = 6;
 
-  /* Uno al azar, del generador criptográfico del navegador. Se usa cuando la
-     persona entra por el ENLACE del correo en vez de escribir un código: ahí
-     la app no sabe ningún número, así que se inventa uno y se lo enseña. */
-  function generarCodigo() {
-    var n = new Uint32Array(LARGO_CODIGO);
-    (window.crypto || window.msCrypto).getRandomValues(n);
-    var s = '';
-    for (var i = 0; i < LARGO_CODIGO; i++) { s += (n[i] % 10); }
-    return s;
-  }
 
   function authListo() {
     return CONFIG_AUTH.URL.indexOf('http') === 0 && CONFIG_AUTH.CLAVE.length > 20;
@@ -2847,8 +3029,9 @@
   function pedirAuth(camino, o)  { return pedirSupabase('/auth/v1' + camino, o); }
   function pedirDatos(camino, o) { return pedirSupabase('/rest/v1' + camino, o); }
 
-  /* Las funciones de la base. Con sesión si la hay; usar_recuperacion es la
-     única que se llama sin ella, porque justo la usa quien no puede entrar. */
+  /* Las funciones de la base. Con sesión si la hay; usuario_libre y
+     correo_por_usuario se llaman sin ella a propósito: se usan justo antes
+     de tener sesión (al elegir usuario, y al entrar con usuario). */
   function llamarFuncion(nombre, argumentos, sinSesion) {
     var o = { metodo: 'POST', cuerpo: argumentos || {} };
     if (!sinSesion) {
@@ -2958,7 +3141,7 @@
       return 'Espera un minuto antes de pedir otro código.';
     }
     if (/invalid.*credentials|invalid login/i.test(m)) {
-      return 'Ese correo y ese código no coinciden. Revísalos.';
+      return 'Tus datos no coinciden. Revísalos.';
     }
     if (/expired/i.test(m)) {
       return 'Ese código ya venció. Pide uno nuevo aquí abajo.';
@@ -3008,8 +3191,20 @@
      URL Configuration → Redirect URLs), Supabase la ignora y usa el «Site URL»
      del proyecto. O sea: mandarla nunca empeora nada, y arregla el caso de
      tenerlo publicado en un dominio distinto al del panel. */
-  function direccionRegreso() {
-    return window.location.origin + window.location.pathname;
+  function direccionRegreso(motivo) {
+    var base = window.location.origin + window.location.pathname;
+    return motivo ? base + '?motivo=' + encodeURIComponent(motivo) : base;
+  }
+  /* Si el correo trae un ENLACE (la plantilla de fábrica de Supabase) en vez
+     de números, no hay ningún dato de la app que sobreviva el viaje: es una
+     carga de página nueva, posible incluso en otra pestaña. Por eso el motivo
+     ("esto es una recuperación, no un registro") va en la propia dirección de
+     regreso, como esta cadena — es lo único que Supabase promete devolver
+     intacto. limpiarDireccion() la conserva a propósito (solo borra el
+     fragmento con los tokens), así que sigue ahí cuando se lee. */
+  function motivoDeRegreso() {
+    var m = /[?&]motivo=([^&]+)/.exec(window.location.search);
+    return m ? decodeURIComponent(m[1]) : '';
   }
 
   /* --- volver desde el ENLACE del correo -----------------------------------
@@ -3032,18 +3227,21 @@
     return trozos;
   }
 
-  /* Los tokens no se quedan en la barra de direcciones ni en el historial. */
+  /* Los tokens no se quedan en la barra de direcciones ni en el historial.
+     Tampoco el «?motivo=» que se le agregó a propósito a la dirección de
+     regreso (ver direccionRegreso): ya cumplió su trabajo en cuanto se lee
+     con motivoDeRegreso(), y esta función siempre corre después de eso. */
   function limpiarDireccion() {
     if (window.history && window.history.replaceState) {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      window.history.replaceState(null, '', window.location.pathname);
     } else {
       window.location.hash = '';
     }
   }
 
   /* --- las vistas de la portada -------------------------------------------- */
-  var VISTAS = ['inicio', 'entrar', 'registro', 'codigo', 'guardalo',
-                'recuperar', 'crear-recuperacion', 'entrando'];
+  var VISTAS = ['inicio', 'entrar', 'registro', 'codigo', 'crear-cuenta',
+                'nueva-clave', 'recuperar', 'entrando'];
   function verVistaAuth(cual) {
     VISTAS.forEach(function (k) {
       var el = document.getElementById('vista-' + k);
@@ -3111,31 +3309,13 @@
     return { limpiar: limpiar, leer: leer, marcarMal: marcarMal, poner: poner, primera: casillas[0] };
   }
 
-  /* Códigos que no se aceptan como recuperación: los que se prueban primero. */
-  function codigoDebil(c) {
-    if (/^(\d)\1+$/.test(c)) { return 'Ese código es todo el mismo número. Elige otro.'; }
-    var sube = true, baja = true;
-    for (var i = 1; i < c.length; i++) {
-      if (+c[i] !== +c[i - 1] + 1) { sube = false; }
-      if (+c[i] !== +c[i - 1] - 1) { baja = false; }
-    }
-    if (sube || baja) { return 'Ese código va en orden. Elige uno menos fácil de adivinar.'; }
-    if (/^(\d\d)\1+$/.test(c)) { return 'Ese código repite los mismos dos números. Elige otro.'; }
-    return null;
-  }
-
   /* ---------------------------------------------------------------
      Estado de lo que se está haciendo
      --------------------------------------------------------------- */
   var correoPendiente = '';
-  var usuarioPendiente = '';
   var motivoCodigo = 'registro';       /* 'registro' | 'recuperacion' */
-  var creandoRecDesdeDentro = false;
 
-  var codCorreo    = conectarCasillas('#casillas-codigo',    function () { comprobarCodigo(); });
-  var codEntrar    = conectarCasillas('#casillas-entrar',    function () { entrar(); });
-  var codRecuperar = conectarCasillas('#casillas-recuperar', function () { pedirRecuperacion(); });
-  var codCrearRec  = conectarCasillas('#casillas-crear-rec', function () { /* con el botón */ });
+  var codCorreo = conectarCasillas('#casillas-codigo', function () { comprobarCodigo(); });
 
   $$('.js-volver-inicio').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -3146,65 +3326,103 @@
     });
   });
   $('#btn-ir-entrar').addEventListener('click', function () {
-    verVistaAuth('entrar'); $('#correo-entrar').focus();
+    verVistaAuth('entrar'); $('#usuario-entrar').focus();
   });
   $('#btn-ir-registro').addEventListener('click', function () {
-    verVistaAuth('registro'); $('#reg-usuario').focus();
+    verVistaAuth('registro'); $('#reg-correo').focus();
   });
 
   /* ---------------------------------------------------------------
-     ENTRAR  ·  correo + los 8 números
-     --------------------------------------------------------------- */
-  function entrar() {
-    var campo = $('#correo-entrar'), caja = $('#error-entrar');
-    if (!validarGrupo([campo])) { return; }
-    var codigo = codEntrar.leer();
-    if (codigo.length < LARGO_CODIGO) {
-      caja.hidden = false; caja.textContent = 'Faltan números de tu código.';
-      return;
-    }
+     ENTRAR  ·  usuario + contraseña
+     ---------------------------------------------------------------
+     Supabase entra con correo, no con usuario: primero se pregunta
+     (correo_por_usuario, sin sesión) cuál es el correo de ese usuario, y
+     con eso se intenta el login de verdad. Si CUALQUIERA de los dos pasos
+     falla —usuario que no existe, o contraseña que no es— se contesta
+     exactamente el mismo mensaje: así nadie puede usar el error para
+     adivinar si un usuario existe. */
+  function entrar(e) {
+    if (e) { e.preventDefault(); }
+    var campoUsu = $('#usuario-entrar'), campoClave = $('#contrasena-entrar'), caja = $('#error-entrar');
+    if (!validarGrupo([campoUsu, campoClave])) { return; }
     caja.hidden = true;
-    var girador = $('#girador-entrar'), texto = $('#texto-btn-entrar');
-    girador.hidden = false; texto.textContent = 'Entrando…';
+    var boton = $('#btn-entrar'), girador = $('#girador-entrar'), texto = $('#texto-btn-entrar');
+    boton.disabled = true; girador.hidden = false; texto.textContent = 'Entrando…';
+    var usuario = campoUsu.value.trim();
+    var clave = campoClave.value;
 
-    pedirAuth('/token?grant_type=password', {
-      metodo: 'POST',
-      cuerpo: { email: campo.value.trim().toLowerCase(), password: codigo }
-    })
+    llamarFuncion('correo_por_usuario', { nombre: usuario }, true)
+      .then(function (r) {
+        if (!r || !r.ok || !r.correo) { throw { credenciales: true }; }
+        return pedirAuth('/token?grant_type=password', {
+          metodo: 'POST',
+          cuerpo: { email: r.correo, password: clave }
+        });
+      })
       .then(function (datos) {
         guardarTokens(datos);
         return continuarConTokens().then(function (dentro) {
-          girador.hidden = true; texto.textContent = 'Entrar';
-          codEntrar.limpiar();
+          boton.disabled = false; girador.hidden = true; texto.textContent = 'Entrar';
+          campoClave.value = '';
           if (dentro) { irA('#demo'); avisar('¡Qué gusto verte, ' + sesion.usuario + '!'); }
         });
       })
       .catch(function (err) {
-        girador.hidden = true; texto.textContent = 'Entrar';
+        boton.disabled = false; girador.hidden = true; texto.textContent = 'Entrar';
         caja.hidden = false;
-        caja.textContent = explicarFalloAuth(err, 'No pude entrar');
-        codEntrar.marcarMal();
+        caja.textContent = (err && (err.credenciales || /invalid.*credentials|invalid login/i.test(String(err.message))))
+          ? 'Tu usuario o tu contraseña no coinciden. Revísalos.'
+          : explicarFalloAuth(err, 'No pude entrar');
+        campoClave.value = '';
       });
   }
-  $('#btn-entrar').addEventListener('click', entrar);
+  $('#form-entrar').addEventListener('submit', entrar);
 
   /* ---------------------------------------------------------------
-     REGISTRARSE
+     REGISTRARSE  ·  paso 1: solo el correo
+     --------------------------------------------------------------- */
+  $('#form-registro').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var cor = $('#reg-correo');
+    if (!validarGrupo([cor])) { return; }
+
+    correoPendiente = cor.value.trim().toLowerCase();
+    motivoCodigo = 'registro';
+
+    var boton = $('#btn-registro'), girador = $('#girador-registro'), texto = $('#texto-btn-registro');
+    var caja = $('#error-reg-correo');
+    caja.hidden = true;
+    boton.disabled = true; girador.hidden = false; texto.textContent = 'Mandando…';
+
+    pedirAuth('/otp?redirect_to=' + encodeURIComponent(direccionRegreso()), { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: true } })
+      .then(function () {
+        boton.disabled = false; girador.hidden = true; texto.textContent = 'Mándame mi código';
+        irAEscribirCodigo('Paso 2 de 3 · Tu código');
+      })
+      .catch(function (err) {
+        boton.disabled = false; girador.hidden = true; texto.textContent = 'Mándame mi código';
+        caja.hidden = false;
+        caja.textContent = explicarFalloAuth(err, 'No pude mandar el código');
+      });
+  });
+
+  /* ---------------------------------------------------------------
+     PASO 3: elegir usuario y contraseña (comprobación de usuario libre
+     en vivo, igual que antes, solo que ahora vive en este paso)
      --------------------------------------------------------------- */
   var relojUsuario = null;
-  $('#reg-usuario').addEventListener('input', function () {
+  $('#cc-usuario').addEventListener('input', function () {
     var pista = $('#pista-usuario');
-    var v = $('#reg-usuario').value.trim();
+    var v = $('#cc-usuario').value.trim();
     if (relojUsuario) { clearTimeout(relojUsuario); relojUsuario = null; }
-    if (!/^[A-Za-z0-9._-]{4,20}$/.test(v) || !/[A-Z]/.test(v)) { pista.hidden = true; return; }
+    if (!/^[A-Za-z0-9_-]{5,15}$/.test(v)) { pista.hidden = true; return; }
     pista.hidden = false;
     pista.textContent = 'Comprobando si está libre…';
     pista.style.color = 'rgb(var(--tenue))';
     relojUsuario = setTimeout(function () {
-      /* Sin sesión todavía: la función lo permite justo para esto. */
       llamarFuncion('usuario_libre', { nombre: v }, true)
         .then(function (libre) {
-          if ($('#reg-usuario').value.trim() !== v) { return; }
+          if ($('#cc-usuario').value.trim() !== v) { return; }
           pista.hidden = false;
           pista.textContent = (libre ? '✓ ' + v + ' está libre.'
                                      : '✗ ' + v + ' ya lo tiene alguien. Prueba otro.');
@@ -3213,39 +3431,6 @@
         .catch(function () { pista.hidden = true; });
     }, 500);
   });
-
-  $('#form-registro').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var usu = $('#reg-usuario'), cor = $('#reg-correo');
-    if (!validarGrupo([usu, cor])) { return; }
-
-    usuarioPendiente = usu.value.trim();
-    correoPendiente = cor.value.trim().toLowerCase();
-    motivoCodigo = 'registro';
-
-    var girador = $('#girador-registro'), texto = $('#texto-btn-registro');
-    var caja = $('#error-reg-correo');
-    caja.hidden = true;
-    girador.hidden = false; texto.textContent = 'Mandando…';
-
-    pedirAuth('/otp?redirect_to=' + encodeURIComponent(direccionRegreso()), { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: true } })
-      .then(function () {
-        girador.hidden = true; texto.textContent = 'Mándame mi código';
-        irAEscribirCodigo('Paso 2 de 3 · Tu código');
-      })
-      .catch(function (err) {
-        girador.hidden = true; texto.textContent = 'Mándame mi código';
-        caja.hidden = false;
-        caja.textContent = explicarFalloAuth(err, 'No pude mandar el código');
-      });
-  });
-
-  /* 48207391 → «4820 7391»;  482913 → «482 913» */
-  function agrupar(c) {
-    return c.length === 8 ? c.slice(0, 4) + ' ' + c.slice(4)
-         : c.length === 6 ? c.slice(0, 3) + ' ' + c.slice(3)
-         : c;
-  }
 
   function irAEscribirCodigo(rotulo) {
     $('#rotulo-codigo').textContent = rotulo;
@@ -3256,10 +3441,61 @@
     setTimeout(function () { if (codCorreo.primera) { codCorreo.primera.focus(); } }, 120);
   }
 
+  /* A dónde ir una vez que el correo ya quedó comprobado (código escrito, o
+     enlace del correo). La usan comprobarCodigo() y entrarPorEnlace() — antes
+     cada una tenía su propia copia de esto, y se les fue desalineando: la del
+     enlace no sabía distinguir un registro de una recuperación, así que
+     alguien que recuperaba su cuenta por el enlace (la plantilla de correo de
+     fábrica) entraba derecho con la contraseña que justo había olvidado, en
+     vez de poder poner una nueva.
+
+     «motivo === recuperación» solo manda a elegir una contraseña nueva si la
+     cuenta YA tiene usuario. Si no lo tiene todavía —alguien que dejó a medias
+     su registro (llegó a pedir el código pero nunca eligió usuario ni
+     contraseña) y después usa «Olvidé mi contraseña» con ese mismo correo—
+     no hay nada que "recuperar" todavía: se le manda a elegir su usuario (y
+     de paso su contraseña), como si fuera la primera vez. */
+  function verVistaTrasComprobar(motivo, yaCompleta) {
+    if (motivo === 'recuperacion' && sesion.usuario) {
+      $('#nc-usuario').textContent = sesion.usuario;
+      $('#form-nueva-clave').reset();
+      pintarRequisitosClave('requisitos-nc-clave', '');
+      verVistaAuth('nueva-clave');
+      setTimeout(function () { $('#nc-clave').focus(); }, 120);
+      return false;
+    }
+    if (yaCompleta && sesion.usuario) {
+      entrarDeLleno();
+      return true;
+    }
+    $('#form-crear-cuenta').reset();
+    $('#cc-usuario').value = sesion.usuario || '';
+    $('#pista-usuario').hidden = true;
+    pintarRequisitosClave('requisitos-cc-clave', '');
+    verVistaAuth('crear-cuenta');
+    setTimeout(function () { $('#cc-usuario').focus(); }, 120);
+    return false;
+  }
+
   /* ---------------------------------------------------------------
-     COMPROBAR EL CÓDIGO QUE LLEGÓ  ·  y dejarlo fijado
-     --------------------------------------------------------------- */
+     COMPROBAR EL CÓDIGO QUE LLEGÓ  ·  solo confirma que el correo es tuyo
+     ---------------------------------------------------------------
+     Ya NO se fija como contraseña (eso era el sistema viejo). De aquí en
+     adelante solo abre una sesión de verificación: con ella se puede fijar
+     una contraseña nueva, pero el código en sí no sirve para nada más ni
+     se vuelve a poder usar (Supabase lo invalida al comprobarlo). */
+  /* comprobandoCodigo: la casilla puede disparar esto dos veces casi
+     juntas — el auto-envío trae un setTimeout(180ms) (conectarCasillas), y
+     Enter en la última casilla llama esto de inmediato, sin esperar ese
+     tiempo. botonComprobar.disabled no alcanza para frenar la segunda
+     llamada porque esta función la lee y la pone recién al entrar: las dos
+     invocaciones pueden arrancar antes de que la primera la haya puesto.
+     Con dos /verify en vuelo a la vez, la que responde después vuelve a
+     hacer .reset() del formulario de la vista a la que ya se pasó — borrando
+     lo que la persona ya empezó a escribir. */
+  var comprobandoCodigo = false;
   function comprobarCodigo() {
+    if (comprobandoCodigo) { return; }
     var codigo = codCorreo.leer(), caja = $('#error-codigo');
     if (codigo.length < MIN_CODIGO_CORREO) {
       caja.hidden = false;
@@ -3267,9 +3503,10 @@
                          MIN_CODIGO_CORREO + ' u ' + LARGO_CODIGO + ' números).';
       return;
     }
+    comprobandoCodigo = true;
     caja.hidden = true;
-    var girador = $('#girador-comprobar'), texto = $('#texto-btn-comprobar');
-    girador.hidden = false; texto.textContent = 'Comprobando…';
+    var botonComprobar = $('#btn-comprobar'), girador = $('#girador-comprobar'), texto = $('#texto-btn-comprobar');
+    botonComprobar.disabled = true; girador.hidden = false; texto.textContent = 'Comprobando…';
 
     pedirAuth('/verify', {
       metodo: 'POST',
@@ -3278,208 +3515,186 @@
       .then(function (datos) {
         guardarTokens(datos);
         var t = leerTokens();
-        /* AQUÍ está el paso clave: el código que llegó se queda fijado como
-           contraseña. Si esto no se hiciera, mañana ya no serviría. */
-        return pedirAuth('/user', {
-          metodo: 'PUT', token: t.access_token,
-          /* clave_puesta va en los datos de la cuenta, no en la tabla: así no
-             hace falta tocar la base para saber si ya tiene código fijado. */
-          cuerpo: { password: codigo, data: { clave_puesta: true } }
-        }).then(function () {
-          return traerUsuarioAuth(t.access_token);
-        }).then(function (u) {
+        return traerUsuarioAuth(t.access_token).then(function (u) {
           return traerPerfil(t.access_token, u.id).then(function (p) {
             sesion = armarSesion(u, p);
-            /* En un registro, el usuario elegido se guarda ahora. */
-            if (motivoCodigo === 'registro' && usuarioPendiente && !sesion.usuario) {
-              return llamarFuncion('fijar_usuario', { nombre: usuarioPendiente })
-                .then(function (r) {
-                  if (r && r.ok) { sesion.usuario = usuarioPendiente; sesion.nombre = usuarioPendiente; }
-                  return null;
-                })
-                .catch(function () { return null; });
-            }
-            return null;
+            guardarPerfilLocal();
+            programarRefresco();
+            botonComprobar.disabled = false; girador.hidden = true; texto.textContent = 'Continuar';
+            codCorreo.limpiar();
+
+            /* Cuenta ya completa (tiene usuario Y contraseña propia) que
+               volvió a pedir un código por alguna razón: entra directo en
+               vez de mandarla otra vez a elegir usuario. */
+            var yaCompleta = !!(u.user_metadata && u.user_metadata.clave_puesta) && !!sesion.usuario;
+            verVistaTrasComprobar(motivoCodigo, yaCompleta);
           });
-        }).then(function () {
-          girador.hidden = true; texto.textContent = 'Continuar';
-          guardarPerfilLocal();
-          programarRefresco();
-          codCorreo.limpiar();
-          $('#codigo-guardalo').textContent = agrupar(codigo);
-          verVistaAuth('guardalo');
         });
       })
       .catch(function (err) {
-        girador.hidden = true; texto.textContent = 'Continuar';
+        botonComprobar.disabled = false; girador.hidden = true; texto.textContent = 'Continuar';
         caja.hidden = false;
         caja.textContent = explicarFalloAuth(err, 'No pude comprobar el código');
         codCorreo.marcarMal();
-      });
+      })
+      .then(function () { comprobandoCodigo = false; }, function () { comprobandoCodigo = false; });
   }
   $('#btn-comprobar').addEventListener('click', comprobarCodigo);
 
   $('#btn-reenviar').addEventListener('click', function () {
     if (!correoPendiente) { verVistaAuth('inicio'); return; }
-    var girador = $('#girador-reenviar'), texto = $('#texto-btn-reenviar');
+    var botonReenviar = $('#btn-reenviar'), girador = $('#girador-reenviar'), texto = $('#texto-btn-reenviar');
     var caja = $('#error-codigo');
     caja.hidden = true;
-    girador.hidden = false; texto.textContent = 'Mandando…';
-    pedirAuth('/otp?redirect_to=' + encodeURIComponent(direccionRegreso()), { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: true } })
+    botonReenviar.disabled = true; girador.hidden = false; texto.textContent = 'Mandando…';
+    /* Mismo motivo con el que se pidió el primer código (registro o
+       recuperación): si esta vez le da clic al enlace en vez de escribir el
+       número, tiene que seguir sabiendo a cuál de los dos venía. Y el mismo
+       create_user: en recuperación va en false, como en pedirRecuperacion —
+       si no, "Mandar otro" crearía una cuenta para un correo que no tenía,
+       justo lo que ese false evita en el primer envío. */
+    var esRecuperacion = motivoCodigo === 'recuperacion';
+    var regresoConMotivo = direccionRegreso(esRecuperacion ? 'recuperacion' : null);
+    pedirAuth('/otp?redirect_to=' + encodeURIComponent(regresoConMotivo), { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: !esRecuperacion } })
       .then(function () {
-        girador.hidden = true; texto.textContent = 'Mandar otro';
+        botonReenviar.disabled = false; girador.hidden = true; texto.textContent = 'Mandar otro';
         codCorreo.limpiar();
         if (codCorreo.primera) { codCorreo.primera.focus(); }
         avisar('Listo, va otro código en camino.');
       })
       .catch(function (err) {
-        girador.hidden = true; texto.textContent = 'Mandar otro';
+        botonReenviar.disabled = false; girador.hidden = true; texto.textContent = 'Mandar otro';
         caja.hidden = false;
         caja.textContent = explicarFalloAuth(err, 'No pude mandar otro');
       });
   });
 
-  /* --- «guárdalo» --------------------------------------------------------- */
-  $('#btn-copiar-codigo').addEventListener('click', function () {
-    copiar($('#codigo-guardalo').textContent.replace(/\s/g, ''), 'Código copiado. Pégalo donde lo vayas a guardar.');
-  });
+  /* ---------------------------------------------------------------
+     PASO 3 · guardar el usuario y la contraseña recién elegidos
+     --------------------------------------------------------------- */
+  $('#form-crear-cuenta').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var usu = $('#cc-usuario'), clave = $('#cc-clave'), clave2 = $('#cc-clave-2');
+    if (!validarGrupo([usu, clave, clave2])) { return; }
 
-  $('#btn-ya-lo-anote').addEventListener('click', function () {
-    if (motivoCodigo === 'recuperacion') {
-      entrarDeLleno();
-    } else {
-      /* Recién registrada: se le ofrece el código de recuperación. */
-      abrirCrearRecuperacion(false);
+    var boton = $('#btn-crear-cuenta'), girador = $('#girador-crear-cuenta'), texto = $('#texto-btn-crear-cuenta');
+    var cajaUsuario = $('#error-cc-usuario'), cajaClave = $('#error-cc-clave');
+    cajaUsuario.hidden = true; cajaClave.hidden = true;
+    boton.disabled = true; girador.hidden = false; texto.textContent = 'Guardando…';
+
+    var t = leerTokens();
+    if (!t) {
+      boton.disabled = false; girador.hidden = true; texto.textContent = 'Crear mi cuenta y entrar';
+      cajaUsuario.hidden = false; cajaUsuario.textContent = 'Tu sesión de verificación venció. Vuelve a empezar.';
+      return;
     }
+
+    llamarFuncion('fijar_usuario', { nombre: usu.value.trim() })
+      .then(function (r) {
+        if (!r || !r.ok) {
+          throw { motivoUsuario: (r && r.motivo) || 'error' };
+        }
+        sesion.usuario = usu.value.trim();
+        sesion.nombre = sesion.usuario;
+        return pedirAuth('/user', {
+          metodo: 'PUT', token: t.access_token,
+          cuerpo: { password: clave.value, data: { clave_puesta: true } }
+        }).catch(function (err) { throw { motivoClave: true, original: err }; });
+      })
+      .then(function () {
+        boton.disabled = false; girador.hidden = true; texto.textContent = 'Crear mi cuenta y entrar';
+        guardarPerfilLocal();
+        clave.value = ''; clave2.value = '';
+        entrarDeLleno();
+      })
+      .catch(function (err) {
+        boton.disabled = false; girador.hidden = true; texto.textContent = 'Crear mi cuenta y entrar';
+        if (err && err.motivoUsuario === 'ocupado') {
+          cajaUsuario.hidden = false;
+          cajaUsuario.textContent = 'Ese usuario ya lo tiene alguien. Prueba otro.';
+        } else if (err && err.motivoUsuario) {
+          cajaUsuario.hidden = false;
+          cajaUsuario.textContent = 'Revisa tu usuario: no cumple el formato pedido.';
+        } else {
+          /* El usuario ya quedó guardado (err.motivoClave); lo que falló fue
+             fijar la contraseña, así que el aviso va junto a ESE campo. */
+          cajaClave.hidden = false;
+          cajaClave.textContent = explicarFalloAuth(err.original || err, 'No pude guardar tu contraseña');
+        }
+      });
   });
 
   /* ---------------------------------------------------------------
-     OLVIDÉ MI CÓDIGO  ·  se comprueba la recuperación y se manda otro
+     OLVIDÉ MI CONTRASEÑA  ·  se manda un código para comprobar el correo
      --------------------------------------------------------------- */
   $('#btn-olvide-codigo').addEventListener('click', function () {
     verVistaAuth('recuperar');
-    $('#correo-recuperar').value = $('#correo-entrar').value || '';
-    codRecuperar.limpiar();
+    $('#correo-recuperar').value = '';
     $('#error-recuperar').hidden = true;
-    if ($('#correo-recuperar').value) {
-      if (codRecuperar.primera) { codRecuperar.primera.focus(); }
-    } else { $('#correo-recuperar').focus(); }
+    $('#correo-recuperar').focus();
   });
 
-  function pedirRecuperacion() {
+  function pedirRecuperacion(e) {
+    if (e) { e.preventDefault(); }
     var campo = $('#correo-recuperar'), caja = $('#error-recuperar');
     if (!validarGrupo([campo])) { return; }
-    var codigo = codRecuperar.leer();
-    if (codigo.length < LARGO_CODIGO) {
-      caja.hidden = false; caja.textContent = 'Faltan números de tu código de recuperación.';
-      return;
-    }
     caja.hidden = true;
-    var girador = $('#girador-recuperar'), texto = $('#texto-btn-recuperar');
-    girador.hidden = false; texto.textContent = 'Comprobando…';
+    var botonRec = $('#btn-recuperar'), girador = $('#girador-recuperar'), texto = $('#texto-btn-recuperar');
+    botonRec.disabled = true; girador.hidden = false; texto.textContent = 'Mandando…';
     correoPendiente = campo.value.trim().toLowerCase();
+    motivoCodigo = 'recuperacion';
 
-    llamarFuncion('usar_recuperacion', { correo: correoPendiente, codigo: codigo }, true)
-      .then(function (r) {
-        if (!r || !r.ok) {
-          girador.hidden = true; texto.textContent = 'Mándame un código nuevo';
-          caja.hidden = false;
-          if (r && r.motivo === 'espera') {
-            caja.textContent = 'Demasiados intentos. Espera ' + (r.minutos || 15) +
-                               ' minutos y vuelve a probar.';
-          } else {
-            caja.textContent = 'Ese correo y ese código de recuperación no coinciden.' +
-              (r && typeof r.restantes === 'number' && r.restantes > 0
-                ? ' Te quedan ' + r.restantes + ' intentos.' : '');
-            codRecuperar.marcarMal();
-          }
-          return null;
-        }
-        /* Bien: se le manda un código de entrada nuevo al correo. */
-        motivoCodigo = 'recuperacion';
-        return pedirAuth('/otp?redirect_to=' + encodeURIComponent(direccionRegreso()), { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: false } })
-          .then(function () {
-            girador.hidden = true; texto.textContent = 'Mándame un código nuevo';
-            codRecuperar.limpiar();
-            irAEscribirCodigo('Recuperar · Tu código nuevo');
-          });
+    /* create_user:false → si ese correo no tiene cuenta, Supabase no manda
+       nada. La respuesta es la misma en los dos casos (éxito silencioso),
+       así que tampoco desde aquí se puede saber si el correo existe. */
+    pedirAuth('/otp?redirect_to=' + encodeURIComponent(direccionRegreso('recuperacion')), { metodo: 'POST', cuerpo: { email: correoPendiente, create_user: false } })
+      .then(function () {
+        botonRec.disabled = false; girador.hidden = true; texto.textContent = 'Mándame un código';
+        irAEscribirCodigo('Recuperar · Tu código');
       })
       .catch(function (err) {
-        girador.hidden = true; texto.textContent = 'Mándame un código nuevo';
+        botonRec.disabled = false; girador.hidden = true; texto.textContent = 'Mándame un código';
         caja.hidden = false;
-        caja.textContent = explicarFalloAuth(err, 'No pude comprobarlo');
+        caja.textContent = explicarFalloAuth(err, 'No pude mandarlo');
       });
   }
   $('#btn-recuperar').addEventListener('click', pedirRecuperacion);
 
   /* ---------------------------------------------------------------
-     PONER EL CÓDIGO DE RECUPERACIÓN
+     Elegir la contraseña nueva (ya con el correo comprobado)
      --------------------------------------------------------------- */
-  function abrirCrearRecuperacion(desdeDentro) {
-    creandoRecDesdeDentro = !!desdeDentro;
-    codCrearRec.limpiar();
-    $('#error-crear-rec').hidden = true;
-    $('#btn-saltar-rec').textContent = desdeDentro ? 'Cancelar' : 'Ahora no, entrar';
-    $('#texto-btn-crear-rec').textContent = (sesion && sesion.tieneRecuperacion)
-      ? 'Cambiar mi código' : 'Guardar mi código';
-    if (desdeDentro) { mostrarPortada(); }
-    verVistaAuth('crear-recuperacion');
-    setTimeout(function () { if (codCrearRec.primera) { codCrearRec.primera.focus(); } }, 120);
-  }
+  $('#form-nueva-clave').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var clave = $('#nc-clave'), clave2 = $('#nc-clave-2');
+    if (!validarGrupo([clave, clave2])) { return; }
 
-  $('#btn-guardar-rec').addEventListener('click', function () {
-    var caja = $('#error-crear-rec'), codigo = codCrearRec.leer();
-    if (codigo.length < LARGO_CODIGO) {
-      caja.hidden = false;
-      caja.textContent = 'Escribe los ' + LARGO_CODIGO + ' números.';
-      return;
-    }
-    var flojo = codigoDebil(codigo);
-    if (flojo) {
-      caja.hidden = false; caja.textContent = flojo;
-      codCrearRec.marcarMal();
-      return;
-    }
+    var boton = $('#btn-nueva-clave'), girador = $('#girador-nueva-clave'), texto = $('#texto-btn-nueva-clave');
+    var caja = $('#error-nc-clave-2');
     caja.hidden = true;
-    var girador = $('#girador-crear-rec'), texto = $('#texto-btn-crear-rec');
-    var etiqueta = texto.textContent;
-    girador.hidden = false; texto.textContent = 'Guardando…';
+    boton.disabled = true; girador.hidden = false; texto.textContent = 'Guardando…';
 
-    llamarFuncion('fijar_recuperacion', { codigo: codigo })
-      .then(function (r) {
-        girador.hidden = true; texto.textContent = etiqueta;
-        if (!r || !r.ok) {
-          caja.hidden = false;
-          caja.textContent = 'No se pudo guardar. Prueba con otros 8 números.';
-          return;
-        }
-        sesion.tieneRecuperacion = true;
-        guardarPerfilLocal();
-        codCrearRec.limpiar();
-        if (creandoRecDesdeDentro) {
-          creandoRecDesdeDentro = false;
-          ocultarPortada();
-          avisar('Listo, tu código de recuperación quedó guardado.');
-        } else {
-          entrarDeLleno();
-        }
+    var t = leerTokens();
+    if (!t) {
+      boton.disabled = false; girador.hidden = true; texto.textContent = 'Guardar y entrar';
+      caja.hidden = false; caja.textContent = 'Tu sesión de verificación venció. Vuelve a empezar.';
+      return;
+    }
+
+    pedirAuth('/user', {
+      metodo: 'PUT', token: t.access_token,
+      cuerpo: { password: clave.value, data: { clave_puesta: true } }
+    })
+      .then(function () {
+        boton.disabled = false; girador.hidden = true; texto.textContent = 'Guardar y entrar';
+        clave.value = ''; clave2.value = '';
+        avisar('Listo, tu contraseña quedó cambiada.');
+        entrarDeLleno();
       })
       .catch(function (err) {
-        girador.hidden = true; texto.textContent = etiqueta;
+        boton.disabled = false; girador.hidden = true; texto.textContent = 'Guardar y entrar';
         caja.hidden = false;
-        caja.textContent = explicarFalloAuth(err, 'No pude guardarlo');
+        caja.textContent = explicarFalloAuth(err, 'No pude guardar tu contraseña');
       });
-  });
-
-  $('#btn-saltar-rec').addEventListener('click', function () {
-    codCrearRec.limpiar();
-    $('#error-crear-rec').hidden = true;
-    if (creandoRecDesdeDentro) {
-      creandoRecDesdeDentro = false;
-      ocultarPortada();
-    } else {
-      entrarDeLleno();
-    }
   });
 
   /* ---------------------------------------------------------------
@@ -3495,22 +3710,91 @@
     avisar('¡Bienvenida, ' + sesion.usuario + '! Ya estás dentro.');
   }
 
-  /* Mi cuenta: el usuario y el estado del código de recuperación. */
+  /* Mi cuenta: el usuario, el correo y la opción de cambiar la contraseña. */
   function mostrarMiUsuario() {
     if (!sesion) { return; }
-    var sobreRec = sesion.tieneRecuperacion
-      ? 'Tienes código de recuperación puesto. Con él pides uno de entrada nuevo si pierdes el tuyo.'
-      : 'Todavía no tienes código de recuperación. Sin él, si pierdes tu código de entrada no hay forma de recuperar la cuenta.';
     modalExito(
       'Tu usuario es ' + sesion.usuario,
-      'Entras con tu correo ' + sesion.correo + ' y tu código de 8 números.\n\n' + sobreRec,
-      {
-        etiqueta: sesion.tieneRecuperacion ? 'Cambiar mi código de recuperación'
-                                           : 'Poner mi código de recuperación',
-        accion: function () { abrirCrearRecuperacion(true); }
-      }
+      'Entras con tu usuario y tu contraseña. Tu correo, ' + sesion.correo +
+      ', es donde te llega el código si alguna vez la olvidas.',
+      { etiqueta: 'Cambiar mi contraseña', accion: abrirCambiarClave }
     );
   }
+
+  /* ---------------------------------------------------------------
+     Cambiar mi contraseña, desde dentro de la cuenta
+     ---------------------------------------------------------------
+     Pide la contraseña ACTUAL antes de aceptar la nueva: no basta con
+     estar logueada en este dispositivo (la sesión podría ser vieja o el
+     teléfono prestado), así que se vuelve a comprobar contra Supabase como
+     si fuera un login, justo con esa contraseña. */
+  function abrirCambiarClave() {
+    $('#form-cambiar-clave').reset();
+    ['#error-ac-clave', '#error-ac-clave-nueva', '#error-ac-clave-nueva-2'].forEach(function (s) {
+      var e = $(s); if (e) { e.hidden = true; }
+    });
+    pintarRequisitosClave('requisitos-ac-clave-nueva', '');
+    /* Por si se cerró el modal a medio envío la vez anterior (el botón se
+       queda disabled hasta que esa petición huérfana responda, pero eso
+       puede tardar hasta CONFIG.LIMITE_MS): al volver a abrirlo, que ya se
+       pueda usar de nuevo sin tener que esperarla. */
+    $('#btn-guardar-clave').disabled = false;
+    $('#girador-guardar-clave').hidden = true;
+    $('#texto-btn-guardar-clave').textContent = 'Guardar mi contraseña nueva';
+    abrirModal('modal-cambiar-clave');
+    setTimeout(function () { $('#ac-clave').focus(); }, 120);
+  }
+
+  $('#form-cambiar-clave').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!sesion) { return; }
+    var actual = $('#ac-clave'), nueva = $('#ac-clave-nueva'), nueva2 = $('#ac-clave-nueva-2');
+    if (!validarGrupo([actual, nueva, nueva2])) { return; }
+
+    var boton = $('#btn-guardar-clave'), girador = $('#girador-guardar-clave'), texto = $('#texto-btn-guardar-clave');
+    var cajaActual = $('#error-ac-clave'), cajaNueva = $('#error-ac-clave-nueva');
+    cajaActual.hidden = true; cajaNueva.hidden = true;
+    boton.disabled = true; girador.hidden = false; texto.textContent = 'Comprobando…';
+
+    /* Paso 1: la contraseña actual es correcta de verdad (se comprueba
+       contra Supabase, no solo contra lo que haya en este navegador). */
+    pedirAuth('/token?grant_type=password', {
+      metodo: 'POST',
+      cuerpo: { email: sesion.correo, password: actual.value }
+    })
+      .then(function (datos) {
+        texto.textContent = 'Guardando…';
+        /* Paso 2: con esos tokens recién dados, se fija la contraseña
+           nueva. Se guardan también como la sesión activa: sigue siendo
+           la misma cuenta, solo que con otra llave. */
+        return pedirAuth('/user', {
+          metodo: 'PUT', token: datos.access_token,
+          cuerpo: { password: nueva.value }
+        }).then(function () {
+          guardarTokens(datos);
+          programarRefresco();
+        }).catch(function (err) { throw { pasoNueva: true, original: err }; });
+      })
+      .then(function () {
+        boton.disabled = false; girador.hidden = true; texto.textContent = 'Guardar mi contraseña nueva';
+        actual.value = ''; nueva.value = ''; nueva2.value = '';
+        cerrarModal();
+        avisar('Listo, tu contraseña quedó cambiada.');
+      })
+      .catch(function (err) {
+        boton.disabled = false; girador.hidden = true; texto.textContent = 'Guardar mi contraseña nueva';
+        if (err && err.pasoNueva) {
+          /* La actual sí era correcta; lo que falló fue guardar la nueva. */
+          cajaNueva.hidden = false;
+          cajaNueva.textContent = explicarFalloAuth(err.original, 'No pude cambiarla');
+        } else {
+          cajaActual.hidden = false;
+          cajaActual.textContent = /invalid.*credentials|invalid login/i.test(String(err && err.message))
+            ? 'Esa no es tu contraseña actual.'
+            : explicarFalloAuth(err, 'No pude cambiarla');
+        }
+      });
+  });
 
   /* ---------------------------------------------------------------
      La tira del giro
@@ -3559,13 +3843,14 @@
     borrarTokens();
     almacen.borrar(CLAVE_SESION);
     almacen.borrar(CLAVE_GUARDADAS);
-    correoPendiente = ''; usuarioPendiente = '';
+    correoPendiente = '';
     pintarSesion();
     convs = []; idConv = null;
     pintarListaConvs();
-    [codCorreo, codEntrar, codRecuperar, codCrearRec].forEach(function (c) { c.limpiar(); });
+    codCorreo.limpiar();
     verVistaAuth('inicio');
-    $('#correo-entrar').value = '';
+    $('#usuario-entrar').value = '';
+    $('#contrasena-entrar').value = '';
     mostrarPortada();
     saludoInicial();
     avisar('Listo, cerraste sesión.');
@@ -3597,16 +3882,17 @@
       verVistaAuth('entrar');
       $('#error-entrar').hidden = false;
       $('#error-entrar').textContent = /expired/i.test(regreso.error_description || regreso.error)
-        ? 'Ese enlace ya venció. Pide otro desde «Registrarme» o «Olvidé mi código».'
+        ? 'Ese enlace ya venció. Pide otro desde «Registrarme» o «Olvidé mi contraseña».'
         : 'Ese enlace ya no sirve. Pide otro.';
       return Promise.resolve(false);
     }
 
     if (regreso && regreso.access_token) {
+      var motivoEnlace = motivoDeRegreso();
       verVistaAuth('entrando');
       limpiarDireccion();
       guardarTokens(regreso);
-      return entrarPorEnlace().catch(function () {
+      return entrarPorEnlace(motivoEnlace).catch(function () {
         borrarTokens();
         verVistaAuth('entrar');
         $('#error-entrar').hidden = false;
@@ -3631,45 +3917,26 @@
     });
   }
 
-  /* Entró por el enlace. Aquí la app NO sabe ningún código, así que:
-       · si todavía no tiene clave fijada, se le inventa una y se le enseña
-       · si ya tiene, se pasa de largo y entra
-     Con esto la app funciona con la plantilla de correo que trae Supabase de
-     fábrica, sin configurar nada. Poner {{ .Token }} en la plantilla es una
-     mejora, no un requisito. */
-  function entrarPorEnlace() {
+  /* Entró por el enlace en vez de escribir un código: el clic YA comprueba
+     el correo, así que se trata igual que comprobarCodigo() — misma
+     bifurcación en verVistaTrasComprobar(), con el motivo que traiga la
+     propia dirección de regreso (ver motivoDeRegreso). Con esto la app
+     funciona con la plantilla de correo que trae Supabase de fábrica, sin
+     configurar nada. Poner {{ .Token }} en la plantilla es una mejora, no
+     un requisito. */
+  function entrarPorEnlace(motivo) {
     var t = leerTokens();
     return traerUsuarioAuth(t.access_token).then(function (u) {
-      var yaTiene = !!(u.user_metadata && u.user_metadata.clave_puesta);
       return traerPerfil(t.access_token, u.id).then(function (perfil) {
         sesion = armarSesion(u, perfil);
         guardarPerfilLocal();
         programarRefresco();
-
-        if (yaTiene) {
-          pintarSesion(); cargarConvs(); ocultarPortada(); pintarTiraGiro();
-          return true;
-        }
-
-        var nueva = generarCodigo();
-        return pedirAuth('/user', {
-          metodo: 'PUT', token: t.access_token,
-          cuerpo: { password: nueva, data: { clave_puesta: true } }
-        }).then(function () {
-          /* Si venía de un registro y todavía no eligió usuario, se guarda. */
-          if (usuarioPendiente && !sesion.usuario) {
-            return llamarFuncion('fijar_usuario', { nombre: usuarioPendiente })
-              .then(function (r) {
-                if (r && r.ok) { sesion.usuario = usuarioPendiente; sesion.nombre = usuarioPendiente; }
-              }).catch(function () {});
-          }
-        }).then(function () {
-          motivoCodigo = 'registro';
-          guardarPerfilLocal();
-          $('#codigo-guardalo').textContent = agrupar(nueva);
-          verVistaAuth('guardalo');
-          return false;
-        });
+        /* Mismo cálculo que en comprobarCodigo() — con !!sesion.usuario y
+           todo, aunque verVistaTrasComprobar() ya lo vuelve a comprobar por
+           su cuenta: mejor que las dos definiciones de "cuenta completa"
+           digan lo mismo, en vez de coincidir solo de casualidad. */
+        var yaCompleta = !!(u.user_metadata && u.user_metadata.clave_puesta) && !!sesion.usuario;
+        return verVistaTrasComprobar(motivo || 'registro', yaCompleta);
       });
     });
   }

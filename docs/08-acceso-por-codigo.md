@@ -1,6 +1,15 @@
 # Cómo se entra a OaxIntegra IA
 
-**Una sola forma de entrar:** tu correo y un código de 8 números.
+**Desde el 11 de septiembre de 2026: usuario y contraseña**, elegidos por
+cada quien. El correo y un código siguen ahí, pero ya no son la forma de
+entrar — solo sirven para comprobar que un correo es tuyo, al registrarte o
+si se te olvida la contraseña.
+
+> Esto reemplaza al sistema anterior (código de 8 números que se quedaba
+> fijo como la contraseña). Ese cambio, y por qué se hizo, está en
+> `docs/04-auth-flow.md`. La migración que lo puso en la base es
+> `backend/migraciones/007_usuario_contrasena.sql` — **hay que aplicarla**
+> para que esto funcione (ver más abajo).
 
 ```
         ┌──────────────────────────────┐
@@ -11,126 +20,202 @@
     ┌─────────┘                    └──────────┐
     ▼                                         ▼
 REGISTRARSE                            INICIAR SESIÓN
- 1. usuario + correo                    correo + 8 números  →  dentro
- 2. te llegan 8 números al correo             │
- 3. los escribes                              └─ «Olvidé mi código»
- 4. ⚠️ GUÁRDALOS: son tu código
- 5. (opcional) código de recuperación
+ 1. tu correo                           usuario + contraseña  →  dentro
+ 2. te llega un código, lo escribes           │
+    (solo comprueba que el correo es tuyo)    └─ «Olvidé mi contraseña»
+ 3. eliges tu USUARIO y tu CONTRASEÑA               │
+ 4. dentro, con eso ya entras siempre          código nuevo al correo
+                                                     │
+                                              eliges una contraseña NUEVA
+                                              (no te «recuerda» la vieja)
 ```
 
 ---
 
-## El código de entrada
+## Los requisitos, tal cual los pide la pantalla
 
-Llega por correo **al registrarte**, y **ese mismo número se queda como tu
-contraseña**. No cambia. Con tu correo y esos 8 números entras siempre, sin
-volver a esperar ningún correo.
+| | Regla | Dónde se revisa |
+|---|---|---|
+| **Usuario** | 5 a 15 caracteres. Letras, números, `_` y `-`. Sin espacios. | En el navegador (`REGLAS.usuario`) y otra vez en la base (`usuario_formato`, `usuario_libre`) |
+| **Contraseña** | Más de 5 caracteres. Al menos una MAYÚSCULA, una minúscula y un número. Solo letras, números y estos signos: `_` `-` `.` `/` | Solo en el navegador (`evaluarClave`, con la lista que se pinta en verde mientras escribes) |
 
-### Por qué hay que fijarlo, y no basta con el que manda Supabase
+El usuario se elige **una sola vez**, justo después de comprobar el correo al
+registrarte. De ahí en adelante es fijo — no cambia con cada correo, como sí
+pasaba antes.
 
-Los códigos que manda Supabase son **de un solo uso y vencen**. Si la app no
-hiciera nada más, el número dejaría de servir al día siguiente y la persona se
-quedaría fuera.
+> **Límite conocido:** la contraseña la guarda Supabase Auth directamente
+> (`PUT /auth/v1/user`), y de fábrica Supabase solo exige un largo mínimo —
+> no sabe nada de mayúsculas, minúsculas o el resto de la lista de aquí. Nada
+> en este repositorio, ni la migración `007` ni ninguna otra, hace cumplir
+> esa lista del lado del servidor: alguien que hable directo con la API de
+> Supabase (sin pasar por esta pantalla) podría poner una contraseña que no
+> cumpla las mayúsculas o los números. La única forma real de exigirlo
+> también del lado del servidor es un *Password Verification Hook* de
+> Supabase (una Edge Function que Supabase consulta antes de aceptar cada
+> contraseña) — no se armó en esta sesión porque es una pieza de
+> infraestructura aparte (hay que escribirla, desplegarla y activarla en el
+> panel), no un cambio de código. Si te importa cerrar esto del todo, es lo
+> que faltaría agregar.
 
-Lo que hace la app: en cuanto el código se comprueba, lo **fija como la
-contraseña** de esa cuenta (`PUT /auth/v1/user`). Supabase la cifra con bcrypt
-y no la devuelve nunca. Así el número que llegó al correo es el mismo con el
-que se entra siempre.
-
-**Comprobado en la prueba:** después del registro se mira que la contraseña
-guardada en el servidor sea exactamente el código que llegó, y que **no quede
-en el navegador**.
-
-### Cada quien recibe el suyo
-
-`{{ .Token }}` no es un número: es un hueco que Supabase rellena, al mandar
-cada correo, con uno recién generado al azar. Seis peticiones dan seis códigos
-distintos — está en la prueba.
+La contraseña se puede cambiar cuando quieras, desde dentro de la cuenta (más
+abajo) o si la olvidas.
 
 ---
 
-## Si se te olvida: «Olvidé mi código»
+## 1 · Registrarte
 
 ```
-correo + código de recuperación  →  ✓  →  te llega un código NUEVO al correo
-                                          →  lo escribes  →  dentro
+tu correo  →  código de comprobación  →  eliges usuario y contraseña  →  dentro
 ```
 
-El **código de recuperación** son 8 números que la persona elige dentro de la
-app, en **Mi cuenta** (tocando su nombre en la barra de arriba). Se ofrece
-también justo después de registrarse.
+El código que llega por correo (`/auth/v1/otp` + `/auth/v1/verify`, de
+Supabase) **ya no se fija como nada**. Solo abre una sesión de verificación:
+con ella se elige el usuario (`fijar_usuario`, en la base) y se manda la
+contraseña a Supabase (`PUT /auth/v1/user`), que la cifra con bcrypt como
+siempre. El código en sí no vuelve a servir — Supabase lo invalida en cuanto
+se comprueba, igual que antes.
 
-No es una segunda forma de entrar: **solo sirve para pedir un código de entrada
-nuevo**. Con él, el viejo deja de valer al instante.
+El usuario se comprueba **en vivo** mientras escribes (`usuario_libre`, sin
+sesión, porque en ese momento todavía no hay una): dice si ya lo tiene
+alguien antes de que intentes enviarlo.
 
-### Dónde se guarda cada cosa
+## 2 · Entrar
+
+La pantalla de «Iniciar sesión» pide **usuario y contraseña** — no correo.
+
+Por dentro, Supabase Auth solo sabe entrar con correo, así que la app hace
+un paso extra antes: le pregunta a la base «¿cuál es el correo de este
+usuario?» (`correo_por_usuario`, sin sesión — se usa justo para poder
+conseguirla) y con ese correo intenta el login de siempre
+(`/auth/v1/token?grant_type=password`).
+
+Si el usuario no existe, o la contraseña no es la que le corresponde, la
+respuesta es **exactamente la misma en los dos casos**: «Tu usuario o tu
+contraseña no coinciden.» No hay forma de usar el mensaje de error para
+adivinar si un usuario existe.
+
+### Sobre `correo_por_usuario`: sí, revela que un usuario existe
+
+Por diseño, esta función le dice a quien pregunte «sí, este usuario existe, y
+su correo es éste» — es la única forma de que entrar con usuario funcione.
+Es el mismo trato que cualquier sitio con «entra con tu usuario»: Twitter,
+GitHub, el banco. Lo que sí se cuidó, igual que en la recuperación de la
+migración 003:
+
+- Usuario que no existe, o con formato inválido, tarda **parecido** a uno
+  que sí existe (`pg_sleep`), para que la demora no sirva de reloj.
+- Nunca se listan usuarios ni cuántos hay parecidos.
+- El freno real contra probar contraseñas a lo tonto lo pone Supabase Auth
+  por su cuenta en `/auth/v1/token` — eso no cambió.
+
+## 3 · «Olvidé mi contraseña»
+
+```
+tu correo  →  código nuevo  →  lo escribes  →  eliges una contraseña NUEVA  →  dentro
+```
+
+**Importante — esto no «recuerda» tu contraseña vieja, crea una nueva.** La
+pantalla lo dice así, sin rodeos: *«No te va a llegar tu contraseña de
+vuelta: por seguridad, ni nosotros podemos leerla. Lo que sí puedes hacer
+aquí es crear una nueva.»*
+
+No es un descuido ni una limitación de esta versión: **es imposible hacerlo
+de otra forma sin debilitar la seguridad de todos.** Supabase guarda la
+contraseña cifrada con bcrypt — un cifrado de un solo sentido, hecho a
+propósito para que ni la propia base de datos pueda volver a sacar el texto
+original. «Recordarte» la contraseña necesitaría guardarla de una forma que
+sí se pudiera leer, y eso es justo lo que un cifrado de contraseñas nunca
+debe hacer (si alguien alguna vez entrara a la base sin permiso, se
+llevaría contraseñas legibles en vez de un cifrado inútil para él). Ningún
+sitio serio — ni tu correo, ni el banco, ni Twitter — te «recuerda» tu
+contraseña por esto mismo; todos ofrecen crear una nueva.
+
+Igual que en el registro, el código solo comprueba que el correo es tuyo.
+No hace falta ya saber un código de recuperación aparte, ni haberlo puesto
+antes: basta con demostrar que ese correo es tuyo, ahora mismo, para elegir
+una contraseña nueva. Tu usuario **no cambia** — se te muestra en la pantalla
+para confirmarlo.
+
+## 4 · Cambiar tu contraseña (sin haberla olvidado)
+
+Desde dentro de la cuenta: tocas tu nombre en la barra de arriba → «Cambiar
+mi contraseña». Pide:
+
+- **Tu contraseña actual** — se vuelve a comprobar contra Supabase en ese
+  momento (`/auth/v1/token?grant_type=password`), no basta con que el
+  teléfono ya tenga la sesión abierta. Así, si el celular es prestado o la
+  sesión es vieja, no cualquiera puede cambiarla sin saber la de antes.
+- **Tu contraseña nueva**, dos veces, con la misma lista de requisitos
+  pintándose en verde.
+
+Si la actual no coincide, lo dice («Esa no es tu contraseña actual.») y no
+cambia nada.
+
+---
+
+## Las cuentas de antes de este cambio
+
+Nadie se queda fuera. Una cuenta creada con el sistema viejo (usuario con
+formato distinto — con punto, por ejemplo — y contraseña igual al código
+numérico de aquel entonces) **sigue entrando exactamente igual que
+siempre**: usuario y esa misma contraseña. El formulario de login no le
+exige el formato nuevo a nadie (`usuario-login` y `clave-login`, en
+`REGLAS`, solo piden que no vengan vacíos).
+
+Lo que sí exige el formato nuevo — 5 a 15 caracteres, sin punto — es
+**crear** un usuario (`usuario_formato`, `usuario_libre`, `fijar_usuario`) y
+**poner** una contraseña nueva (al registrarse, al cambiarla, o al
+recuperarla). Una cuenta vieja se pasa al formato nuevo sola, la primera vez
+que use «Cambiar mi contraseña» o «Olvidé mi contraseña».
+
+---
+
+## Dónde se guarda cada cosa
 
 | | Dónde | Cómo |
 |---|---|---|
-| Código de **entrada** | `auth.users` de Supabase | bcrypt, no se puede leer |
-| Código de **recuperación** | `perfiles.recuperacion_hash` | bcrypt de Postgres (pgcrypto) |
-| En el navegador | **nada de esto** | comprobado en la prueba |
+| Usuario | `perfiles.usuario` | texto, con el formato revisado por un `CHECK` |
+| Contraseña | `auth.users`, de Supabase | bcrypt, no se puede leer ni por la propia base |
+| Código de comprobación (registro y recuperación) | vive un momento en Supabase Auth | de un solo uso, vence, y no vuelve a servir tras comprobarlo |
+| En el navegador | nada de esto — solo el token de sesión, mientras dura | comprobado en la prueba |
 
-En Supabase cada cuenta tiene **una sola** contraseña, y esa la ocupa el código
-de entrada. Por eso el de recuperación se guarda aparte, cifrado, y se
-comprueba dentro de una función que nadie puede leer por fuera
-(`usar_recuperacion`, en `003_recuperacion.sql`).
+### Lo que NO se tocó
 
-### Contra quien pruebe códigos a lo tonto
-
-- **5 intentos** y luego **15 minutos** de espera
-- Un correo que no existe contesta **lo mismo** que un código equivocado, y
-  tarda parecido: así esto no sirve para averiguar quién tiene cuenta
-- Se rechazan `11111111`, `12345678` y `12121212`
+El **código de recuperación** de la migración 003 (los 8 números que algunas
+cuentas viejas tienen guardados, cifrados en `perfiles.recuperacion_hash`)
+sigue en la base tal cual — la columna, la función `usar_recuperacion`, todo.
+**El sitio ya no lo usa**: ahora «olvidé mi contraseña» solo pide el correo,
+como se explicó arriba. Se decidió no tocarlo a propósito: borrarlo sería
+tirar datos de cuentas reales por una característica que ya nadie llama. Si
+algún día estorba, se retira en una migración aparte, adrede.
 
 ---
 
 ## Configurar Supabase: nada es obligatorio
 
 **La app funciona con Supabase tal como viene de fábrica.** Lo de abajo son
-mejoras, no requisitos.
-
-### Cómo funciona sin tocar nada
-
-De fábrica, la plantilla de correo de Supabase manda un **enlace**, no
-números. La app lo atiende:
-
-```
-se registra  →  correo con enlace  →  le da clic
-                                       │
-                                       ▼
-                    la app le INVENTA un código de 8 números
-                    (crypto.getRandomValues), lo fija como su
-                    contraseña, y se lo enseña en pantalla
-                                       │
-                                       ▼
-                    con ese código entra siempre después
-```
-
-Queda constancia en `user_metadata.clave_puesta`, así que volver a darle clic
-al mismo enlace **no le cambia el código**: entra directo.
-
-Probado en `pruebas/sin-configurar.mjs`, 16 comprobaciones, con el Supabase de
-mentiras arrancado sin configurar (6 dígitos, plantilla de enlace).
+mejoras, no requisitos — el código de comprobación funciona igual mande
+Supabase un enlace o números.
 
 ### Mejora 1 · que el correo traiga los números
 
 **Authentication → Emails → Magic Link**, cuerpo:
 
 ```html
-<p>Hola, somos de OaxIntegra IA y te enviamos tu código de acceso.</p>
+<p>Hola, somos de OaxIntegra IA y te enviamos tu código.</p>
 
 <p style="font-size:15px">Escribe estos números en la página:</p>
 
 <p style="font-size:34px; font-weight:bold; letter-spacing:8px; margin:18px 0">{{ .Token }}</p>
 
-<p style="font-size:14px"><b>Guarda este número.</b> Con tu correo y estos números entras siempre.</p>
+<p style="font-size:14px">Este código solo comprueba que este correo es tuyo. Tu usuario y tu contraseña son aparte, y los elegiste tú.</p>
 
-<p style="font-size:13px; color:#666">Si no pediste entrar, no hagas nada.</p>
+<p style="font-size:13px; color:#666">Si no pediste esto, no hagas nada.</p>
 ```
 
-Con esto, el número del correo **es** el que se queda como contraseña, en vez
-de uno inventado. Más claro para quien lo usa.
+Sin esto, quien no le dé clic al enlace del correo puede escribir el código
+que la propia app le inventa y le enseña en pantalla al darle clic — sigue
+funcionando, solo que con un paso más.
 
 ### Mejora 2 · códigos de 8 en vez de 6
 
@@ -141,41 +226,30 @@ de uno inventado. Más claro para quien lo usa.
 | **Email OTP Length** | 6 | **8** |
 | **Email OTP Expiration** | 3600 | **600** |
 
-La app **acepta 6 u 8** (`MIN_CODIGO_CORREO`), así que esto solo sube de un
-millón de combinaciones a cien millones.
+La app **acepta 6 u 8** (`MIN_CODIGO_CORREO` / `LARGO_CODIGO`), así que esto
+solo sube de un millón de combinaciones a cien millones.
 
-### 3 · Las tablas — ✅ aplicadas el 24 de agosto de 2026
+### 3 · Las tablas
 
-Ya están puestas en el proyecto `OaxIntegra-IA` y comprobadas. Para montarlo
-desde cero, los seis archivos de `backend/migraciones/` en orden.
-
-Al revisar la base ya aplicada salieron **cuatro cosas que el código no
-enseñaba**, y de ahí las migraciones 004 a 006:
-
-| | Qué salió |
-|---|---|
-| 004 | `fijar_usuario`, `fijar_giro` y `fijar_recuperacion` se podían llamar **sin sesión**. Supabase le da EXECUTE a `anon` por defecto a toda función nueva de `public`, y un `REVOKE ... FROM PUBLIC` no lo deshace. No era explotable (las tres comprueban `auth.uid()`), pero estaba mal. |
-| 005 | `crear_perfil()` seguía abierta: el permiso le venía de PUBLIC, otro camino distinto. |
-| 006 | Las tres políticas de RLS resolvían `auth.uid()` **una vez por fila**. Envuelto en `(SELECT ...)` se resuelve una sola vez. |
-
-Después de aplicarlas, el revisor de rendimiento de Supabase quedó limpio.
+Los siete archivos de `backend/migraciones/`, en orden, del `001` al `007`.
+El `007_usuario_contrasena.sql` es el que trae todo lo de este documento
+(usuario+contraseña); sin aplicarlo, la app sigue mostrando las pantallas
+nuevas pero la base las rechaza.
 
 ### Los avisos que quedan, y por qué se quedan
 
-El revisor de seguridad marca 7 avisos, todos del mismo tipo: «esta función
-`SECURITY DEFINER` se puede llamar desde la API». **Son esperados: es
-exactamente el diseño.** La tabla está cerrada con RLS y estas funciones son
-las puertas controladas.
-
-Se revisó una por una:
+El revisor de seguridad de Supabase marca varios avisos del tipo «esta
+función `SECURITY DEFINER` se puede llamar desde la API». **Son esperados:
+es el diseño.** La tabla está cerrada con RLS y estas funciones son las
+puertas controladas. Revisadas una por una:
 
 | Función | Quién puede | Por qué es seguro |
 |---|---|---|
-| `usuario_libre` | sin sesión | Solo devuelve sí/no. Nunca dice de quién es ni cuántos hay. Cualquier registro necesita esto. |
-| `usar_recuperacion` | sin sesión | La usa quien no puede entrar. Freno de 5 intentos y 15 min, y contesta igual para un correo que no existe. |
+| `usuario_libre` | sin sesión | Solo sí/no. Nunca dice de quién es ni cuántos hay. |
+| `correo_por_usuario` | sin sesión | Se usa justo para poder entrar. Igual de lenta con usuario real o inventado; nunca lista usuarios. |
 | `fijar_usuario` | con sesión | Solo toca la fila de quien llama (`auth.uid()`) |
 | `fijar_giro` | con sesión | Igual |
-| `fijar_recuperacion` | con sesión | Igual, y cifra antes de guardar |
+| `usar_recuperacion` | sin sesión | Ya no la usa el sitio (ver arriba); se queda por las cuentas viejas que aún tienen el dato. Freno de 5 intentos y 15 min. |
 
 Lo importante: **ningún aviso sobre RLS ni sobre tablas expuestas.**
 
@@ -185,31 +259,55 @@ Lo importante: **ningún aviso sobre RLS ni sobre tablas expuestas.**
 
 | Lo que ves | Qué pasa |
 |---|---|
-| Llega un correo **sin números** | Falta `{{ .Token }}` en la plantilla |
-| Llegan 6 números y la pantalla pide 8 | Falta poner **Email OTP Length = 8** |
-| «Ese correo y ese código no coinciden» | Se escribió mal, o es de otra cuenta |
-| «Demasiados intentos, espera 15 minutos» | Cinco fallos seguidos en la recuperación |
-| Se queda en «Comprobando si está libre…» | Falta aplicar `001_perfiles.sql` |
-| «No se pudo guardar» al poner la recuperación | Falta aplicar `003_recuperacion.sql` |
+| Llega un correo **sin números** | Falta `{{ .Token }}` en la plantilla (ver Mejora 1) — no es obligatorio, la app igual funciona con el enlace |
+| «Ese usuario ya lo tiene alguien» al crear la cuenta | Alguien más ya lo eligió; hay que probar otro |
+| «Tu usuario o tu contraseña no coinciden» | El mensaje es a propósito el mismo para los dos casos — revisa ambos |
+| Se queda en «Comprobando si está libre…» | Falta aplicar `001_perfiles.sql` (o `007`, si es la comprobación de usuario nueva) |
+| «Esa no es tu contraseña actual» al cambiarla | Se escribió mal la de ahora — no es la nueva, es la de antes de este cambio |
+| Una cuenta vieja no puede crear un usuario con punto | A propósito: el formato nuevo (`5-15`, sin punto) solo aplica a usuarios que se crean o cambian de aquí en adelante |
 
 ---
 
 ## Lo que probé y lo que no
 
-**Probado aquí: 51 comprobaciones en un navegador de verdad**, en pantalla de
-celular (`pruebas/acceso.mjs`, contra un Supabase de mentiras):
+**Probado: 29 comprobaciones en un navegador de verdad**
+(`pruebas/usuario-contrasena.mjs`, contra un Supabase de mentiras y el
+servidor real de `backend/servidor.js`):
 
-- La portada con dos botones, sin dos formas de entrar
-- Registro completo, con el usuario comprobado **sin sesión**
-- Que el código que llega **quede fijado** como contraseña
-- Entrar después solo con correo + código, sin ningún correo de por medio
-- Código equivocado, y recuperación equivocada, con los intentos que quedan
-- La recuperación buena → llega un código nuevo → el viejo deja de valer
-- Que ni el código de entrada ni el de recuperación queden en el navegador
-- Cerrar sesión, y que vuelva a los dos botones del principio
+- Registro completo: correo → código → usuario y contraseña, con los
+  rechazos de formato inválido y contraseña débil en el camino, y la lista
+  de requisitos pintándose en verde conforme se cumple cada uno
+- Que el código **no** se fije como contraseña (a diferencia del sistema
+  viejo)
+- Cerrar sesión y volver a entrar con usuario + contraseña
+- Contraseña incorrecta → el mismo mensaje genérico, sin decir qué falló
+- Cambiar la contraseña desde dentro, con la contraseña actual mal (se
+  rechaza) y luego bien (se guarda)
+- Entrar con la contraseña recién cambiada
+- «Olvidé mi contraseña»: pide el correo (no un código de recuperación
+  previo), llega un código nuevo, y **crea** una contraseña — nunca
+  «recuerda» la vieja
+- Que muestre el usuario existente durante la recuperación, sin cambiarlo
+- Entrar con la contraseña puesta al recuperar la cuenta
+- **Una cuenta con usuario del formato de antes de esta migración** (con
+  punto, hasta 20 caracteres) **sigue pudiendo entrar** — esto se rompió en
+  una primera versión de `007` y lo agarró una revisión de código antes de
+  llegar a este documento; el porqué está en el comentario del `CHECK` de
+  `usuario_formato`, en la propia migración
+- **El enlace del correo (la plantilla de fábrica de Supabase) durante
+  «Olvidé mi contraseña» lleva a elegir una contraseña nueva**, no entra
+  derecho con la que se está intentando recuperar — mismo caso: se rompía en
+  la primera versión, lo agarró la revisión, se corrigió y quedó con su
+  propia prueba para que no se repita
+- Cero errores de JavaScript en toda la corrida
 
 **No pude probar aquí:**
 
-- **Que el correo salga de verdad.** Esta máquina tiene bloqueada la salida a
-  `supabase.com`. Eso lo tienes que ver tú: `npm start`, tu propio correo, y
-  comprobar que llega el número.
+- **Que el correo salga de verdad.** Esta máquina tiene bloqueada la salida
+  a `supabase.com`. Eso lo tienes que ver tú: `npm start`, tu propio correo,
+  y comprobar que llega el código.
+- **La migración `007` contra una base de Supabase real.** Se revisó a mano
+  contra el esquema de `backend/schema.sql` y las migraciones anteriores,
+  pero no hay credenciales de un proyecto real en este entorno para
+  aplicarla y confirmarlo. Aplícala primero en un proyecto de prueba si
+  quieres verlo con tus propios ojos antes de tocar el de producción.
