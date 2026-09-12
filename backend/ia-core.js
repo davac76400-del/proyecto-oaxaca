@@ -25,10 +25,15 @@ const CONFIG = {
   /* Para fotos hace falta un modelo que sepa VER. El de texto no puede.
      Este también es gratuito (termina en :free). */
   LLAMA_MODELO_FOTO: process.env.OPENROUTER_MODEL_VISION || 'meta-llama/llama-3.2-11b-vision-instruct:free',
-  GEMINI_MODELO: process.env.GEMINI_MODEL    || 'gemini-2.0-flash',
+  GEMINI_MODELO: process.env.GEMINI_MODEL    || 'gemini-3.6-flash',
   GEMINI_BASE:  process.env.GEMINI_URL_BASE  || 'https://generativelanguage.googleapis.com/v1beta/models/',
   LIMITE_MS:    Number(process.env.IA_TIMEOUT_MS || 20000),
   MAX_TOKENS:   900,
+  /* Gemini Flash piensa antes de escribir, y lo que piensa se cobra del mismo
+     tope que la respuesta: con 900 gastaba ~800 pensando y cortaba la frase a
+     media palabra. De ahí el tope aparte y el pensar en corto. */
+  GEMINI_MAX_TOKENS: Number(process.env.GEMINI_MAX_TOKENS || 2500),
+  GEMINI_PENSAR: process.env.GEMINI_THINKING || 'low',
   TEMPERATURA:  0.7
 };
 
@@ -133,7 +138,7 @@ function tacharSecretos(txt) {
     if (llave && llave.length > 6) { s = s.split(llave).join('«llave oculta»'); }
   });
   return s
-    .replace(/\b(sk-or-v1-|sk-ant-|sk-|gsk_|AIza)[A-Za-z0-9_\-]{8,}/g, '«llave oculta»')
+    .replace(/\b(sk-or-v1-|sk-ant-|sk-|gsk_|AIza|AQ\.)[A-Za-z0-9_\-]{8,}/g, '«llave oculta»')
     .replace(/([?&]key=)[^&\s"']+/gi, '$1«llave oculta»')
     .slice(0, 300);
 }
@@ -217,19 +222,37 @@ async function pedirAGemini(mensaje, sistema, historial, foto) {
               encodeURIComponent(CONFIG.GEMINI_MODELO) + ':generateContent?key=' +
               encodeURIComponent(process.env.GEMINI_API_KEY);
 
-  const d = await pedirConLimite(url, {
+  const enviar = (pensar) => pedirConLimite(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       system_instruction: { parts: [{ text: sistema }] },
       contents,
-      generationConfig: { maxOutputTokens: CONFIG.MAX_TOKENS, temperature: CONFIG.TEMPERATURA }
+      generationConfig: Object.assign(
+        { maxOutputTokens: CONFIG.GEMINI_MAX_TOKENS, temperature: CONFIG.TEMPERATURA },
+        pensar ? { thinkingConfig: { thinkingLevel: pensar } } : {}
+      )
     })
   });
 
+  let d;
+  try {
+    d = await enviar(CONFIG.GEMINI_PENSAR);
+  } catch (e) {
+    /* Google cambia el nombre de esta opción entre modelos y rechaza con 400 el
+       que no conoce. Vale más contestar sin afinarla que no contestar. */
+    if (!CONFIG.GEMINI_PENSAR || !/HTTP 400/.test(e.message)) { throw e; }
+    d = await enviar('');
+  }
+
   const c = d && d.candidates && d.candidates[0];
-  const partes = (c && c.content && c.content.parts) || [];
-  return partes.length ? (partes[0].text || '') : '';
+  /* Cuando piensa, la primera parte puede ser el pensamiento: se juntan todas
+     las partes de texto para no devolver un trozo suelto. */
+  return ((c && c.content && c.content.parts) || [])
+    .filter(p => p && typeof p.text === 'string' && !p.thought)
+    .map(p => p.text)
+    .join('')
+    .trim();
 }
 
 

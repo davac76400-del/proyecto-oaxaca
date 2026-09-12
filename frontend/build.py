@@ -106,6 +106,8 @@ LLAVES_PROHIBIDAS = [
     (r'sk-ant-[A-Za-z0-9_\-]{12,}',    'una llave de Anthropic'),
     (r'sk-[A-Za-z0-9]{32,}',           'una llave de OpenAI'),
     (r'AIza[A-Za-z0-9_\-]{30,}',       'una llave de Google/Gemini'),
+    # Google también reparte llaves con este otro formato desde AI Studio.
+    (r'AQ\.[A-Za-z0-9_\-]{30,}',       'una llave de Google/Gemini'),
     (r'gsk_[A-Za-z0-9]{20,}',          'una llave de Groq'),
     (r'xox[baprs]-[A-Za-z0-9\-]{10,}', 'un token de Slack'),
     (r'ghp_[A-Za-z0-9]{30,}',          'un token de GitHub'),

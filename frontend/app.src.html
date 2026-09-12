@@ -2759,6 +2759,24 @@
   }
   function nl2br(t) { return esc(t).replace(/\n/g, '<br>'); }
 
+  /* La IA de verdad escribe con marcas de Markdown: **negritas**, viñetas y
+     títulos con #. Sin traducirlas, al agricultor le aparecen los asteriscos
+     en pantalla. Se escapa PRIMERO y se marca después, así nada de lo que
+     llegue de fuera puede colar una etiqueta. */
+  function conFormato(t) {
+    return esc(t)
+      .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/^[ \t]*#{1,6}[ \t]+(.+)$/gm, '<strong>$1</strong>')
+      .replace(/^[ \t]*[*\-][ \t]+/gm, '• ')
+      /* Las citas de la IA llegan como "> texto". El signo ya pasó por esc(). */
+      .replace(/^[ \t]*&gt;[ \t]*/gm, '')
+      /* Cursivas de un asterisco. Va al final, cuando ya no quedan los de las
+         negritas ni los de las viñetas. Pide que abra pegado a la palabra,
+         para no estropear una multiplicación escrita como 3 * 4. */
+      .replace(/\*([^\s*][^*\n]*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+  }
+
   /* almacenamiento con respaldo en memoria (algunos navegadores lo bloquean) */
   var almacen = (function () {
     var memoria = {}, vivo = false;
@@ -4706,7 +4724,7 @@
       '<div class="js-arte">' + arteSVG(pub.tema, uid) + '</div>' +
       '<div class="p-5">' +
         '<p class="text-[0.8rem] text-tenue mb-3"><span class="js-negocio">' + esc(pub.negocio) + '</span> · <span class="js-cuando">' + esc(pub.cuando) + '</span></p>' +
-        '<div class="js-cuerpo text-[0.95rem] leading-relaxed text-texto">' + nl2br(pub.cuerpo) + '</div>' +
+        '<div class="js-cuerpo text-[0.95rem] leading-relaxed text-texto">' + conFormato(pub.cuerpo) + '</div>' +
         '<p class="text-[0.9rem] text-cian mt-3 js-etiquetas">' + esc((pub.etiquetas || []).join(' ')) + '</p>' +
         '<div class="js-bilingue mt-5" hidden></div>' +
         '<div class="js-programador mt-5" hidden></div>' +
@@ -4899,7 +4917,7 @@
       d.className = 'border border-borde rounded-[2px] p-4';
       d.innerHTML =
         '<p class="text-[0.8rem] text-tenue mb-2">' + esc(p.fecha) + ' · ' + esc(p.cuando) + '</p>' +
-        '<p class="text-[0.95rem] leading-relaxed text-texto">' + nl2br(p.cuerpo) + '</p>' +
+        '<p class="text-[0.95rem] leading-relaxed text-texto">' + conFormato(p.cuerpo) + '</p>' +
         '<p class="text-[0.9rem] text-cian mt-2">' + esc(p.etiquetas) + '</p>' +
         '<div class="flex gap-2.5 mt-4">' +
           '<button type="button" class="chip js-copiar">Copiar</button>' +
@@ -4927,7 +4945,7 @@
     if (res.texto) {
       var p = document.createElement('p');
       p.className = 'text-[0.98rem] text-tenue leading-relaxed';
-      p.innerHTML = nl2br(res.texto);
+      p.innerHTML = conFormato(res.texto);
       cuerpo.appendChild(p);
     }
 

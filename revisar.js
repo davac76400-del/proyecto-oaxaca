@@ -132,7 +132,10 @@ const REVISIONES = [
     imprescindible: false,
     donde: 'https://aistudio.google.com/apikey',
     siFalta: 'Sin respaldo: si Llama falla, se va directo al motor local.',
-    comprobar: v => v.startsWith('AIza') ? null : 'Las de Google empiezan con "AIza".'
+    /* Google reparte dos formatos según por dónde la saques, y los dos sirven. */
+    comprobar: v => (v.startsWith('AIza') || v.startsWith('AQ.'))
+      ? null
+      : 'Las de Google empiezan con "AIza" o con "AQ.".'
   },
 ];
 

@@ -151,7 +151,7 @@ tocar el código:** se cambia en el `.env` (o en el panel de Netlify/Vercel).
 ```bash
 # busca uno que termine en :free en https://openrouter.ai/models?q=llama
 OPENROUTER_MODEL=meta-llama/llama-3.2-3b-instruct:free
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-3.6-flash
 ```
 
 Mientras eso pasa, **Gemini sigue contestando** y la página no se rompe: para
