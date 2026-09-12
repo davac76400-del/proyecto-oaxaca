@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd frontend && python3 build.py",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/", "destination": "/OaxIntegra-IA-app.html" }
+  ]
+}
