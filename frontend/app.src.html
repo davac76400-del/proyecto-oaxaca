@@ -2117,7 +2117,10 @@
           </button>
         </form>
 
-        <button type="button" class="btn-suave mt-4 js-volver-inicio">Ya tengo cuenta</button>
+        <div class="flex flex-wrap gap-3 mt-4">
+          <button type="button" id="btn-registro-ya-tengo" class="btn-suave" style="margin:0">Ya tengo cuenta</button>
+          <button type="button" class="btn-suave js-volver-inicio" style="margin:0">Volver</button>
+        </div>
       </div>
 
       <!-- ============ ESCRIBIR EL CÓDIGO QUE LLEGÓ ============ -->
@@ -2175,10 +2178,10 @@
           <div>
             <label for="cc-usuario" class="block text-[0.9rem] text-tenue mb-2">Usuario</label>
             <input id="cc-usuario" type="text" class="campo" placeholder="Ej. MariaTelar"
-                   autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="15"
+                   autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20"
                    data-regla="usuario">
             <p class="text-[0.78rem] text-tenue mt-1.5">
-              De 5 a 15 caracteres: letras, números, «_» y «-». Sin espacios.
+              De 5 a 20 caracteres: letras, números, «_», «-» y «.». Sin espacios.
             </p>
             <p class="text-[0.82rem] mt-1.5" id="pista-usuario" hidden></p>
             <p class="error-campo" id="error-cc-usuario" hidden></p>
@@ -2195,11 +2198,10 @@
               </button>
             </div>
             <ul class="lista-requisitos" id="requisitos-cc-clave" aria-live="polite">
-              <li data-req="largo">Al menos 6 caracteres</li>
+              <li data-req="largo">Al menos 5 caracteres</li>
               <li data-req="mayus">Una letra MAYÚSCULA</li>
               <li data-req="minus">Una letra minúscula</li>
-              <li data-req="num">Un número</li>
-              <li data-req="charset">Solo letras, números y <code>_ - . /</code></li>
+              <li data-req="charset">Solo letras, números y <code>. - _</code></li>
             </ul>
             <p class="error-campo" id="error-cc-clave" hidden></p>
           </div>
@@ -2246,11 +2248,10 @@
               </button>
             </div>
             <ul class="lista-requisitos" id="requisitos-nc-clave" aria-live="polite">
-              <li data-req="largo">Al menos 6 caracteres</li>
+              <li data-req="largo">Al menos 5 caracteres</li>
               <li data-req="mayus">Una letra MAYÚSCULA</li>
               <li data-req="minus">Una letra minúscula</li>
-              <li data-req="num">Un número</li>
-              <li data-req="charset">Solo letras, números y <code>_ - . /</code></li>
+              <li data-req="charset">Solo letras, números y <code>. - _</code></li>
             </ul>
             <p class="error-campo" id="error-nc-clave" hidden></p>
           </div>
@@ -2613,11 +2614,10 @@
             </button>
           </div>
           <ul class="lista-requisitos" id="requisitos-ac-clave-nueva" aria-live="polite">
-            <li data-req="largo">Al menos 6 caracteres</li>
+            <li data-req="largo">Al menos 5 caracteres</li>
             <li data-req="mayus">Una letra MAYÚSCULA</li>
             <li data-req="minus">Una letra minúscula</li>
-            <li data-req="num">Un número</li>
-            <li data-req="charset">Solo letras, números y <code>_ - . /</code></li>
+            <li data-req="charset">Solo letras, números y <code>. - _</code></li>
           </ul>
           <p class="error-campo" id="error-ac-clave-nueva" hidden></p>
         </div>
@@ -2973,16 +2973,15 @@
   function evaluarClave(v) {
     v = v || '';
     return {
-      largo:   v.length >= 6,
+      largo:   v.length >= 5,
       mayus:   /[A-Z]/.test(v),
       minus:   /[a-z]/.test(v),
-      num:     /[0-9]/.test(v),
-      charset: v.length > 0 && /^[A-Za-z0-9_\-./]+$/.test(v)
+      charset: v.length > 0 && /^[A-Za-z0-9_.-]+$/.test(v)
     };
   }
   function claveValida(v) {
     var r = evaluarClave(v);
-    return r.largo && r.mayus && r.minus && r.num && r.charset;
+    return r.largo && r.mayus && r.minus && r.charset;
   }
   /* pinta de verde, con su palomita, cada requisito que ya se cumple */
   function pintarRequisitosClave(idLista, v) {
@@ -2995,12 +2994,27 @@
     });
   }
 
+  /* Dominios de correo reales que se aceptan. No es por desconfianza: es
+     para frenar antes de tiempo un correo inventado o mal escrito, que si
+     no se detecta aquí, se descubre hasta que el código nunca llega. */
+  var DOMINIOS_CORREO_VALIDOS = [
+    'gmail.com', 'hotmail.com', 'hotmail.es', 'hotmail.com.mx',
+    'outlook.com', 'outlook.es', 'live.com', 'live.com.mx', 'msn.com',
+    'yahoo.com', 'yahoo.com.mx', 'yahoo.es', 'icloud.com', 'me.com',
+    'mac.com', 'aol.com', 'protonmail.com', 'proton.me', 'gmx.com', 'mail.com'
+  ];
+  function correoValido(v) {
+    v = (v || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { return false; }
+    var dominio = v.split('@')[1] || '';
+    return DOMINIOS_CORREO_VALIDOS.indexOf(dominio) !== -1;
+  }
   var REGLAS = {
     texto:     { probar: function (v) { return v.trim().length >= 3; },  error: 'Escribe al menos 3 letras.' },
-    correo:    { probar: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()); }, error: 'Revisa tu correo: parece que le falta algo.' },
+    correo:    { probar: correoValido, error: 'Usa un correo real: gmail.com, hotmail.com, outlook.com, yahoo.com…' },
     mensaje:   { probar: function (v) { return v.trim().length >= 10; }, error: 'Cuéntanos un poco más (mínimo 10 letras).' },
     /* El usuario para CREAR cuenta: si no cumple el formato, ni se manda. */
-    usuario:   { probar: function (v) { return /^[A-Za-z0-9_-]{5,15}$/.test(v.trim()); }, error: 'De 5 a 15 caracteres: letras, números, «_» y «-». Sin espacios.' },
+    usuario:   { probar: function (v) { return /^[A-Za-z0-9_.-]{5,20}$/.test(v.trim()); }, error: 'De 5 a 20 caracteres: letras, números, «_», «-» y «.». Sin espacios.' },
     /* El usuario para ENTRAR: aquí NO se exige el formato nuevo, porque
        cuentas de antes de esta versión pueden tener un usuario con el
        formato viejo (con punto, más largo). Si no existe, ya lo dice el
@@ -3503,16 +3517,19 @@
   $('#btn-ir-registro').addEventListener('click', function () {
     verVistaAuth('registro'); $('#reg-correo').focus();
   });
+  $('#btn-registro-ya-tengo').addEventListener('click', function () {
+    verVistaAuth('entrar'); $('#usuario-entrar').focus();
+  });
 
   /* ---------------------------------------------------------------
      ENTRAR  ·  usuario + contraseña
      ---------------------------------------------------------------
      Supabase entra con correo, no con usuario: primero se pregunta
      (correo_por_usuario, sin sesión) cuál es el correo de ese usuario, y
-     con eso se intenta el login de verdad. Si CUALQUIERA de los dos pasos
-     falla —usuario que no existe, o contraseña que no es— se contesta
-     exactamente el mismo mensaje: así nadie puede usar el error para
-     adivinar si un usuario existe. */
+     con eso se intenta el login de verdad. Aquí SÍ se distingue el motivo
+     del fallo —usuario que no existe vs. contraseña incorrecta— porque así
+     se pidió; OJO que esto revela si un usuario existe (a cambio de un
+     mensaje más útil para quien de verdad olvidó su usuario). */
   function entrar(e) {
     if (e) { e.preventDefault(); }
     var campoUsu = $('#usuario-entrar'), campoClave = $('#contrasena-entrar'), caja = $('#error-entrar');
@@ -3525,11 +3542,11 @@
 
     llamarFuncion('correo_por_usuario', { nombre: usuario }, true)
       .then(function (r) {
-        if (!r || !r.ok || !r.correo) { throw { credenciales: true }; }
+        if (!r || !r.ok || !r.correo) { throw { usuarioNoExiste: true }; }
         return pedirAuth('/token?grant_type=password', {
           metodo: 'POST',
           cuerpo: { email: r.correo, password: clave }
-        });
+        }).catch(function (err) { throw { claveIncorrecta: true, original: err }; });
       })
       .then(function (datos) {
         guardarTokens(datos);
@@ -3542,9 +3559,13 @@
       .catch(function (err) {
         boton.disabled = false; girador.hidden = true; texto.textContent = 'Entrar';
         caja.hidden = false;
-        caja.textContent = (err && (err.credenciales || /invalid.*credentials|invalid login/i.test(String(err.message))))
-          ? 'Tu usuario o tu contraseña no coinciden. Revísalos.'
-          : explicarFalloAuth(err, 'No pude entrar');
+        if (err && err.usuarioNoExiste) {
+          caja.textContent = 'Ese usuario no existe. Revisa que esté bien escrito.';
+        } else if (err && err.claveIncorrecta) {
+          caja.textContent = 'Tu contraseña no es correcta.';
+        } else {
+          caja.textContent = explicarFalloAuth(err, 'No pude entrar');
+        }
         campoClave.value = '';
       });
   }
@@ -3587,7 +3608,7 @@
     var pista = $('#pista-usuario');
     var v = $('#cc-usuario').value.trim();
     if (relojUsuario) { clearTimeout(relojUsuario); relojUsuario = null; }
-    if (!/^[A-Za-z0-9_-]{5,15}$/.test(v)) { pista.hidden = true; return; }
+    if (!/^[A-Za-z0-9_.-]{5,20}$/.test(v)) { pista.hidden = true; return; }
     pista.hidden = false;
     pista.textContent = 'Comprobando si está libre…';
     pista.style.color = 'rgb(var(--tenue))';

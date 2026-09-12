@@ -93,9 +93,23 @@ function esDePlantilla(v) {
   return SEÑAS_DE_PLANTILLA.some(p => p.test(v));
 }
 
+/* Un header HTTP solo admite bytes 0x20-0x7E (ASCII imprimible). Si algo
+   se coló al copiar/pegar la llave en Vercel (un salto de línea invisible,
+   una comilla "inteligente", etc.), el navegador tira TODO fetch() que
+   use ese header con "String contains non ISO-8859-1 code point" — y eso
+   tumba el login y el registro completos, sin decir por qué. Se limpia
+   aquí para que nunca llegue al navegador, y se avisa si limpió algo. */
+function limpiarParaCabecera(v) {
+  return v.replace(/[^\x20-\x7E]/g, '');
+}
+
 function resolverSupabase(src) {
-  const url = (process.env.SUPABASE_URL || leerDelEnv('SUPABASE_URL') || '').trim().replace(/\/$/, '');
-  const clave = (process.env.SUPABASE_ANON_KEY || leerDelEnv('SUPABASE_ANON_KEY') || '').trim();
+  const urlCruda = (process.env.SUPABASE_URL || leerDelEnv('SUPABASE_URL') || '').trim().replace(/\/$/, '');
+  const claveCruda = (process.env.SUPABASE_ANON_KEY || leerDelEnv('SUPABASE_ANON_KEY') || '').trim();
+  const url = limpiarParaCabecera(urlCruda);
+  const clave = limpiarParaCabecera(claveCruda);
+  if (url !== urlCruda) { console.log('  ⚠ SUPABASE_URL traía caracteres raros (invisibles); los quité.'); }
+  if (clave !== claveCruda) { console.log('  ⚠ SUPABASE_ANON_KEY traía caracteres raros (invisibles); los quité.'); }
 
   for (const [valor, nombre] of [[url, 'SUPABASE_URL'], [clave, 'SUPABASE_ANON_KEY']]) {
     if (valor.includes("'") || valor.includes('\\') || valor.includes('\n')) {

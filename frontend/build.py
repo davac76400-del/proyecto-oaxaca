@@ -204,12 +204,27 @@ def es_de_plantilla(v):
     return any(re.search(p, v, re.I) for p in SEÑAS_DE_PLANTILLA)
 
 
+def limpiar_para_cabecera(v):
+    """Un header HTTP solo admite bytes 0x20-0x7E (ASCII imprimible). Si algo
+       se coló al copiar/pegar la llave (un salto de línea invisible, una
+       comilla "inteligente", etc.), el navegador tira TODO fetch() que use
+       ese header con "String contains non ISO-8859-1 code point" — y eso
+       tumba el login y el registro completos, sin decir por qué."""
+    return re.sub(r'[^\x20-\x7E]', '', v)
+
+
 def resolver_supabase(src):
     """Mete la dirección y la anon key de Supabase, que se leen del entorno
        o del .env. Sin ellas la app construye igual, pero la portada avisa
        que el acceso no está configurado en vez de fallar en silencio."""
-    url   = (os.environ.get('SUPABASE_URL')      or leer_del_env('SUPABASE_URL')      or '').strip().rstrip('/')
-    clave = (os.environ.get('SUPABASE_ANON_KEY') or leer_del_env('SUPABASE_ANON_KEY') or '').strip()
+    url_cruda   = (os.environ.get('SUPABASE_URL')      or leer_del_env('SUPABASE_URL')      or '').strip().rstrip('/')
+    clave_cruda = (os.environ.get('SUPABASE_ANON_KEY') or leer_del_env('SUPABASE_ANON_KEY') or '').strip()
+    url   = limpiar_para_cabecera(url_cruda)
+    clave = limpiar_para_cabecera(clave_cruda)
+    if url != url_cruda:
+        print('  ⚠ SUPABASE_URL traía caracteres raros (invisibles); los quité.')
+    if clave != clave_cruda:
+        print('  ⚠ SUPABASE_ANON_KEY traía caracteres raros (invisibles); los quité.')
 
     for valor, nombre in ((url, 'SUPABASE_URL'), (clave, 'SUPABASE_ANON_KEY')):
         if "'" in valor or '\\' in valor or '\n' in valor:

@@ -36,8 +36,9 @@ REGISTRARSE                            INICIAR SESIÓN
 
 | | Regla | Dónde se revisa |
 |---|---|---|
-| **Usuario** | 5 a 15 caracteres. Letras, números, `_` y `-`. Sin espacios. | En el navegador (`REGLAS.usuario`) y otra vez en la base (`usuario_formato`, `usuario_libre`) |
-| **Contraseña** | Más de 5 caracteres. Al menos una MAYÚSCULA, una minúscula y un número. Solo letras, números y estos signos: `_` `-` `.` `/` | Solo en el navegador (`evaluarClave`, con la lista que se pinta en verde mientras escribes) |
+| **Usuario** | 5 a 20 caracteres. Letras, números, `_`, `-` y `.`. Sin espacios. Único (no se puede repetir). | En el navegador (`REGLAS.usuario`) y otra vez en la base (`usuario_formato`, `usuario_libre`) |
+| **Contraseña** | Al menos 5 caracteres. Al menos una MAYÚSCULA y una minúscula. Solo letras, números y estos signos: `_` `-` `.` | Solo en el navegador (`evaluarClave`, con la lista que se pinta en verde mientras escribes) |
+| **Correo** | Tiene que ser de un dominio real conocido (gmail.com, hotmail.com, outlook.com, yahoo.com, etc.) | Solo en el navegador (`REGLAS.correo`, lista `DOMINIOS_CORREO_VALIDOS`) |
 
 El usuario se elige **una sola vez**, justo después de comprobar el correo al
 registrarte. De ahí en adelante es fijo — no cambia con cada correo, como sí
@@ -89,10 +90,11 @@ usuario?» (`correo_por_usuario`, sin sesión — se usa justo para poder
 conseguirla) y con ese correo intenta el login de siempre
 (`/auth/v1/token?grant_type=password`).
 
-Si el usuario no existe, o la contraseña no es la que le corresponde, la
-respuesta es **exactamente la misma en los dos casos**: «Tu usuario o tu
-contraseña no coinciden.» No hay forma de usar el mensaje de error para
-adivinar si un usuario existe.
+Si el usuario no existe, la pantalla dice «Ese usuario no existe. Revisa que
+esté bien escrito.» Si el usuario sí existe pero la contraseña no es la que
+le corresponde, dice «Tu contraseña no es correcta.» Es decisión explícita
+del proyecto: se prefiere un mensaje útil sobre esconder si un usuario
+existe (ver el aparte de abajo).
 
 ### Sobre `correo_por_usuario`: sí, revela que un usuario existe
 
@@ -162,7 +164,7 @@ siempre**: usuario y esa misma contraseña. El formulario de login no le
 exige el formato nuevo a nadie (`usuario-login` y `clave-login`, en
 `REGLAS`, solo piden que no vengan vacíos).
 
-Lo que sí exige el formato nuevo — 5 a 15 caracteres, sin punto — es
+Lo que sí exige el formato nuevo — 5 a 20 caracteres, con punto permitido — es
 **crear** un usuario (`usuario_formato`, `usuario_libre`, `fijar_usuario`) y
 **poner** una contraseña nueva (al registrarse, al cambiarla, o al
 recuperarla). Una cuenta vieja se pasa al formato nuevo sola, la primera vez
