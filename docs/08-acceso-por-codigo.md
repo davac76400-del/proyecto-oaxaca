@@ -236,6 +236,16 @@ El `007_usuario_contrasena.sql` es el que trae todo lo de este documento
 (usuario+contraseña); sin aplicarlo, la app sigue mostrando las pantallas
 nuevas pero la base las rechaza.
 
+> **Ya están aplicadas** en el proyecto `agrointegra`
+> (`pnexvkjnwbyaiwcwyrev`), el 12 de septiembre de 2026, las siete en orden.
+> Comprobado ahí mismo: la tabla `perfiles` con sus doce columnas y RLS
+> encendido; las tres políticas solo para `authenticated` y ninguna de
+> DELETE; `anon` puede llamar `usuario_libre`, `correo_por_usuario` y
+> `usar_recuperacion`, y **no** puede llamar `fijar_usuario`, `fijar_giro`,
+> `fijar_recuperacion` ni `crear_perfil`. El `dist/` y el `publicar/` de
+> este repositorio ya se construyeron con la URL y la llave anon de ese
+> proyecto, así que el botón de registrarse ya no sale apagado.
+
 ### Los avisos que quedan, y por qué se quedan
 
 El revisor de seguridad de Supabase marca varios avisos del tipo «esta
@@ -306,8 +316,10 @@ servidor real de `backend/servidor.js`):
 - **Que el correo salga de verdad.** Esta máquina tiene bloqueada la salida
   a `supabase.com`. Eso lo tienes que ver tú: `npm start`, tu propio correo,
   y comprobar que llega el código.
-- **La migración `007` contra una base de Supabase real.** Se revisó a mano
-  contra el esquema de `backend/schema.sql` y las migraciones anteriores,
-  pero no hay credenciales de un proyecto real en este entorno para
-  aplicarla y confirmarlo. Aplícala primero en un proyecto de prueba si
-  quieres verlo con tus propios ojos antes de tocar el de producción.
+- **Que alguien se registre de verdad, de punta a punta.** Las siete
+  migraciones ya están aplicadas en `agrointegra` y se comprobaron ahí los
+  permisos, las políticas y los dos formatos de usuario (ver arriba). Lo que
+  no se pudo hacer desde esta máquina es la vuelta completa —correo → código
+  → usuario y contraseña— porque la salida a `supabase.co` está bloqueada
+  aquí. Eso es de un minuto para ti: `npm start`, tu propio correo, y a ver
+  si llega.
