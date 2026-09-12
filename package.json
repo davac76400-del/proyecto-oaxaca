@@ -8,7 +8,7 @@
     "revisar": "node revisar.js",
     "start": "node backend/servidor.js",
     "app": "node backend/servidor.js",
-    "build": "cd frontend && python3 build.py",
+    "build": "cd frontend && npm install --production && python3 build.py",
     "construir": "cd frontend && python3 build.py"
   },
   "engines": {
