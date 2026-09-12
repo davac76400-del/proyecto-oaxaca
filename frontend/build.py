@@ -35,7 +35,7 @@ CONFIG   = os.path.join(AQUI, 'tailwind.config.js')
 ENTRADA  = os.path.join(AQUI, 'entrada.css')
 SALIDA_CSS = os.path.join(AQUI, 'salida.css')
 CHAPULIN = os.path.join(RAIZ, 'assets', 'chapulin_04_suave_ACTUAL.webp')
-DESTINO  = os.path.join(RAIZ, 'dist', 'OaxIntegra-IA-app.html')
+DESTINO  = os.path.join(RAIZ, 'dist', 'index.html')
 
 # Etiquetas que no necesitan cierre
 VACIAS = {
