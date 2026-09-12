@@ -90,11 +90,29 @@ usuario?» (`correo_por_usuario`, sin sesión — se usa justo para poder
 conseguirla) y con ese correo intenta el login de siempre
 (`/auth/v1/token?grant_type=password`).
 
-Si el usuario no existe, la pantalla dice «Ese usuario no existe. Revisa que
-esté bien escrito.» Si el usuario sí existe pero la contraseña no es la que
-le corresponde, dice «Tu contraseña no es correcta.» Es decisión explícita
-del proyecto: se prefiere un mensaje útil sobre esconder si un usuario
-existe (ver el aparte de abajo).
+Esa pregunta se hace **mientras la persona escribe su usuario**, no solo al
+darle a Entrar: si la cuenta no existe, el campo lo dice ahí mismo («No hay
+ninguna cuenta con ese usuario») y no se queda marcado como válido. Antes se
+pintaba de válido con solo tener letras, y la persona se enteraba de que su
+usuario estaba mal escrito hasta después de teclear la contraseña — con un
+error que parecía ser de la contraseña.
+
+Los tres fallos se dicen por separado, a propósito:
+
+| Qué pasó | Qué dice la pantalla |
+|---|---|
+| No existe ninguna cuenta con ese usuario | «No hay ninguna cuenta con ese usuario. Revisa que esté bien escrito, o créala desde *Registrarme*.» |
+| La cuenta existe, la contraseña no coincide (400 de Supabase) | «Tu contraseña no es correcta.» |
+| No se pudo ni preguntar: le falta una función a la base (404), un permiso mal puesto (401/403), o no hay señal | «El acceso no está terminado de instalar en el servidor…», nombrando la migración `009` |
+
+Ese tercer caso es el que más tiempo costó en la práctica: antes se confundía
+con «ese usuario no existe», así que la persona revisaba cómo había escrito su
+usuario mientras el problema estaba en el servidor. Lo mismo con el 429 de
+Supabase por intentar muchas veces, que se contaba como «contraseña
+incorrecta» y dejaba a la gente cambiando una contraseña que estaba bien.
+
+Distinguir el primer caso es decisión explícita del proyecto: se prefiere un
+mensaje útil sobre esconder si un usuario existe (ver el aparte de abajo).
 
 ### Sobre `correo_por_usuario`: sí, revela que un usuario existe
 
@@ -233,20 +251,55 @@ solo sube de un millón de combinaciones a cien millones.
 
 ### 3 · Las tablas
 
-Los siete archivos de `backend/migraciones/`, en orden, del `001` al `007`.
+Los archivos de `backend/migraciones/`, en orden, del `001` al `009`.
 El `007_usuario_contrasena.sql` es el que trae todo lo de este documento
 (usuario+contraseña); sin aplicarlo, la app sigue mostrando las pantallas
 nuevas pero la base las rechaza.
 
-> **Ya están aplicadas** en el proyecto `agrointegra`
-> (`pnexvkjnwbyaiwcwyrev`), el 12 de septiembre de 2026, las siete en orden.
-> Comprobado ahí mismo: la tabla `perfiles` con sus doce columnas y RLS
-> encendido; las tres políticas solo para `authenticated` y ninguna de
-> DELETE; `anon` puede llamar `usuario_libre`, `correo_por_usuario` y
-> `usar_recuperacion`, y **no** puede llamar `fijar_usuario`, `fijar_giro`,
-> `fijar_recuperacion` ni `crear_perfil`. El `dist/` y el `publicar/` de
-> este repositorio ya se construyeron con la URL y la llave anon de ese
-> proyecto, así que el botón de registrarse ya no sale apagado.
+**Si solo vas a correr una, corre la `009_acceso_completo.sql`.** Existe justo
+porque aplicar migraciones a mano, una por una en el panel, no deja forma de
+saber después cuáles llegaron de verdad. La `009` deja el acceso completo sin
+importar qué se aplicó antes: rehace `usuario_libre`, `fijar_usuario` y
+`correo_por_usuario`, y —esto es lo que ninguna anterior podía garantizar—
+fija sus permisos de forma **explícita**, con `GRANT` y `REVOKE`. Se puede
+correr las veces que se quiera.
+
+El hueco que tapa era serio y callado: `correo_por_usuario` **solo** se crea
+en la `007`, y la app la llama en cada inicio de sesión (Supabase entra con
+correo, no con usuario). Si la `007` no llegó, esa función no existe,
+PostgREST contesta 404, y la pantalla decía «ese usuario no existe» aunque la
+cuenta estuviera ahí — con el usuario buscando el error en su propio nombre y
+el administrador buscándolo en el lado equivocado.
+
+La `009` termina imprimiendo una tabla de comprobación. Lo que tiene que
+salir:
+
+```
+correo_por_usuario  | anon puede: true  | authenticated puede: true
+fijar_usuario       | anon puede: false | authenticated puede: true
+usuario_libre       | anon puede: true  | authenticated puede: true
+```
+
+Si una línea no aparece, esa función no se creó y hay que mirar el error de
+más arriba en el panel.
+
+> **Estado en el proyecto `agrointegra`** (`pnexvkjnwbyaiwcwyrev`):
+> la `001` a la `007` se aplicaron el 12 de septiembre de 2026, y la `008`
+> ese mismo día. Comprobado entonces: la tabla `perfiles` con sus doce
+> columnas y RLS encendido; las tres políticas solo para `authenticated` y
+> ninguna de DELETE; `anon` puede llamar `usuario_libre`,
+> `correo_por_usuario` y `usar_recuperacion`, y **no** puede llamar
+> `fijar_usuario`, `fijar_giro`, `fijar_recuperacion` ni `crear_perfil`.
+>
+> La **`009` queda pendiente de aplicar**. No se pudo hacer desde aquí: el
+> entorno donde corre este agente no alcanza `pnexvkjnwbyaiwcwyrev`
+> (el proxy de red contesta 403 a ese dominio) y el MCP de Supabase de esta
+> sesión solo ve un proyecto viejo e inactivo, no este. Hay que pegarla en el
+> editor SQL del panel, como las demás.
+>
+> El `dist/` y el `publicar/` de este repositorio ya se construyeron con la
+> URL y la llave anon de ese proyecto, así que el botón de registrarse ya no
+> sale apagado.
 
 ### Los avisos que quedan, y por qué se quedan
 

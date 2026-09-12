@@ -198,7 +198,6 @@ console.log('→ Ensamblando…');
 const final = src.replace('/*__TAILWIND__*/', css).replace('__CHAPULIN__', chapulinUri);
 
 console.log('→ Validando…');
-// Verificación básica de balance de <script>
 const scriptOpen = (final.match(/<script(?:\s[^>]*)?>/g) || []).length;
 const scriptClose = (final.match(/<\/script>/g) || []).length;
 if (scriptOpen !== scriptClose) {
@@ -206,7 +205,30 @@ if (scriptOpen !== scriptClose) {
   process.exit(1);
 }
 console.log('  HTML: balanceado');
-console.log('  JavaScript: sintaxis correcta');
+
+/* Antes esta línea IMPRIMÍA «JavaScript: sintaxis correcta» sin haber
+   revisado nada: solo había contado etiquetas <script>. Un paréntesis sin
+   cerrar pasaba el build, subía a Vercel, y allá la página cargaba con TODO
+   el JavaScript muerto — los botones visibles pero sin responder, sin más
+   pista que un error en la consola del navegador. Ahora se compila de verdad
+   cada bloque (compilar, no ejecutar: no hay DOM aquí). */
+let bloques = 0;
+const reScript = /<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g;
+let mScript;
+while ((mScript = reScript.exec(final)) !== null) {
+  const codigo = mScript[1];
+  if (!codigo.trim()) { continue; }
+  bloques++;
+  try {
+    new (require('vm').Script)(codigo, { filename: `bloque-${bloques}.js` });
+  } catch (e) {
+    console.error(`\n✗ ALTO. El bloque de JavaScript n.º ${bloques} no compila:`);
+    console.error(`    ${e.message}`);
+    console.error('\n  Así subido, la página carga pero los botones no responden.');
+    process.exit(1);
+  }
+}
+console.log(`  JavaScript: ${bloques} bloque(s), sintaxis correcta ✓`);
 
 fs.writeFileSync(OUTPUT_FILE, final, 'utf-8');
 const kb = (Buffer.byteLength(final, 'utf-8') / 1024).toFixed(1);

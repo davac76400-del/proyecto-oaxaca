@@ -2062,6 +2062,11 @@
             <input id="usuario-entrar" type="text" class="campo" placeholder="Tu usuario"
                    autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20"
                    data-regla="usuario-login">
+            <!-- Dice si la cuenta existe mientras se escribe. Antes el campo
+                 se pintaba de «válido» con solo tener letras, y la persona se
+                 enteraba de que el usuario no existía hasta después de
+                 escribir la contraseña y darle a Entrar. -->
+            <p class="text-[0.82rem] mt-1.5" id="pista-usuario-entrar" hidden></p>
             <p class="error-campo" id="error-usuario-entrar" hidden></p>
           </div>
 
@@ -2225,6 +2230,12 @@
             <span id="girador-crear-cuenta" class="girador" hidden></span>
           </button>
         </form>
+
+        <!-- Este paso no tenía salida: si algo salía mal aquí, la única forma
+             de regresar era recargar la página. -->
+        <div class="flex flex-wrap gap-3 mt-4">
+          <button type="button" id="btn-cc-volver" class="btn-suave" style="margin:0">Volver al inicio</button>
+        </div>
       </div>
 
       <!-- ============ NUEVA CONTRASEÑA (al recuperar) ============ -->
@@ -2275,6 +2286,21 @@
             <span id="girador-nueva-clave" class="girador" hidden></span>
           </button>
         </form>
+
+        <!-- Poder QUEDARSE con la contraseña de antes, no solo cambiarla.
+             El código del correo ya comprobó que la cuenta es suya, así que
+             aquí ya está dentro: si en el camino se acordó de su contraseña,
+             no tiene por qué inventarse una nueva a la fuerza. -->
+        <p class="text-[0.82rem] text-tenue leading-relaxed mt-5 mb-3">
+          ¿Ya te acordaste de tu contraseña? Entonces no hace falta cambiarla:
+          entra con la que tenías.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <button type="button" id="btn-nc-conservar" class="btn-suave" style="margin:0">
+            Entrar sin cambiarla
+          </button>
+          <button type="button" id="btn-nc-volver" class="btn-suave" style="margin:0">Volver al inicio</button>
+        </div>
       </div>
 
       <!-- ============ OLVIDÉ MI CONTRASEÑA ============ -->
@@ -2967,9 +2993,10 @@
      ========================================================= */
   /* La contraseña se evalúa requisito por requisito (no solo un sí/no) para
      poder pintar la lista de la vista en verde conforme se va cumpliendo.
-     Mismas reglas que revisa la base en 007_usuario_contrasena.sql: más de
-     5 caracteres, una mayúscula, una minúscula, un número, y solo letras,
-     números y estos signos: _ - . / */
+     Las reglas: al menos 5 caracteres, una MAYÚSCULA, una minúscula, y solo
+     letras, números y estos tres signos: . - _
+     Quien la guarda es Supabase (cifrada); esta base nunca la ve, así que
+     estas reglas viven solo aquí. */
   function evaluarClave(v) {
     v = v || '';
     return {
@@ -3009,17 +3036,52 @@
     var dominio = v.split('@')[1] || '';
     return DOMINIOS_CORREO_VALIDOS.indexOf(dominio) !== -1;
   }
+  /* Lo último que contestó la base sobre el usuario que se está escribiendo.
+     Vive aquí arriba porque las REGLAS de abajo lo consultan: sin esto, un
+     usuario que no existe (al entrar) o que ya es de alguien (al registrarse)
+     se pintaba de verde igual, y la persona solo se enteraba al final.
+       estado · 'libre' | 'ocupado' | 'desconocido' (no se pudo preguntar)
+       existe · true | false | null (no se pudo preguntar) */
+  var usuarioNuevoVisto  = { nombre: '', estado: 'desconocido' };
+  var usuarioEntrarVisto = { nombre: '', existe: null };
+
   var REGLAS = {
     texto:     { probar: function (v) { return v.trim().length >= 3; },  error: 'Escribe al menos 3 letras.' },
     correo:    { probar: correoValido, error: 'Usa un correo real: gmail.com, hotmail.com, outlook.com, yahoo.com…' },
     mensaje:   { probar: function (v) { return v.trim().length >= 10; }, error: 'Cuéntanos un poco más (mínimo 10 letras).' },
-    /* El usuario para CREAR cuenta: si no cumple el formato, ni se manda. */
-    usuario:   { probar: function (v) { return /^[A-Za-z0-9_.-]{5,20}$/.test(v.trim()); }, error: 'De 5 a 20 caracteres: letras, números, «_», «-» y «.». Sin espacios.' },
+    /* El usuario para CREAR cuenta: formato, y además que la base no haya
+       dicho ya que está ocupado. */
+    usuario: {
+      probar: function (v) {
+        v = v.trim();
+        if (!/^[A-Za-z0-9_.-]{5,20}$/.test(v)) { return false; }
+        return !(usuarioNuevoVisto.nombre === v && usuarioNuevoVisto.estado === 'ocupado');
+      },
+      error: function () {
+        var v = (($('#cc-usuario') || {}).value || '').trim();
+        if (usuarioNuevoVisto.nombre === v && usuarioNuevoVisto.estado === 'ocupado') {
+          return 'Ese usuario ya lo tiene alguien. Prueba otro.';
+        }
+        return 'De 5 a 20 caracteres: letras, números, «_», «-» y «.». Sin espacios.';
+      }
+    },
     /* El usuario para ENTRAR: aquí NO se exige el formato nuevo, porque
        cuentas de antes de esta versión pueden tener un usuario con el
-       formato viejo (con punto, más largo). Si no existe, ya lo dice el
-       servidor; el navegador solo pide que no esté vacío. */
-    'usuario-login': { probar: function (v) { return v.trim().length > 0; }, error: 'Escribe tu usuario.' },
+       formato viejo (con punto, más largo). Lo que sí se exige es que la
+       cuenta exista, cuando se alcanzó a preguntar: así el campo no dice
+       «bien» a un usuario con el que es imposible entrar. */
+    'usuario-login': {
+      probar: function (v) {
+        v = v.trim();
+        if (!v.length) { return false; }
+        return !(usuarioEntrarVisto.nombre === v && usuarioEntrarVisto.existe === false);
+      },
+      error: function () {
+        var v = (($('#usuario-entrar') || {}).value || '').trim();
+        if (!v.length) { return 'Escribe tu usuario.'; }
+        return 'No hay ninguna cuenta con ese usuario. Revisa que esté bien escrito.';
+      }
+    },
     clave:     { probar: function (v) { return claveValida(v); }, error: 'Tu contraseña todavía no cumple lo de la lista de abajo.' },
     /* La clave para ENTRAR: mismo motivo que usuario-login. Cuentas viejas
        tienen como contraseña el código numérico de siempre, que no cumple
@@ -3048,6 +3110,15 @@
         /* la regla puede traer texto fijo o una función que lo arma */
         caja.textContent = (typeof regla.error === 'function') ? regla.error() : regla.error;
       }
+    } else {
+      /* Dejó de estar bien, pero todavía no toca reclamar porque la persona
+         sigue escribiendo. Antes este caso no hacía NADA, y por eso un campo
+         se quedaba pintado de verde con un texto que ya no era válido: basta
+         con que lo haya sido un momento antes. Sin marca es lo honesto
+         mientras no se sabe. */
+      campo.removeAttribute('data-valido');
+      campo.removeAttribute('aria-invalid');
+      if (caja) { caja.hidden = true; caja.textContent = ''; }
     }
     return bien;
   }
@@ -3350,6 +3421,30 @@
     return (contexto || 'No se pudo') + ': ' + m;
   }
 
+  /* Cuando lo que falla es una FUNCIÓN DE LA BASE, no el login en sí.
+     El caso que de verdad pasa es el 404: la función no está instalada en
+     Supabase (una migración que no se alcanzó a aplicar). Hasta ahora eso se
+     confundía con «ese usuario no existe», que manda a la persona a buscar un
+     error que no cometió — y al administrador a revisar el lado equivocado.
+     Aquí se dice con nombre y apellido. */
+  function explicarFalloRpc(err, queIba) {
+    var estado = err && err.estado;
+    if (estado === 404) {
+      return 'El acceso no está terminado de instalar en el servidor: le falta una ' +
+             'función a la base de datos. Avísale a quien administra el sitio ' +
+             '(falta aplicar la migración 009).';
+    }
+    if (estado === 401 || estado === 403) {
+      return 'El servidor no me deja consultar las cuentas. Avísale a quien administra ' +
+             'el sitio (permisos de la migración 009).';
+    }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return 'No hay internet. Conéctate y vuelve a intentar.';
+    }
+    return 'No pude conectarme para ' + (queIba || 'hacer eso') +
+           '. Revisa tu internet y vuelve a intentar.';
+  }
+
   /* --- mantener viva la sesión --------------------------------------------- */
   function refrescarSesion() {
     var t = leerTokens();
@@ -3521,6 +3616,38 @@
     verVistaAuth('entrar'); $('#usuario-entrar').focus();
   });
 
+  /* Dejar a medias el registro (o la recuperación) y volver al inicio.
+     Los tokens se borran a propósito: son de una sesión de VERIFICACIÓN, de
+     una cuenta que todavía no tiene usuario ni contraseña propios. Dejarlos
+     vivos haría que el siguiente arranque creyera que ya hay alguien dentro y
+     dejara a esa persona atorada a media pantalla de registro. */
+  function abandonarVerificacion() {
+    if (relojRefresco) { clearTimeout(relojRefresco); relojRefresco = null; }
+    sesion = null;
+    borrarTokens();
+    almacen.borrar(CLAVE_SESION);
+    correoPendiente = '';
+    codCorreo.limpiar();
+    ['#form-crear-cuenta', '#form-nueva-clave'].forEach(function (s) {
+      var f = $(s); if (f) { f.reset(); }
+    });
+    var pista = $('#pista-usuario');
+    if (pista) { pista.hidden = true; }
+    usuarioNuevoVisto = { nombre: '', estado: 'desconocido' };
+    verVistaAuth('inicio');
+  }
+  $('#btn-cc-volver').addEventListener('click', abandonarVerificacion);
+  $('#btn-nc-volver').addEventListener('click', abandonarVerificacion);
+
+  /* «Entrar sin cambiarla»: el código del correo ya comprobó que la cuenta es
+     suya, así que la sesión ya sirve y no hay por qué tocar la contraseña.
+     Existe porque salir de esa pantalla obligaba a cambiarla, incluso si en el
+     camino la persona se acordó de la que tenía. */
+  $('#btn-nc-conservar').addEventListener('click', function () {
+    if (!sesion || !sesion.usuario) { abandonarVerificacion(); return; }
+    entrarDeLleno();
+  });
+
   /* ---------------------------------------------------------------
      ENTRAR  ·  usuario + contraseña
      ---------------------------------------------------------------
@@ -3541,12 +3668,27 @@
     var clave = campoClave.value;
 
     llamarFuncion('correo_por_usuario', { nombre: usuario }, true)
+      .catch(function (err) {
+        /* No se pudo ni PREGUNTAR por la cuenta: le falta la función a la base,
+           un permiso mal puesto, o no hay señal. Eso no es «ese usuario no
+           existe», y decirlo así manda a la persona a revisar cómo escribió su
+           usuario cuando el problema está en el servidor. */
+        throw { noSePudoPreguntar: true, original: err };
+      })
       .then(function (r) {
         if (!r || !r.ok || !r.correo) { throw { usuarioNoExiste: true }; }
         return pedirAuth('/token?grant_type=password', {
           metodo: 'POST',
           cuerpo: { email: r.correo, password: clave }
-        }).catch(function (err) { throw { claveIncorrecta: true, original: err }; });
+        }).catch(function (err) {
+          /* Supabase contesta 400 cuando la contraseña no coincide. Cualquier
+             otra cosa —429 por intentar mucho, 500, sin internet— es otro
+             problema, y tiene su propio mensaje más abajo: decirle «tu
+             contraseña no es correcta» a quien la tiene bien lo deja
+             cambiándola en vano. */
+          if (err && err.estado === 400) { throw { claveIncorrecta: true, original: err }; }
+          throw err;
+        });
       })
       .then(function (datos) {
         guardarTokens(datos);
@@ -3560,9 +3702,16 @@
         boton.disabled = false; girador.hidden = true; texto.textContent = 'Entrar';
         caja.hidden = false;
         if (err && err.usuarioNoExiste) {
-          caja.textContent = 'Ese usuario no existe. Revisa que esté bien escrito.';
+          caja.textContent = 'No hay ninguna cuenta con ese usuario. Revisa que esté bien ' +
+                             'escrito, o créala desde «Registrarme».';
+          /* Que el campo quede marcado: así la pista de arriba y el color del
+             borde dicen lo mismo que este mensaje. */
+          usuarioEntrarVisto = { nombre: usuario, existe: false };
+          validarCampo(campoUsu, true);
         } else if (err && err.claveIncorrecta) {
           caja.textContent = 'Tu contraseña no es correcta.';
+        } else if (err && err.noSePudoPreguntar) {
+          caja.textContent = explicarFalloRpc(err.original, 'buscar tu cuenta');
         } else {
           caja.textContent = explicarFalloAuth(err, 'No pude entrar');
         }
@@ -3603,25 +3752,96 @@
      PASO 3: elegir usuario y contraseña (comprobación de usuario libre
      en vivo, igual que antes, solo que ahora vive en este paso)
      --------------------------------------------------------------- */
+  function pintarPista(selector, texto, color) {
+    var pista = $(selector);
+    if (!pista) { return; }
+    pista.hidden = false;
+    pista.textContent = texto;
+    pista.style.color = color;
+  }
+
   var relojUsuario = null;
   $('#cc-usuario').addEventListener('input', function () {
+    var campo = $('#cc-usuario');
     var pista = $('#pista-usuario');
-    var v = $('#cc-usuario').value.trim();
+    var v = campo.value.trim();
     if (relojUsuario) { clearTimeout(relojUsuario); relojUsuario = null; }
+    usuarioNuevoVisto = { nombre: v, estado: 'desconocido' };
     if (!/^[A-Za-z0-9_.-]{5,20}$/.test(v)) { pista.hidden = true; return; }
-    pista.hidden = false;
-    pista.textContent = 'Comprobando si está libre…';
-    pista.style.color = 'rgb(var(--tenue))';
+    pintarPista('#pista-usuario', 'Comprobando si está libre…', 'rgb(var(--tenue))');
     relojUsuario = setTimeout(function () {
       llamarFuncion('usuario_libre', { nombre: v }, true)
-        .then(function (libre) {
-          if ($('#cc-usuario').value.trim() !== v) { return; }
-          pista.hidden = false;
-          pista.textContent = (libre ? '✓ ' + v + ' está libre.'
-                                     : '✗ ' + v + ' ya lo tiene alguien. Prueba otro.');
-          pista.style.color = libre ? 'rgb(var(--verde))' : 'rgb(var(--naranja))';
+        .then(function (r) {
+          if (campo.value.trim() !== v) { return; }
+          /* La 009 contesta {ok, libre, motivo}; antes era un booleano pelón.
+             Se aceptan los dos, para que la app no dependa de cuál de las dos
+             versiones de la función tenga la base en este momento. */
+          var libre = (r && typeof r === 'object') ? !!r.libre : !!r;
+          usuarioNuevoVisto = { nombre: v, estado: libre ? 'libre' : 'ocupado' };
+          if (libre) {
+            pintarPista('#pista-usuario', '✓ ' + v + ' está libre.', 'rgb(var(--verde))');
+          } else {
+            /* La pista se calla y habla el error del campo: así el «ya lo tiene
+               alguien» sale una vez, en el renglón donde esta app pone siempre
+               los errores, y no dos veces en dos lugares distintos. */
+            pista.hidden = true;
+          }
+          /* mostrar = true a propósito: esto ya no es «a lo mejor no terminó de
+             escribir», es lo que contestó la base. Y hay que volver a validar
+             para que el campo deje de estar en verde AHORA, no al mandar. */
+          validarCampo(campo, true);
         })
-        .catch(function () { pista.hidden = true; });
+        .catch(function (err) {
+          if (campo.value.trim() !== v) { return; }
+          /* Antes esto escondía la pista sin más: la persona se quedaba
+             esperando un «✓» que nunca llegaba y creía que su usuario estaba
+             bien. Ahora se dice que no se pudo preguntar, y se deja seguir:
+             si está ocupado, fijar_usuario lo rechaza al guardar. */
+          usuarioNuevoVisto = { nombre: v, estado: 'desconocido' };
+          pintarPista('#pista-usuario', explicarFalloRpc(err, 'comprobar tu usuario'),
+                      'rgb(var(--naranja))');
+        });
+    }, 500);
+  });
+
+  /* ¿Existe esta cuenta? Se pregunta mientras se escribe el usuario en la
+     pantalla de entrar. Es lo que evita que el campo diga «bien» a un usuario
+     que no existe: antes solo se enteraba después de escribir la contraseña,
+     darle a Entrar, y recibir un error que parecía ser de la contraseña. */
+  var relojUsuarioEntrar = null;
+  $('#usuario-entrar').addEventListener('input', function () {
+    var campo = $('#usuario-entrar');
+    var pista = $('#pista-usuario-entrar');
+    var v = campo.value.trim();
+    if (relojUsuarioEntrar) { clearTimeout(relojUsuarioEntrar); relojUsuarioEntrar = null; }
+    usuarioEntrarVisto = { nombre: v, existe: null };
+    /* Menos de 4 no lo acepta correo_por_usuario: no vale gastar la consulta. */
+    if (v.length < 4) { pista.hidden = true; return; }
+    pintarPista('#pista-usuario-entrar', 'Buscando tu cuenta…', 'rgb(var(--tenue))');
+    relojUsuarioEntrar = setTimeout(function () {
+      llamarFuncion('correo_por_usuario', { nombre: v }, true)
+        .then(function (r) {
+          if (campo.value.trim() !== v) { return; }
+          var existe = !!(r && r.ok && r.correo);
+          usuarioEntrarVisto = { nombre: v, existe: existe };
+          if (existe) {
+            pintarPista('#pista-usuario-entrar', '✓ Cuenta encontrada.', 'rgb(var(--verde))');
+          } else {
+            /* Igual que arriba: el «no hay ninguna cuenta» lo dice el error del
+               campo, no la pista, para que salga una sola vez. */
+            pista.hidden = true;
+          }
+          validarCampo(campo, true);
+        })
+        .catch(function (err) {
+          if (campo.value.trim() !== v) { return; }
+          /* No se pudo preguntar. Se deja en null (no en false) a propósito:
+             null no bloquea el botón de Entrar, así que si el problema es de
+             red la persona todavía puede intentar entrar de verdad. */
+          usuarioEntrarVisto = { nombre: v, existe: null };
+          pintarPista('#pista-usuario-entrar', explicarFalloRpc(err, 'buscar tu cuenta'),
+                      'rgb(var(--naranja))');
+        });
     }, 500);
   });
 
