@@ -2203,7 +2203,7 @@
               </button>
             </div>
             <ul class="lista-requisitos" id="requisitos-cc-clave" aria-live="polite">
-              <li data-req="largo">Al menos 5 caracteres</li>
+              <li data-req="largo">Al menos 6 caracteres</li>
               <li data-req="mayus">Una letra MAYÚSCULA</li>
               <li data-req="minus">Una letra minúscula</li>
               <li data-req="charset">Solo letras, números y <code>. - _</code></li>
@@ -2259,7 +2259,7 @@
               </button>
             </div>
             <ul class="lista-requisitos" id="requisitos-nc-clave" aria-live="polite">
-              <li data-req="largo">Al menos 5 caracteres</li>
+              <li data-req="largo">Al menos 6 caracteres</li>
               <li data-req="mayus">Una letra MAYÚSCULA</li>
               <li data-req="minus">Una letra minúscula</li>
               <li data-req="charset">Solo letras, números y <code>. - _</code></li>
@@ -2640,7 +2640,7 @@
             </button>
           </div>
           <ul class="lista-requisitos" id="requisitos-ac-clave-nueva" aria-live="polite">
-            <li data-req="largo">Al menos 5 caracteres</li>
+            <li data-req="largo">Al menos 6 caracteres</li>
             <li data-req="mayus">Una letra MAYÚSCULA</li>
             <li data-req="minus">Una letra minúscula</li>
             <li data-req="charset">Solo letras, números y <code>. - _</code></li>
@@ -2993,14 +2993,19 @@
      ========================================================= */
   /* La contraseña se evalúa requisito por requisito (no solo un sí/no) para
      poder pintar la lista de la vista en verde conforme se va cumpliendo.
-     Las reglas: al menos 5 caracteres, una MAYÚSCULA, una minúscula, y solo
+     Las reglas: al menos 6 caracteres, una MAYÚSCULA, una minúscula, y solo
      letras, números y estos tres signos: . - _
-     Quien la guarda es Supabase (cifrada); esta base nunca la ve, así que
-     estas reglas viven solo aquí. */
+     Quien la guarda es Supabase (cifrada); esta base nunca la ve. El largo
+     mínimo NO es un gusto de esta app: es el que exige Supabase Auth, y por
+     eso no se puede bajar desde aquí. */
   function evaluarClave(v) {
     v = v || '';
     return {
-      largo:   v.length >= 5,
+      /* 6 y no 5: Supabase Auth rechaza cualquier contraseña más corta de 6
+         («Password should be at least 6 characters»). Con 5 aquí, el registro
+         moría en el último paso — y peor, el usuario ya había quedado
+         guardado por fijar_usuario, así que la cuenta se quedaba a medias. */
+      largo:   v.length >= 6,
       mayus:   /[A-Z]/.test(v),
       minus:   /[a-z]/.test(v),
       charset: v.length > 0 && /^[A-Za-z0-9_.-]+$/.test(v)

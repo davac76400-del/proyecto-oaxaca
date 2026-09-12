@@ -37,7 +37,7 @@ REGISTRARSE                            INICIAR SESIÓN
 | | Regla | Dónde se revisa |
 |---|---|---|
 | **Usuario** | 5 a 20 caracteres. Letras, números, `_`, `-` y `.`. Sin espacios. Único (no se puede repetir). | En el navegador (`REGLAS.usuario`) y otra vez en la base (`usuario_formato`, `usuario_libre`) |
-| **Contraseña** | Al menos 5 caracteres. Al menos una MAYÚSCULA y una minúscula. Solo letras, números y estos signos: `_` `-` `.` | Solo en el navegador (`evaluarClave`, con la lista que se pinta en verde mientras escribes) |
+| **Contraseña** | Al menos 6 caracteres. Al menos una MAYÚSCULA y una minúscula. Solo letras, números y estos signos: `_` `-` `.` | Solo en el navegador (`evaluarClave`, con la lista que se pinta en verde mientras escribes). Los 6 los exige Supabase Auth: con 5 rechazaba la contraseña en el último paso del registro |
 | **Correo** | Tiene que ser de un dominio real conocido (gmail.com, hotmail.com, outlook.com, yahoo.com, etc.) | Solo en el navegador (`REGLAS.correo`, lista `DOMINIOS_CORREO_VALIDOS`) |
 
 El usuario se elige **una sola vez**, justo después de comprobar el correo al
@@ -208,6 +208,35 @@ sigue en la base tal cual — la columna, la función `usar_recuperacion`, todo.
 como se explicó arriba. Se decidió no tocarlo a propósito: borrarlo sería
 tirar datos de cuentas reales por una característica que ya nadie llama. Si
 algún día estorba, se retira en una migración aparte, adrede.
+
+---
+
+## A qué proyecto de Supabase le habla la app
+
+Vive en **`frontend/acceso.json`**, dentro del repositorio: la dirección del
+proyecto y su *anon key*. Para mudarse a otro proyecto de Supabase se edita
+ese archivo y se vuelve a compilar. Nada más.
+
+Están en el repositorio a propósito. La *anon key* es pública por diseño —
+viaja dentro del HTML porque el navegador la necesita, y lo que de verdad
+protege los datos son las políticas RLS de `backend/migraciones`, no que esa
+llave sea secreta. Lo que **nunca** va aquí es la `service_role` ni las llaves
+de la IA: ésas son privadas, viven en `.env` y solo las lee el servidor.
+
+**Por qué dejaron de tomarse de las variables de entorno.** Antes `build.js`
+leía `SUPABASE_URL` y `SUPABASE_ANON_KEY` del entorno. En Vercel eso es lo
+único que hay (`.env` no se sube), y esas variables se quedaron apuntando a un
+proyecto de Supabase viejo. Resultado: la app se publicaba hablándole a una
+base que no tenía estas tablas. El registro moría sin decir por qué y sin que
+un solo intento llegara al proyecto bueno — en sus registros de Supabase no
+aparecía nada, solo los chequeos internos de salud. Eso costó muchas horas de
+buscar el error en el lado equivocado.
+
+Ahora manda el archivo. Si queda una variable de entorno que dice otra cosa,
+el build la ignora y lo avisa en voz alta. Y si alguna vez se mezclan la
+dirección de un proyecto con la llave de otro, el build **se detiene**: el
+`ref` del proyecto va firmado dentro de la llave, así que se comparan y no
+pueden discrepar en silencio.
 
 ---
 

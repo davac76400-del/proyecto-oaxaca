@@ -14,6 +14,7 @@ const OUTPUT_CSS = path.join(FRONTEND_DIR, 'salida.css');
 const CHAPULIN = path.join(__dirname, 'assets', 'chapulin_04_suave_ACTUAL.webp');
 const OUTPUT_FILE = path.join(DIST_DIR, 'index.html');
 const ENV_FILE = path.join(__dirname, '.env');
+const ACCESO_FILE = path.join(FRONTEND_DIR, 'acceso.json');
 
 /* --- llaves prohibidas en el HTML (nunca deben ir al navegador) --------- */
 const LLAVES_PROHIBIDAS = [
@@ -103,9 +104,47 @@ function limpiarParaCabecera(v) {
   return v.replace(/[^\x20-\x7E]/g, '');
 }
 
+/* Los datos de acceso viven en frontend/acceso.json, DENTRO del repositorio.
+   Antes solo se tomaban de las variables de entorno, y como .env no se sube,
+   en Vercel se usaban las suyas — que se quedaron apuntando a un proyecto de
+   Supabase viejo. La app se publicaba hablándole a una base sin estas tablas,
+   así que el registro moría sin que ni un solo intento llegara al proyecto
+   bueno. Manda el archivo para que lo desplegado coincida con el código. */
+function leerAcceso() {
+  if (!fs.existsSync(ACCESO_FILE)) { return {}; }
+  try {
+    return JSON.parse(fs.readFileSync(ACCESO_FILE, 'utf-8'));
+  } catch (e) {
+    console.error(`✗ ${ACCESO_FILE} no es JSON válido: ${e.message}`);
+    process.exit(1);
+  }
+}
+
+/* El «ref» del proyecto va firmado dentro de la anon key. Tiene que ser el
+   mismo subdominio de la URL: si no coinciden, se mezclaron dos proyectos y
+   eso se ve aquí, no en el navegador de quien se quiso registrar. */
+function refDeLlave(clave) {
+  const partes = clave.split('.');
+  if (partes.length !== 3) { return ''; }
+  let cuerpo = partes[1];
+  cuerpo += '='.repeat((4 - (cuerpo.length % 4)) % 4);
+  try {
+    const carga = Buffer.from(cuerpo.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8');
+    return JSON.parse(carga).ref || '';
+  } catch (e) { return ''; }
+}
+
 function resolverSupabase(src) {
-  const urlCruda = (process.env.SUPABASE_URL || leerDelEnv('SUPABASE_URL') || '').trim().replace(/\/$/, '');
-  const claveCruda = (process.env.SUPABASE_ANON_KEY || leerDelEnv('SUPABASE_ANON_KEY') || '').trim();
+  const acceso = leerAcceso();
+  const urlEntorno = (process.env.SUPABASE_URL || leerDelEnv('SUPABASE_URL') || '').trim().replace(/\/$/, '');
+  const urlCruda = (acceso.url || urlEntorno).trim().replace(/\/$/, '');
+  const claveCruda = (acceso.anon || process.env.SUPABASE_ANON_KEY || leerDelEnv('SUPABASE_ANON_KEY') || '').trim();
+
+  if (acceso.url && urlEntorno && urlEntorno !== acceso.url) {
+    console.log(`  ⚠ Hay una SUPABASE_URL en el entorno que NO se usó: ${urlEntorno}`);
+    console.log('    Manda frontend/acceso.json. Para cambiar de proyecto, edita ese archivo.');
+  }
+
   const url = limpiarParaCabecera(urlCruda);
   const clave = limpiarParaCabecera(claveCruda);
   if (url !== urlCruda) { console.log('  ⚠ SUPABASE_URL traía caracteres raros (invisibles); los quité.'); }
@@ -129,10 +168,21 @@ function resolverSupabase(src) {
     process.exit(1);
   }
 
+  const refLlave = refDeLlave(clave);
+  const refUrl = (url.match(/^https:\/\/([a-z0-9]+)\.supabase\.co/) || [])[1] || '';
+  if (refLlave && refUrl && refLlave !== refUrl) {
+    console.error('\n✗ ALTO. La URL y la anon key son de DOS proyectos distintos de Supabase:');
+    console.error(`      la URL apunta a:  ${refUrl}`);
+    console.error(`      la llave es de:   ${refLlave}`);
+    console.error('\n  Así la app se publica hablándole a una base que no tiene estas tablas,');
+    console.error('  y el registro falla sin decir por qué. Corrige frontend/acceso.json.');
+    process.exit(1);
+  }
+
   let out = src.split('__SUPABASE_URL__').join(url).split('__SUPABASE_ANON__').join(clave);
 
   if (url && clave) {
-    console.log(`  Acceso por enlace: ${url}`);
+    console.log(`  Acceso por enlace: ${url}  (proyecto ${refUrl || '?'})`);
   } else {
     console.log('  Acceso por enlace: SIN CONFIGURAR (falta SUPABASE_URL o SUPABASE_ANON_KEY)');
     console.log('    La app funciona, pero nadie podrá entrar. Mira docs/08-acceso-por-codigo.md');

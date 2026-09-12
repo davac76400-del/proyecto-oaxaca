@@ -1,0 +1,5 @@
+{
+  "_nota": "Datos de acceso PUBLICOS del proyecto de Supabase. Van a proposito en el repositorio: la anon key esta hecha para viajar en el navegador y lo que protege los datos son las politicas RLS de backend/migraciones, no el secreto de esta llave. Aqui viven porque Vercel recompila la app en cada despliegue y antes tomaba estos valores de sus propias variables de entorno, que se quedaron apuntando a un proyecto viejo: la app se publicaba hablandole a una base equivocada sin avisar. Con el dato en el repositorio, lo que se despliega siempre coincide con lo que dice el codigo. NUNCA poner aqui la service_role key ni las llaves de la IA: esas son privadas y solo las lee el servidor desde .env.",
+  "url": "https://pnexvkjnwbyaiwcwyrev.supabase.co",
+  "anon": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuZXh2a2pud2J5YWl3Y3d5cmV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNjk0MzcsImV4cCI6MjEwNDc0NTQzN30.yh7POHd5kzzpt7CpCi92NNjNHkR856SowVSzDP2cAyA"
+}
