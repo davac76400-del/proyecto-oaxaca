@@ -248,23 +248,19 @@ Supabase un enlace o números.
 
 ### Mejora 1 · que el correo traiga los números
 
-**Authentication → Emails → Magic Link**, cuerpo:
+Esto **ya está hecho**, y no por donde parecía. El plan era editar la
+plantilla de **Authentication → Emails → Magic Link** y poner `{{ .Token }}`
+en el cuerpo; en el plan gratis eso **no se puede**: el botón «Source» está en
+gris con el aviso «Set up custom SMTP to edit templates». Mientras el correo
+lo mande el servidor compartido de Supabase, las plantillas son las suyas.
 
-```html
-<p>Hola, somos de OaxIntegra IA y te enviamos tu código.</p>
+Así que el correo lo manda ahora una función nuestra, y por eso llega en
+español, diciendo OaxIntegra y con el código grande. Cómo funciona y los
+cuatro pasos para encenderlo: **`docs/10-correo-del-codigo.md`**.
 
-<p style="font-size:15px">Escribe estos números en la página:</p>
-
-<p style="font-size:34px; font-weight:bold; letter-spacing:8px; margin:18px 0">{{ .Token }}</p>
-
-<p style="font-size:14px">Este código solo comprueba que este correo es tuyo. Tu usuario y tu contraseña son aparte, y los elegiste tú.</p>
-
-<p style="font-size:13px; color:#666">Si no pediste esto, no hagas nada.</p>
-```
-
-Sin esto, quien no le dé clic al enlace del correo puede escribir el código
-que la propia app le inventa y le enseña en pantalla al darle clic — sigue
-funcionando, solo que con un paso más.
+Si esa función se apaga, vuelve el correo de fábrica —con enlace y en
+inglés— y el registro sigue funcionando igual: quien no quiera darle clic al
+enlace puede escribir el código que la propia app le enseña en pantalla.
 
 ### Mejora 2 · códigos de 8 en vez de 6
 

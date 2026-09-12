@@ -130,6 +130,29 @@ El paso 4 provoca un 429 y el 8 un 401 **a propósito**; por eso el paso 10 los
 descarta. También descarta los fallos de `fonts.googleapis.com`, que en algunas
 redes está bloqueado y no es cosa de la app.
 
+## E · El correo del código (no necesita navegador ni servidor)
+
+Prueba la función que manda el correo de OaxIntegra
+(`supabase/functions/enviar-correo/index.ts`, ver `docs/10-correo-del-codigo.md`).
+No hace falta instalar nada ni levantar nada: corre sola.
+
+```bash
+node pruebas/correo-del-codigo.mjs
+
+GUARDAR_HTML=correo.html node pruebas/correo-del-codigo.mjs   # y deja el correo para verlo
+```
+
+La función es de Deno y esto es Node, así que la prueba le quita las
+anotaciones de tipo y se queda con el manejador que la función le pasa a
+`Deno.serve`. Le manda peticiones de verdad, con Resend interceptado. Lo que
+comprueba, en tres bloques:
+
+| Bloque | Qué asegura |
+|---|---|
+| **Firma** | Que solo pase lo que venga firmado por Supabase Auth: se rechaza una firma falsa, un cuerpo manipulado, un aviso repetido (sello viejo) y uno sin cabeceras. La firma se compara contra `crypto.createHmac` de Node, una implementación aparte |
+| **Envío** | Que a Resend le llegue el código, el asunto en español y el remitente de OaxIntegra — y que **el código nunca aparezca en los logs**, ni siquiera si Resend lo devolviera dentro de su mensaje de error |
+| **Casos que rompían** | Que un aviso sin código (los `_notification`, como «cambió tu contraseña») conteste 200 y no tumbe la operación que lo disparó; y que si Resend rechaza, la app se entere en vez de dejar a alguien esperando |
+
 ## Si algo falla
 
 La prueba dice en qué paso y qué esperaba. Casi siempre es una de dos:
