@@ -53,7 +53,11 @@ const ia = require('./ia-core.js');
 
 const PUERTO  = Number(process.env.PORT || 3000);
 const CARPETA = path.join(RAIZ, 'dist');
-const INDICE  = 'OaxIntegra-IA-app.html';
+/* Los dos constructores (build.js y frontend/build.py) escriben dist/index.html.
+   Aquí seguía el nombre de antes, así que «npm start» servía un archivo que ya
+   nadie regenera: se construía, se recargaba el navegador y no se veía ningún
+   cambio, porque lo que llegaba era el build viejo que quedó en dist/. */
+const INDICE  = 'index.html';
 
 const TIPOS = {
   '.html': 'text/html; charset=utf-8',

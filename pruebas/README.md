@@ -19,13 +19,27 @@ correo es tuyo, al registrarte o al recuperar tu cuenta — el detalle completo
 está en `docs/08-acceso-por-codigo.md`).
 
 ```bash
-node pruebas/supabase-falso.js "una-llave-cualquiera"
+node pruebas/supabase-falso.js "una-llave-cualquiera-de-pruebas"
 
-SUPABASE_URL=http://localhost:54321 SUPABASE_ANON_KEY="una-llave-cualquiera" \
+SUPABASE_URL=http://localhost:54321 SUPABASE_ANON_KEY="una-llave-cualquiera-de-pruebas" \
   python3 frontend/build.py
 npm start                                                  # otra terminal
 
-ANON_KEY="una-llave-cualquiera" node pruebas/usuario-contrasena.mjs
+ANON_KEY="una-llave-cualquiera-de-pruebas" node pruebas/usuario-contrasena.mjs
+```
+
+**La llave tiene que pasar de 20 caracteres.** Aquí decía
+`"una-llave-cualquiera"`, que mide exactamente 20, y `authListo()` en la app
+pide `CLAVE.length > 20`: con esa llave la portada salía con el botón
+«Registrarme» apagado y la prueba moría en el primer clic, sin que nada
+dijera que el problema era el largo de la llave.
+
+Si Playwright no encuentra su navegador (pasa cuando el sistema ya trae uno
+instalado aparte), pásale la ruta:
+
+```bash
+CHROME_PATH=/ruta/al/chromium ANON_KEY="una-llave-cualquiera-de-pruebas" \
+  node pruebas/usuario-contrasena.mjs
 ```
 
 **Importante:** la misma llave en las tres líneas. Si no coinciden, el
@@ -40,7 +54,7 @@ quede apuntando al servidor de mentiras:
 python3 frontend/build.py
 ```
 
-### Qué comprueba (29 cosas)
+### Qué comprueba (32 cosas)
 
 Registro completo (correo → código → elegir usuario y contraseña, con los
 rechazos de formato inválido y contraseña débil en el camino, y la lista de
@@ -158,6 +172,9 @@ comprueba, en tres bloques:
 La prueba dice en qué paso y qué esperaba. Casi siempre es una de dos:
 
 - **El servidor de mentiras se quedó con datos de la corrida anterior.**
-  No debería: la prueba llama a `/__reset` al empezar. Si sospechas, reinícialo.
+  Ya no pasa: `/__reset` no limpiaba la lista de usuarios tomados, así que el
+  usuario recién registrado seguía ocupado y la segunda corrida fallaba
+  siempre en «pasa a crear usuario+contraseña». Ahora se puede correr las
+  veces que haga falta sin reiniciar nada.
 - **Estás corriendo `dist/` construido sin las variables de Supabase.**
   Entonces la portada sale con el botón apagado y falla desde el paso 3.

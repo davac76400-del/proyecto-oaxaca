@@ -82,6 +82,12 @@ http.createServer((req, res) => {
       ultimoCodigo = null; ultimoEnlace = null; CODIGOS_EMITIDOS.length = 0;
       USUARIO.email = ''; USUARIO.user_metadata = {};
       PERFILES = {}; CONTRASENA = null; RECUPERACION = null; FALLOS_REC = 0;
+      /* Los usuarios tomados también, que si no la segunda corrida de la
+         prueba falla siempre: el usuario que acaba de registrar se queda
+         ocupado, y hay que reiniciar el servidor a mano para volver a
+         probar. Se deja el sembrado de fábrica, que es el que usa la
+         comprobación de «ese nombre ya es de alguien». */
+      TOMADOS.clear(); TOMADOS.add('MariaTelar23');
       return json(res, 200, { ok: true });
     }
     /* Deja lista una cuenta como las de ANTES de 007: usuario con punto y

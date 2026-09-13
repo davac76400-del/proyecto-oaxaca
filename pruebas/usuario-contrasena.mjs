@@ -15,7 +15,14 @@ await fetch(FALSO + '/__reset');
 /* A propósito NO es la pantalla de celular de acceso.mjs: #btn-salir y
    #sesion-nombre son el chip de la barra de arriba, que solo existe en
    pantalla grande (en celular es #btn-salir-movil, dentro del menú). */
-const nav = await chromium.launch(CHROME ? { executablePath: CHROME } : {});
+/* --no-proxy-server porque todo esto es localhost: donde haya un proxy en el
+   entorno (contenedores, CI), Chromium le manda también las llamadas al
+   servidor de mentiras y la prueba falla con ERR_TUNNEL_CONNECTION_FAILED,
+   que no se parece en nada al problema que es. */
+const nav = await chromium.launch({
+  args: ['--no-proxy-server'],
+  ...(CHROME ? { executablePath: CHROME } : {})
+});
 const ctx = await nav.newContext({ viewport: { width: 1280, height: 900 } });
 const pag = await ctx.newPage();
 
@@ -57,6 +64,27 @@ comprobar(await pag.isVisible('#portada'), 'la portada bloquea el paso');
 
 await pag.click('#btn-ir-registro');
 await pag.waitForSelector('#vista-registro:not([hidden])', { timeout: 5000 });
+
+/* Un correo de dominio propio (de un negocio, de una universidad) tiene que
+   poder registrarse: antes había una lista de 21 dominios permitidos y a toda
+   esa gente la dejaba fuera. */
+await pag.fill('#reg-correo', 'contacto@mizcalerianegocio.com.mx');
+await pag.click('#reg-correo');
+await pag.evaluate(() => document.getElementById('reg-correo').blur());
+comprobar(await pag.getAttribute('#reg-correo', 'data-valido') === 'si',
+  'un correo de dominio propio se acepta');
+
+/* Y el error de dedo se avisa sin cerrarle la puerta a nadie: sugerencia
+   clicable, no rechazo. */
+await pag.fill('#reg-correo', 'nueva@gmial.com');
+await pag.evaluate(() => document.getElementById('reg-correo').blur());
+const sugerencia = await pag.textContent('#vista-registro p:has(button)').catch(() => '');
+comprobar(/gmail\.com/.test(sugerencia || ''),
+  `avisa del error de dedo en el dominio: «${(sugerencia || '').trim()}»`);
+await pag.click('#vista-registro p:has(button) button');
+comprobar(await pag.inputValue('#reg-correo') === 'nueva@gmail.com',
+  'al darle clic a la sugerencia, corrige el correo');
+
 await pag.fill('#reg-correo', 'nueva@ejemplo.com');
 await pag.click('#form-registro button[type="submit"]');
 await pag.waitForSelector('#vista-codigo:not([hidden])', { timeout: 8000 });
@@ -110,13 +138,20 @@ ok('salió de la cuenta');
 await pag.click('#btn-ir-entrar');
 await pag.waitForSelector('#vista-entrar:not([hidden])', { timeout: 5000 });
 
-// usuario/contraseña incorrectos → mensaje genérico, sin decir cuál falló
+/* El usuario existe y la contraseña no: el mensaje tiene que señalar la
+   contraseña y no el usuario. Esto esperaba antes un mensaje genérico («no
+   coinciden»), y quedó atrás de una decisión posterior: se pidió distinguir
+   los dos motivos para no mandar a buscar el error en el lado equivocado a
+   quien de verdad olvidó uno de los dos. El precio, escrito también en
+   app.src.html donde se decide, es que el mensaje revela si un usuario
+   existe. */
 await pag.fill('#usuario-entrar', 'MariaBarro1');
 await pag.fill('#contrasena-entrar', 'ClaveMala1');
 await pag.click('#form-entrar button[type="submit"]');
 await pag.waitForSelector('#error-entrar:not([hidden])', { timeout: 6000 });
 const errLogin = await pag.textContent('#error-entrar');
-comprobar(/no coinciden/i.test(errLogin || ''), `contraseña incorrecta da mensaje genérico: «${errLogin}»`);
+comprobar(/contraseña/i.test(errLogin || '') && !/usuario/i.test(errLogin || ''),
+  `contraseña incorrecta señala la contraseña, no el usuario: «${errLogin}»`);
 comprobar(await pag.isVisible('#portada'), 'sigue sin entrar');
 
 await pag.fill('#contrasena-entrar', '');
@@ -253,7 +288,11 @@ console.log('\n9 · ERRORES DE JAVASCRIPT');
 // No son de la app: esta máquina bloquea Google Fonts, y la propia prueba
 // provoca a propósito un 400 (contraseña/actual incorrecta) y un 406 (leer
 // el perfil antes de que exista, justo después de verificar el código).
-const ruido = /favicon|manifest|fonts\.googleapis|ERR_CONNECTION_RESET|ERR_TUNNEL_CONNECTION_FAILED|status of (400|401|403|406|429)|net::ERR_FAILED.*api\/ia/i;
+// ERR_CERT_AUTHORITY_INVALID es la otra cara de lo mismo: donde la red mete
+// su propio certificado (un proxy, un contenedor con su CA), Google Fonts
+// falla así y el mensaje de consola no trae la URL, así que no lo atrapa el
+// filtro de arriba.
+const ruido = /favicon|manifest|fonts\.googleapis|ERR_CONNECTION_RESET|ERR_TUNNEL_CONNECTION_FAILED|ERR_CERT_AUTHORITY_INVALID|status of (400|401|403|406|429)|net::ERR_FAILED.*api\/ia/i;
 const reales = errores.filter(e => !ruido.test(e));
 comprobar(reales.length === 0, reales.length ? `hay ${reales.length}: ${reales[0].slice(0, 120)}` : 'ninguno en toda la prueba');
 

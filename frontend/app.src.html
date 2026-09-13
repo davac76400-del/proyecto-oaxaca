@@ -3026,10 +3026,17 @@
     });
   }
 
-  /* Dominios de correo reales que se aceptan. No es por desconfianza: es
-     para frenar antes de tiempo un correo inventado o mal escrito, que si
-     no se detecta aquí, se descubre hasta que el código nunca llega. */
-  var DOMINIOS_CORREO_VALIDOS = [
+  /* Los dominios que la gente escribe mal más seguido. Antes esta lista
+     decidía qué correo se aceptaba, y eso dejaba fuera a cualquiera con
+     correo de su negocio o de su universidad —correos reales, gente real que
+     no podía registrarse—. Además prometía algo que no cumplía: comprobar
+     que el correo «sea real». Eso no lo puede saber ninguna lista, porque
+     asdasd@gmail.com tiene el dominio bien; lo único que de verdad comprueba
+     un correo es que llegue el código.
+     Así que ahora la lista solo sirve para lo que sí sabe hacer: cazar el
+     error de dedo, que es el caso que deja a alguien esperando un código
+     que se fue a una dirección inexistente. Sugiere, no rechaza. */
+  var DOMINIOS_CONOCIDOS = [
     'gmail.com', 'hotmail.com', 'hotmail.es', 'hotmail.com.mx',
     'outlook.com', 'outlook.es', 'live.com', 'live.com.mx', 'msn.com',
     'yahoo.com', 'yahoo.com.mx', 'yahoo.es', 'icloud.com', 'me.com',
@@ -3037,9 +3044,51 @@
   ];
   function correoValido(v) {
     v = (v || '').trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { return false; }
-    var dominio = v.split('@')[1] || '';
-    return DOMINIOS_CORREO_VALIDOS.indexOf(dominio) !== -1;
+    /* 254 es el largo máximo que puede tener una dirección de correo, y los
+       dos puntos seguidos no son válidos en ningún dominio. */
+    if (!v || v.length > 254 || v.indexOf('..') !== -1) { return false; }
+    /* El remate tiene que ser letras: así «pedro@casa.123» no pasa, que es
+       el error de dedo que la regex de antes dejaba colar. */
+    return /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(v);
+  }
+
+  /* Cuántos cambios hacen falta para convertir una palabra en la otra. Se
+     corta en cuanto pasa de dos: más que eso ya no es un error de dedo, y
+     sugerirle a alguien un dominio que no tecleó sería peor que callarse. */
+  function cambiosEntre(a, b) {
+    if (Math.abs(a.length - b.length) > 2) { return 99; }
+    var fila = [], i, j;
+    for (j = 0; j <= b.length; j++) { fila[j] = j; }
+    for (i = 1; i <= a.length; i++) {
+      var previa = fila[0];
+      fila[0] = i;
+      for (j = 1; j <= b.length; j++) {
+        var esquina = previa;
+        previa = fila[j];
+        fila[j] = Math.min(
+          fila[j] + 1,
+          fila[j - 1] + 1,
+          esquina + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1)
+        );
+      }
+    }
+    return fila[b.length];
+  }
+
+  /* Devuelve el correo corregido si el dominio parece un error de dedo de
+     uno conocido, o '' si no hay nada que sugerir. */
+  function sugerirCorreo(v) {
+    v = (v || '').trim().toLowerCase();
+    if (!correoValido(v)) { return ''; }
+    var partes = v.split('@');
+    var dominio = partes[1];
+    if (DOMINIOS_CONOCIDOS.indexOf(dominio) !== -1) { return ''; }
+    var mejor = '', mejorDistancia = 3;
+    DOMINIOS_CONOCIDOS.forEach(function (candidato) {
+      var d = cambiosEntre(dominio, candidato);
+      if (d < mejorDistancia) { mejorDistancia = d; mejor = candidato; }
+    });
+    return mejor ? partes[0] + '@' + mejor : '';
   }
   /* Lo último que contestó la base sobre el usuario que se está escribiendo.
      Vive aquí arriba porque las REGLAS de abajo lo consultan: sin esto, un
@@ -3052,7 +3101,7 @@
 
   var REGLAS = {
     texto:     { probar: function (v) { return v.trim().length >= 3; },  error: 'Escribe al menos 3 letras.' },
-    correo:    { probar: correoValido, error: 'Usa un correo real: gmail.com, hotmail.com, outlook.com, yahoo.com…' },
+    correo:    { probar: correoValido, error: 'Escribe un correo completo, como tunombre@gmail.com.' },
     mensaje:   { probar: function (v) { return v.trim().length >= 10; }, error: 'Cuéntanos un poco más (mínimo 10 letras).' },
     /* El usuario para CREAR cuenta: formato, y además que la base no haya
        dicho ya que está ocupado. */
@@ -3142,6 +3191,41 @@
       validarCampo(campo, true);
     });
   });
+  /* El aviso del error de dedo se arma aquí y no en el HTML porque son tres
+     campos de correo (registro, recuperar y contacto) con el mismo texto y
+     el mismo comportamiento. Va como sugerencia y no como error: el correo
+     ya se dio por bueno, y quien de verdad tenga un dominio parecido a uno
+     conocido tiene que poder seguir sin pelearse con la app. */
+  $$('[data-regla="correo"]').forEach(function (campo) {
+    var pista = document.createElement('p');
+    pista.className = 'text-[0.82rem] mt-1.5';
+    pista.hidden = true;
+    (document.getElementById('error-' + campo.id) || campo)
+      .insertAdjacentElement('afterend', pista);
+
+    campo.addEventListener('input', repasarDominio);
+    campo.addEventListener('blur',  repasarDominio);
+
+    function repasarDominio() {
+      var sugerido = sugerirCorreo(campo.value);
+      if (!sugerido) { pista.hidden = true; pista.textContent = ''; return; }
+      var boton = document.createElement('button');
+      boton.type = 'button';   /* si no, dentro del formulario esto lo manda */
+      boton.textContent = sugerido;
+      boton.style.cssText = 'color:rgb(var(--cian));font-weight:600;text-decoration:underline;';
+      boton.addEventListener('click', function () {
+        campo.value = sugerido;
+        pista.hidden = true;
+        validarCampo(campo, true);
+        campo.focus();
+      });
+      pista.textContent = '';
+      pista.hidden = false;
+      pista.style.color = 'rgb(var(--tenue))';
+      pista.append('¿Quisiste decir ', boton, '?');
+    }
+  });
+
   /* mostrar/ocultar cualquier campo de contraseña de la app: un solo
      listener delegado, funciona también para los que se agreguen después */
   document.addEventListener('click', function (e) {
