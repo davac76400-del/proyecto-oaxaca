@@ -64,7 +64,8 @@ al correo de fábrica y nadie se queda fuera (ver el final de esta página).
 
 ## Lo que hay que hacer una vez, a mano
 
-Son cuatro pegadas de texto. La función ya está desplegada.
+Son tres pegadas de texto y un número que hay que subir. La función ya está
+desplegada.
 
 ### 1 · Una cuenta de Resend y su llave
 
@@ -94,8 +95,16 @@ Ve a **[Authentication → Hooks](https://supabase.com/dashboard/project/pnexvkj
 5. **Create**.
 
 Ese secreto es lo que hace que la función sepa que quien la llama es de
-verdad Supabase Auth y no cualquiera que encontró la dirección. Sin él la
-función contesta 401 y no manda nada.
+verdad Supabase Auth y no cualquiera que encontró la dirección.
+
+> **El mismo secreto va en dos lados, y es fácil poner solo uno.** Aquí, en
+> Auth, es quien **firma** cada aviso; en los secretos de la función (paso 3)
+> es quien **comprueba** esa firma. Si falta el de aquí, Auth ni siquiera
+> intenta llamar a la función: contesta `500: Hook requires authorization
+> token` y la app dice «no pude mandar el código». Si falta el del paso 3, la
+> función contesta 401 y en sus logs queda `falta SEND_EMAIL_HOOK_SECRET`.
+> Los dos mensajes se parecen y el remedio es distinto, así que vale la pena
+> mirar cuál de los dos salió.
 
 ### 3 · Guardar los dos secretos donde la función los lee
 
@@ -109,13 +118,38 @@ y añade estos dos:
 
 Pégalos completos y tal cual, sin comillas y sin espacios al final.
 
-### 4 · Probar
+### 4 · Subir el límite de correos por hora
+
+De fábrica el proyecto manda **dos correos por hora** y nada más. Con eso no
+se puede ni probar: al tercer intento la app dice «demasiados envíos» y en los
+logs de Auth queda `429: email rate limit exceeded`. Ese límite es bajo porque
+de fábrica los correos salen del servidor compartido de Supabase; con Resend
+entregando, ya no hace falta apretarlo tanto.
+
+En **[Authentication → Rate Limits](https://supabase.com/dashboard/project/pnexvkjnwbyaiwcwyrev/auth/rate-limits)**,
+sube **«Rate limit for sending emails»** a unos **30 por hora**.
+
+Ojo: el 429 se decide **antes** de llamar a la función, así que mientras estés
+topado no aparece nada en los logs de `enviar-correo` — parece que la función
+no se entera, y es que de verdad no se entera.
+
+### 5 · Probar
 
 Regístrate en la app con un correo. Tiene que llegar el correo de OaxIntegra
 con el código, y el código tiene que servir al escribirlo.
 
-Si no llega, no hay que adivinar: el motivo queda escrito en los
-**[logs de la función](https://supabase.com/dashboard/project/pnexvkjnwbyaiwcwyrev/functions/enviar-correo/logs)**.
+Mientras no verifiques un dominio, **tiene que ser el mismo correo con el que
+abriste la cuenta de Resend** (el porqué, en la sección siguiente).
+
+Si no llega, no hay que adivinar: el motivo queda escrito en dos sitios, y
+conviene mirar los dos porque cada uno cuenta una mitad:
+
+- los **[logs de la función](https://supabase.com/dashboard/project/pnexvkjnwbyaiwcwyrev/functions/enviar-correo/logs)**,
+  para lo que pasó al armar y mandar el correo;
+- los **[logs de Auth](https://supabase.com/dashboard/project/pnexvkjnwbyaiwcwyrev/logs/auth-logs)**,
+  para lo que pasó antes de llamarla (el límite por hora y el secreto del
+  enganche se ven solo aquí).
+
 La tabla del final de esta página dice qué significa cada mensaje.
 
 ---
@@ -160,15 +194,29 @@ igual que siempre.
 
 ### Qué dice cada mensaje de los logs
 
+**En los logs de Auth** (lo que pasa *antes* de llamar a la función):
+
 | En los logs | Qué pasó | Qué hacer |
 |---|---|---|
-| `falta SEND_EMAIL_HOOK_SECRET` | el secreto del paso 3 no está guardado | guárdalo |
-| `la firma no coincide` | el secreto guardado no es el que generó el enganche | vuelve a copiarlo del paso 2 |
+| `500: Hook requires authorization token` | el enganche tiene la URL pero **no el secreto**, del lado de Auth | pégalo en Authentication → Hooks (paso 2) |
+| `429: email rate limit exceeded` | se gastaron los correos de la hora | súbelo (paso 4) o espera |
+| `Hook errored out` | la función contestó con error; el motivo está en sus propios logs | mira la tabla de abajo |
+
+**En los logs de la función** (lo que pasa ya dentro):
+
+| En los logs | Qué pasó | Qué hacer |
+|---|---|---|
+| `falta SEND_EMAIL_HOOK_SECRET` | el secreto no está guardado del lado de la función | guárdalo en Edge Functions → Secrets (paso 3) |
+| `la firma no coincide` | los dos secretos no son el mismo valor | vuelve a copiar el del paso 2 al paso 3 |
 | `el sello de tiempo está fuera de rango` | llegó un aviso muy viejo (o un reintento repetido) | normalmente se arregla solo |
 | `falta RESEND_API_KEY` | la llave del paso 1 no está guardada | guárdala |
-| `Resend no aceptó el envío: 403` | el remitente no está permitido | el límite del dominio, arriba |
+| `Resend no aceptó el envío: 403` | el destinatario no es el de tu cuenta de Resend | el límite del dominio, arriba |
 | `Resend no aceptó el envío: 401` | la llave de Resend es mala o se borró | crea otra |
 | `correo enviado` | salió bien | si no llegó, mira la carpeta de spam |
+
+Si **no aparece nada** en los logs de la función, no está apagada: es que Auth
+no llegó a llamarla. Eso pasa con los dos primeros renglones de la tabla de
+arriba, y es la confusión más fácil de tener.
 
 El código **nunca** aparece en los logs, y es a propósito: quien lo lee entra,
 y los logs los ve cualquiera que entre al panel.

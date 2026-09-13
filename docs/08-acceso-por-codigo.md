@@ -256,7 +256,7 @@ lo mande el servidor compartido de Supabase, las plantillas son las suyas.
 
 Así que el correo lo manda ahora una función nuestra, y por eso llega en
 español, diciendo OaxIntegra y con el código grande. Cómo funciona y los
-cuatro pasos para encenderlo: **`docs/10-correo-del-codigo.md`**.
+pasos para encenderlo: **`docs/10-correo-del-codigo.md`**.
 
 Si esa función se apaga, vuelve el correo de fábrica —con enlace y en
 inglés— y el registro sigue funcionando igual: quien no quiera darle clic al
