@@ -294,6 +294,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
   }
 
-  console.log('correo enviado', { tipo });
+  /* El identificador que devuelve Resend es lo único con lo que se puede
+     mirar después, en resend.com/emails, si un correo que salió de aquí de
+     verdad se entregó. Hace falta porque este 200 solo dice «lo encolé»: un
+     correo puede quedar aceptado aquí y no llegar nunca al buzón, y sin el
+     identificador no hay forma de distinguir ese caso de un correo perdido
+     en spam. No es el código, así que puede ir a los logs. */
+  const idEnvio = await respuesta.json().then((r) => r?.id).catch(() => null);
+  console.log('correo enviado', { tipo, id: idEnvio ?? 'sin id' });
   return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
 });

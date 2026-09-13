@@ -85,7 +85,13 @@ globalThis.fetch = async (url, opciones) => {
 let respuestaDeResend = new Response('{"id":"abc"}', { status: 200 });
 for (const nivel of ['log', 'error']) {
   const orig = console[nivel];
-  console[nivel] = (...a) => { registrado.push(a.map(String).join(' ')); };
+  /* Los objetos se serializan en vez de pasar por String(): Deno escribe su
+     contenido en los logs, y con String() quedaban como «[object Object]».
+     Importa para la prueba de que el código nunca se escribe: si algún día
+     viajara dentro de un objeto, con String() la prueba lo daría por bueno. */
+  console[nivel] = (...a) => {
+    registrado.push(a.map((x) => (x && typeof x === 'object') ? JSON.stringify(x) : String(x)).join(' '));
+  };
   console[`_${nivel}`] = orig;
 }
 function limpiar() { enviados = []; registrado = []; respuestaDeResend = new Response('{"id":"abc"}', { status: 200 }); }
@@ -216,6 +222,23 @@ const sinResend = await cargar({ conLlaveResend: false });
 revisar('sin RESEND_API_KEY contesta 500 en vez de callar',
   (await sinResend.manejador(peticionFirmada(CUERPO))).status === 500);
 revisar('y no intenta mandar nada', enviados.length === 0);
+
+/* El identificador de Resend es lo único con lo que se puede comprobar
+   después si un correo aceptado aquí llegó de verdad al buzón. */
+limpiar();
+await app.manejador(peticionFirmada(CUERPO));
+revisar('apunta el identificador del envío, para poder rastrearlo',
+  registrado.join(' ').includes('abc'));
+
+/* Un correo ya entregado a Resend no se puede «desmandar»: si la respuesta
+   viniera sin JSON, contestar 500 le diría a Auth que falló un envío que sí
+   salió, y la persona pediría otro código sin necesidad. */
+limpiar();
+respuestaDeResend = new Response('no soy json', { status: 200 });
+revisar('si Resend contesta algo raro, el envío sigue valiendo',
+  (await app.manejador(peticionFirmada(CUERPO))).status === 200);
+revisar('y lo apunta como «sin id» en vez de romperse',
+  registrado.join(' ').includes('sin id'));
 
 /* ======================= HTML ======================= */
 titulo('EL HTML DEL CORREO');
