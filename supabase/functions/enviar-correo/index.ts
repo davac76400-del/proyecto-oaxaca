@@ -26,16 +26,10 @@
    Por eso en esta función NUNCA se registra el token, ni entero ni en trozos
    — los logs de Supabase los ve cualquiera con acceso al panel. */
 
-const SECRETO_HOOK        = Deno.env.get('SEND_EMAIL_HOOK_SECRET') ?? '';
-const URL_SUPABASE        = Deno.env.get('SUPABASE_URL') ?? '';
-
-// Gmail SMTP
-const SMTP_HOST           = Deno.env.get('SMTP_HOST') ?? 'smtp.gmail.com';
-const SMTP_PORT           = Deno.env.get('SMTP_PORT') ?? '587';
-const SMTP_USERNAME       = Deno.env.get('SMTP_USERNAME') ?? '';
-const SMTP_PASSWORD       = Deno.env.get('SMTP_PASSWORD') ?? '';
-const SMTP_SENDER_EMAIL   = Deno.env.get('SMTP_SENDER_EMAIL') ?? '';
-const SMTP_SENDER_NAME    = Deno.env.get('SMTP_SENDER_NAME') ?? 'OaxIntegra IA';
+const CLAVE_RESEND   = Deno.env.get('RESEND_API_KEY') ?? '';
+const SECRETO_HOOK   = Deno.env.get('SEND_EMAIL_HOOK_SECRET') ?? '';
+const CORREO_DESDE   = Deno.env.get('CORREO_DESDE') ?? 'OaxIntegra IA <onboarding@resend.dev>';
+const URL_SUPABASE   = Deno.env.get('SUPABASE_URL') ?? '';
 
 /* Margen de reloj para el sello de tiempo del webhook. Sin esto, alguien que
    grabara una petición nuestra podría repetirla mañana y volver a disparar el
@@ -252,8 +246,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
   }
 
-  if (!SMTP_USERNAME || !SMTP_PASSWORD || !SMTP_SENDER_EMAIL) {
-    console.error('correo rechazado: falta configurar SMTP (SMTP_USERNAME, SMTP_PASSWORD, SMTP_SENDER_EMAIL)');
+  if (!CLAVE_RESEND) {
+    /* Sin llave no hay forma de mandar nada. Se contesta con error para que
+       Auth le diga a la app «no pude mandar el código» en vez de callar y
+       dejar a la persona esperando un correo que no existe. */
+    console.error('correo rechazado: falta RESEND_API_KEY');
     return new Response(
       JSON.stringify({ error: { http_code: 500, message: 'el envío de correo no está configurado' } }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -261,39 +258,49 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   const t = textosSegun(tipo);
+  /* El enlace de respaldo es el mismo que usaba el correo de fábrica, así
+     que quien le dé clic entra igual que antes. Va de segundo, chiquito:
+     el protagonista es el código. */
   const enlace = `${URL_SUPABASE}/auth/v1/verify?token=${encodeURIComponent(datos.email_data.token_hash)}` +
                  `&type=${encodeURIComponent(tipo)}` +
                  `&redirect_to=${encodeURIComponent(datos.email_data.redirect_to || datos.email_data.site_url || '')}`;
 
-  try {
-    const { createTransport } = await import('npm:nodemailer@6.9.7');
-
-    const transporte = createTransport({
-      host: SMTP_HOST,
-      port: parseInt(SMTP_PORT),
-      secure: SMTP_PORT === '465',
-      auth: {
-        user: SMTP_USERNAME,
-        pass: SMTP_PASSWORD
-      }
-    });
-
-    const resultado = await transporte.sendMail({
-      from: `${SMTP_SENDER_NAME} <${SMTP_SENDER_EMAIL}>`,
-      to: para,
+  const respuesta = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${CLAVE_RESEND}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: CORREO_DESDE,
+      to: [para],
       subject: t.asunto,
       html: armarHtml(codigo, enlace, t),
       text: armarTexto(codigo, enlace, t)
-    });
+    })
+  });
 
-    console.log('correo enviado', { tipo, id: resultado.messageId ?? 'sin id' });
-    return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
-  } catch (e) {
-    const msg = (e as Error).message.replaceAll(codigo, '······');
-    console.error('error enviando correo:', msg.slice(0, 400));
+  if (!respuesta.ok) {
+    /* Se guarda el motivo que da Resend (dominio sin verificar, llave mala,
+       cuota llena…) porque es justo lo que hay que leer cuando alguien avisa
+       de que no le llegó el correo. Se le tacha el código antes de escribirlo:
+       arriba se prometió que el token no aparece en los logs, y esta respuesta
+       es la única de la función que trae texto que no escribimos nosotros. */
+    const detalle = (await respuesta.text()).replaceAll(codigo, '······');
+    console.error('Resend no aceptó el envío:', respuesta.status, detalle.slice(0, 400));
     return new Response(
       JSON.stringify({ error: { http_code: 500, message: 'no se pudo enviar el correo' } }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
+
+  /* El identificador que devuelve Resend es lo único con lo que se puede
+     mirar después, en resend.com/emails, si un correo que salió de aquí de
+     verdad se entregó. Hace falta porque este 200 solo dice «lo encolé»: un
+     correo puede quedar aceptado aquí y no llegar nunca al buzón, y sin el
+     identificador no hay forma de distinguir ese caso de un correo perdido
+     en spam. No es el código, así que puede ir a los logs. */
+  const idEnvio = await respuesta.json().then((r) => r?.id).catch(() => null);
+  console.log('correo enviado', { tipo, id: idEnvio ?? 'sin id' });
+  return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
 });
