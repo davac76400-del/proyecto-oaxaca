@@ -1,5 +1,19 @@
 # El correo del código: cómo se volvió de OaxIntegra
 
+> **Este camino quedó en pausa el 13 de septiembre de 2026.** Funcionaba de
+> punta a punta, pero Resend, desde su dominio compartido
+> `onboarding@resend.dev`, **aceptaba el envío y no lo entregaba** (`correo
+> enviado` en los logs, correo que nunca llegó al buzón) y solo permite
+> mandarle a la dirección con la que se abrió la cuenta — así que nadie más
+> podía registrarse.
+>
+> El correo lo manda ahora Supabase con un SMTP propio, y las plantillas
+> llevan el mismo diseño de esta página: **`docs/12-correo-con-smtp.md`**.
+>
+> Lo de aquí abajo sigue siendo válido y la función sigue en el repositorio,
+> probada y lista: es el camino a retomar el día que haya un dominio propio
+> verificado en Resend. No hay que rehacer nada, solo encender el enganche.
+
 Antes, al registrarse llegaba esto:
 
 > **Supabase Auth** · Confirm your email address
