@@ -39,6 +39,14 @@ Auth → función → Resend         Auth → Gmail (SMTP)
 
 ---
 
+> **Antes de empezar: hay dos proyectos en la cuenta de Supabase y se parecen.**
+> El bueno es **`pnexvkjnwbyaiwcwyrev`**, el que se llama `agrointegra` — es el
+> del `.env`, el de la función y el de los enganches. El otro,
+> `uagsebllcngpkgmbhmin` («davac76400-del's Project»), está vacío. Todos los
+> enlaces de esta página ya llevan el bueno; si navegas a mano por el panel,
+> mira el nombre arriba a la izquierda antes de tocar nada. Configurar el SMTP
+> en el proyecto equivocado se ve exactamente igual de bien y no cambia nada.
+
 ## 1 · La contraseña de aplicación de Google
 
 Gmail no deja que otro programa entre con tu contraseña normal. Se le pide una
@@ -95,15 +103,16 @@ en **`supabase/plantillas/`** — son el mismo diseño que ya tenía el correo d
 OaxIntegra: el código grande en su caja verde, en español, y el enlace de
 segundo.
 
-En **[Authentication → Emails](https://supabase.com/dashboard/project/pnexvkjnwbyaiwcwyrev/auth/templates)**,
+En **[Authentication → Emails](https://supabase.com/dashboard/project/pnexvkjnwbyaiwcwyrev/auth/templates)**
+(en el menú de la izquierda es **Emails**, debajo de NOTIFICATIONS),
 para cada pestaña: pega el asunto, dale a **Source**, borra lo que haya y pega
 el HTML.
 
 | Pestaña del panel | Archivo | Asunto |
 |---|---|---|
-| Confirm signup | `confirmar-registro.html` | Tu código para crear tu cuenta |
+| **Confirm signup** | `confirmar-registro.html` | Tu código para crear tu cuenta |
+| **Magic Link** | `enlace-magico.html` | Tu código para entrar |
 | Reset Password | `recuperar-contrasena.html` | Tu código para recuperar tu cuenta |
-| Magic Link | `enlace-magico.html` | Tu código para entrar |
 | Change Email Address | `cambiar-correo.html` | Tu código para cambiar tu correo |
 | Invite user | `invitacion.html` | Te invitaron a OaxIntegra IA |
 | Reauthentication | `reautenticacion.html` | Tu código de confirmación |
@@ -111,9 +120,24 @@ el HTML.
 Los asuntos están también en los archivos `.asunto.txt` de al lado, para
 copiarlos sin escribirlos.
 
-**Las dos primeras son las que de verdad se usan hoy** (registrarse y
-recuperar la cuenta). Las otras cuatro son para que ninguna quede en inglés si
-algún día se encienden.
+> **Las dos que de verdad se usan hoy son «Confirm signup» y «Magic Link»**, y
+> la segunda sorprende. El motivo está en la app: tanto para registrarse como
+> para recuperar la cuenta, pide el código al mismo sitio —
+> `POST /auth/v1/otp` (búscalo en `frontend/app.src.html`, van con
+> `create_user: true` y `create_user: false`) —. Y ese endpoint elige la
+> plantilla según a quién le escribe:
+>
+> - correo **nuevo** (`create_user: true`) → manda **Confirm signup**;
+> - correo **que ya tiene cuenta** → manda **Magic Link**.
+>
+> O sea que **«Reset Password» no se usa nunca**, aunque el botón diga «olvidé
+> mi contraseña»: eso también sale por Magic Link. Si solo pegas «Confirm
+> signup», el registro sale bonito y recuperar la cuenta sigue llegando en
+> inglés. Pega las seis y no hay que acordarse de cuál es cuál.
+>
+> (Por eso, además, el error de Supabase decía `Error sending magic link
+> email` incluso al registrarse: es el texto de esa ruta, no el de la
+> plantilla.)
 
 > Si cambias el diseño del correo, no lo edites en el panel: se edita en
 > `supabase/functions/enviar-correo/index.ts` (la función `armarHtml`) y se
@@ -133,7 +157,23 @@ entregaba—.
 En **[Authentication → Hooks](https://supabase.com/dashboard/project/pnexvkjnwbyaiwcwyrev/auth/hooks)**,
 **apaga el Send Email hook**.
 
-## 6 · Probar
+## 6 · Que las direcciones del sitio sean las de verdad
+
+El correo lleva, de segundo y chiquito, un enlace para entrar de un clic. Ese
+enlace lo arma Supabase con las direcciones que tenga apuntadas, no con la de
+donde esté la app: si no coinciden, el código sigue sirviendo pero el enlace
+deja a la persona en otro sitio o no la deja pasar.
+
+En **[Authentication → URL Configuration](https://supabase.com/dashboard/project/pnexvkjnwbyaiwcwyrev/auth/url-configuration)**:
+
+| Campo | Qué va |
+|---|---|
+| **Site URL** | la dirección donde está la app publicada, hoy `https://proyecto-oaxaca-five.vercel.app` |
+| **Redirect URLs** | esa misma con `/**` al final: `https://proyecto-oaxaca-five.vercel.app/**` |
+
+Si quedó apuntando a una dirección vieja de Vercel, es aquí donde se cambia.
+
+## 7 · Probar
 
 Regístrate en la app con un correo **que no sea el tuyo** (ese es el punto de
 todo esto: pídele a alguien que lo pruebe, o usa otro correo que tengas). Tiene
