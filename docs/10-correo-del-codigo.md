@@ -67,6 +67,12 @@ al correo de fábrica y nadie se queda fuera (ver el final de esta página).
 Son tres pegadas de texto y un número que hay que subir. La función ya está
 desplegada.
 
+> **Esto ya está hecho y comprobado** (13 de septiembre de 2026). Se pidió un
+> código de punta a punta y quedó en los logs: Auth escribió `Hook ran
+> successfully` y la función `correo enviado { tipo: "signup" }`. Los pasos de
+> abajo quedan como referencia, por si hay que rehacerlos o montarlo en otro
+> proyecto. Lo único que sigue pendiente es el dominio de Resend, más abajo.
+
 ### 1 · Una cuenta de Resend y su llave
 
 Resend es quien entrega el correo. Gratis hasta 3 000 correos al mes, que es
@@ -99,12 +105,22 @@ verdad Supabase Auth y no cualquiera que encontró la dirección.
 
 > **El mismo secreto va en dos lados, y es fácil poner solo uno.** Aquí, en
 > Auth, es quien **firma** cada aviso; en los secretos de la función (paso 3)
-> es quien **comprueba** esa firma. Si falta el de aquí, Auth ni siquiera
-> intenta llamar a la función: contesta `500: Hook requires authorization
-> token` y la app dice «no pude mandar el código». Si falta el del paso 3, la
-> función contesta 401 y en sus logs queda `falta SEND_EMAIL_HOOK_SECRET`.
-> Los dos mensajes se parecen y el remedio es distinto, así que vale la pena
-> mirar cuál de los dos salió.
+> es quien **comprueba** esa firma.
+>
+> Falte el de un lado o el del otro, pasa lo mismo: la app dice «no pude
+> mandar el código» y en los logs de Auth queda este renglón,
+> `500: Hook requires authorization token`. **Ese texto no dice cuál de los
+> dos falta**, porque es también lo que Auth escribe cuando la función le
+> contesta 401. Para saberlo hay que mirar los logs de la función:
+>
+> - **si dejó un renglón** que dice `falta SEND_EMAIL_HOOK_SECRET`, entonces
+>   Auth sí la llamó —o sea, el secreto de aquí está bien— y el que falta es
+>   el del paso 3;
+> - **si no dejó ningún renglón**, Auth no llegó a llamarla y el que falta es
+>   el de aquí.
+>
+> Merece la pena mirarlo antes de tocar nada: el texto de Auth, leído solo,
+> apunta al lado equivocado la mitad de las veces.
 
 ### 3 · Guardar los dos secretos donde la función los lee
 
@@ -198,7 +214,7 @@ igual que siempre.
 
 | En los logs | Qué pasó | Qué hacer |
 |---|---|---|
-| `500: Hook requires authorization token` | el enganche tiene la URL pero **no el secreto**, del lado de Auth | pégalo en Authentication → Hooks (paso 2) |
+| `500: Hook requires authorization token` | falta el secreto de alguno de los dos lados (o la función contestó 401) | mira los logs de la función para saber de qué lado, como explica el paso 2 |
 | `429: email rate limit exceeded` | se gastaron los correos de la hora | súbelo (paso 4) o espera |
 | `Hook errored out` | la función contestó con error; el motivo está en sus propios logs | mira la tabla de abajo |
 
@@ -211,6 +227,7 @@ igual que siempre.
 | `el sello de tiempo está fuera de rango` | llegó un aviso muy viejo (o un reintento repetido) | normalmente se arregla solo |
 | `falta RESEND_API_KEY` | la llave del paso 1 no está guardada | guárdala |
 | `Resend no aceptó el envío: 403` | el destinatario no es el de tu cuenta de Resend | el límite del dominio, arriba |
+| `Resend no aceptó el envío: 422` | el destinatario es un dominio reservado (`example.com` y parecidos), que Resend rechaza a propósito | para probar usa un correo de verdad |
 | `Resend no aceptó el envío: 401` | la llave de Resend es mala o se borró | crea otra |
 | `correo enviado` | salió bien | si no llegó, mira la carpeta de spam |
 
