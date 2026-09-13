@@ -3507,6 +3507,15 @@
     if (/failed to fetch|networkerror|aborted|load failed/i.test(m)) {
       return 'No hay internet o no alcancé el servidor. Revisa tu conexión.';
     }
+    /* El servidor de correo rechazó el envío: la persona no hizo nada mal y
+       reintentar no arregla nada, así que no se le dice «revisa tu conexión»
+       —que la manda a buscar un problema que no tiene—. El motivo exacto queda
+       en los logs de Auth; lo más común es el 535 de Gmail (contraseña de
+       aplicación mala o revocada). Ver docs/12-correo-con-smtp.md. */
+    if (/error sending|sending.*(email|mail)|smtp/i.test(m) || (err && err.estado === 500)) {
+      return 'No se pudo enviar el correo: el servidor de correo no aceptó el envío. ' +
+             'No es cosa tuya. Avísale a quien administra el sitio.';
+    }
     return (contexto || 'No se pudo') + ': ' + m;
   }
 

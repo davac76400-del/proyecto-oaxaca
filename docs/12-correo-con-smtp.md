@@ -144,11 +144,55 @@ Si no llega, el motivo queda escrito en los
 
 | En los logs | Qué pasó | Qué hacer |
 |---|---|---|
-| `535 Username and Password not accepted` | la contraseña de aplicación está mal, o le quedaron los espacios | vuelve al paso 1 y pégala sin espacios |
+| `535 Username and Password not accepted` | Google rechazó el usuario o la contraseña | la sección de abajo: son cuatro causas y hay que descartarlas en orden |
 | `timeout` o se queda colgado | casi siempre es el puerto 465 | ponlo en 587 |
 | `534 Please log in with your web browser` | falta la verificación en 2 pasos en la cuenta de Google | enciéndela y crea la contraseña de aplicación otra vez |
 | `429: email rate limit exceeded` | se gastaron los correos de la hora | paso 3, o espera |
 | `Hook requires authorization token` | el enganche sigue encendido | paso 5 |
+
+---
+
+## El 535 de Google, en detalle
+
+Es el error que más cuesta, porque **Google no dice cuál de las dos cosas está
+mal** —el usuario o la contraseña—: contesta lo mismo en los dos casos. Pasó el
+13 de septiembre de 2026 y se dio vueltas un día entero cambiando la contraseña,
+que era solo una de cuatro causas posibles.
+
+Así se vio en los logs de Auth, y conviene reconocer la forma:
+
+```
+09:19 · 09:22   mail_from: noreply@mail.app.supabase.io   →  200   (SMTP apagado: salía)
+09:25 en adelante                        Gmail SMTP       →  500   535 BadCredentials
+```
+
+Que **empiece a fallar justo al encender el SMTP** y que antes saliera es la
+prueba de que el problema es el SMTP y no la app, ni el proyecto, ni la red.
+
+Las cuatro causas, en el orden en que conviene descartarlas:
+
+1. **La contraseña lleva espacios.** Google la enseña en cuatro bloques
+   (`abcd efgh ijkl mnop`) y hay que pegar las 16 letras seguidas.
+2. **La contraseña fue revocada.** Si se rotan las credenciales de la cuenta de
+   Google, la contraseña de aplicación que estaba puesta en Supabase deja de
+   servir en ese momento, y nadie avisa. Hay que crear otra y volver a pegarla.
+3. **El Username no es la cuenta donde se creó la contraseña.** Es la más fácil
+   de pasar por alto cuando se manejan varias cuentas de Gmail: la contraseña
+   de aplicación **solo sirve para la cuenta que la generó**. El campo
+   **Username** tiene que ser esa misma dirección, completa y con `@gmail.com`.
+4. **La cuenta no tiene verificación en 2 pasos.** Sin ella no existen las
+   contraseñas de aplicación, y la contraseña normal de la cuenta da 535
+   igualmente.
+
+**Sender email** tiene que ser esa misma dirección también. Gmail no deja mandar
+correo diciendo ser de otra cuenta.
+
+### Mientras tanto, que nadie se quede fuera
+
+Apagar **Enable Custom SMTP** devuelve el correo de fábrica al instante. Es feo y
+va en inglés, pero **entrega** —quedó probado ese mismo día a las 09:19 y 09:22,
+con registros que sí se completaron—. Es un interruptor, no un cambio: se vuelve
+a encender cuando la contraseña ya esté bien, sin tocar nada más.
 
 ---
 
