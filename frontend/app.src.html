@@ -2936,13 +2936,8 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
         Mis publicaciones (<span id="cuenta-guardadas">0</span>)
       </button>
-      <button type="button" id="btn-limpiar" class="btn-linea !py-2.5 !px-4 !text-[0.9rem]">Limpiar conversación</button>
-    </div>
-
-    <div class="revela panel-medallas mb-8">
-      <p class="rotulo mb-3" style="color:rgb(var(--ambar))">Tus logros</p>
-      <div id="mis-medallas" class="flex flex-wrap gap-2.5"></div>
-      <p id="medallas-pie" class="text-tenue text-[0.8rem] mt-3"></p>
+      <button type="button" id="btn-borrar" class="btn-linea !py-2.5 !px-4 !text-[0.9rem]">Borrar chat</button>
+      <button type="button" id="btn-nueva" class="btn-linea !py-2.5 !px-4 !text-[0.9rem]">Nuevo chat</button>
     </div>
 
     <div class="revela max-w-4xl mx-auto">
@@ -3035,6 +3030,13 @@
         </form>
           </div>
         </div>
+      </div>
+
+      <!-- ===== Tus logros ===== -->
+      <div class="revela panel-medallas mb-8 mt-8">
+        <p class="rotulo mb-3" style="color:rgb(var(--ambar))">Tus logros</p>
+        <div id="mis-medallas" class="flex flex-wrap gap-2.5"></div>
+        <p id="medallas-pie" class="text-tenue text-[0.8rem] mt-3"></p>
       </div>
 
       <!-- ===== herramientas de apoyo: dato rotativo + simulador ===== -->
@@ -3985,6 +3987,16 @@
      a 0 en cuanto se puede, antes de que el usuario vea nada. */
   if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   window.scrollTo(0, 0);
+  /* Múltiples fallbacks para asegurar que el scroll esté en 0 */
+  requestAnimationFrame(function () { window.scrollTo(0, 0); });
+  setTimeout(function () { window.scrollTo(0, 0); }, 0);
+  setTimeout(function () { window.scrollTo(0, 0); }, 100);
+  setTimeout(function () { window.scrollTo(0, 0); }, 300);
+  window.addEventListener('load', function () {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
 
   /* =========================================================
      0. CONFIGURACIÓN
@@ -7269,11 +7281,22 @@
       chips: chips
     }, true);
   }
-  $('#btn-limpiar').addEventListener('click', function () {
+  $('#btn-borrar').addEventListener('click', function () {
     var c = convActiva();
-    if (c) { c.mensajes = []; c.titulo = 'Nueva plática'; guardarConvs(); pintarListaConvs(); }
-    pintarHilo();
-    avisar('Conversación limpia.');
+    if (!c) { return; }
+    if (!confirm('¿Estás seguro de que quieres borrar este chat? No se puede deshacer.')) { return; }
+    var convs = leerConvs();
+    var idx = convs.findIndex(function (x) { return x.id === c.id; });
+    if (idx >= 0) { convs.splice(idx, 1); }
+    guardarConvs();
+    pintarListaConvs();
+    nuevaConv();
+    avisar('Chat borrado.');
+  });
+
+  $('#btn-nueva').addEventListener('click', function () {
+    nuevaConv();
+    avisar('Nuevo chat creado.');
   });
 
   /* =========================================================
