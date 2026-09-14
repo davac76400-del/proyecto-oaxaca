@@ -2975,8 +2975,24 @@
               <button type="button" id="estado-conexion" class="rotulo !text-[0.6rem] border border-borde px-2 py-1 rounded-[2px] shrink-0 cursor-pointer hover:border-cian transition-colors" title="Toca para revisar si el asistente está conectado">Modo local</button>
             </div>
 
-            <!-- Se pregunta el giro DESPUÉS de entrar, no antes: el acceso
-                 no se alarga y quien no quiera contestar, la cierra. -->
+            <!-- Se pregunta ubicación y giro DESPUÉS de entrar -->
+            <div id="tira-ubicacion" class="px-5 sm:px-8 py-3.5 border-b border-borde flex flex-wrap items-center gap-3" hidden>
+              <label for="estado-rapido" class="text-[0.9rem] text-texto">¿En qué estado estás?</label>
+              <select id="estado-rapido" class="campo flex-1" style="padding-top:.5rem; padding-bottom:.5rem">
+                <option value="">Elige tu estado…</option>
+              </select>
+              <button type="button" id="cerrar-tira-ubicacion" class="btn-suave shrink-0" style="margin:0">Ahora no</button>
+            </div>
+
+            <div id="tira-municipio" class="px-5 sm:px-8 py-3.5 border-b border-borde flex flex-wrap items-center gap-3" hidden>
+              <label for="municipio-rapido" class="text-[0.9rem] text-texto">¿Tu municipio?</label>
+              <input type="text" id="municipio-buscar" class="campo flex-1" placeholder="Busca tu municipio…" style="padding-top:.5rem; padding-bottom:.5rem">
+              <select id="municipio-rapido" class="campo flex-1" style="padding-top:.5rem; padding-bottom:.5rem; display:none">
+                <option value="">Elige el tuyo…</option>
+              </select>
+              <button type="button" id="cerrar-tira-municipio" class="btn-suave shrink-0" style="margin:0">Ahora no</button>
+            </div>
+
             <div id="tira-giro" class="px-5 sm:px-8 py-3.5 border-b border-borde flex flex-wrap items-center gap-3" hidden>
               <label for="giro-rapido" class="text-[0.9rem] text-texto">¿De qué es tu negocio?</label>
               <select id="giro-rapido" class="campo flex-1" style="padding-top:.5rem; padding-bottom:.5rem">
@@ -4038,6 +4054,45 @@
        Si algún día pones el backend en otro dominio, aquí va su dirección
        completa (o se inyecta al construir con OAXINTEGRA_API_URL). */
     ENDPOINT: '/api/ia'
+  };
+
+  /* ---------------------------------------------------------
+     ESTADOS Y MUNICIPIOS DE MÉXICO
+     Estructura de estados con sus municipios principales/todos
+     --------------------------------------------------------- */
+  var ESTADOS_MUNICIPIOS = {
+    'Aguascalientes': ['Aguascalientes', 'Calvillo', 'Cosío', 'Jesús María', 'San Francisco de los Romo', 'Tepezalá'],
+    'Baja California': ['Tijuana', 'Ensenada', 'Rosarito', 'Tecate', 'Mexicali', 'San Quintín'],
+    'Baja California Sur': ['La Paz', 'Cabo San Lucas', 'San José del Cabo', 'Loreto', 'Comondú'],
+    'Campeche': ['Campeche', 'Carmen', 'Champotón', 'Palizada', 'Escárcega'],
+    'Chiapas': ['Tuxtla Gutiérrez', 'San Cristóbal de Las Casas', 'Tapachula', 'Comitán', 'Ocosingo', 'Palenque'],
+    'Chihuahua': ['Chihuahua', 'Juárez', 'Delicias', 'Parral', 'Hidalgo del Parral', 'Cuauhtémoc'],
+    'Ciudad de México': ['Benito Juárez', 'Cuauhtémoc', 'Gustavo A. Madero', 'Iztapalapa', 'Coyoacán', 'Álvaro Obregón'],
+    'Coahuila': ['Saltillo', 'Torreón', 'Monclova', 'Sabinas', 'Piedras Negras'],
+    'Colima': ['Colima', 'Manzanillo', 'Comala', 'Tecomán'],
+    'Durango': ['Durango', 'Gómez Palacio', 'Lerdo', 'Vicente Guerrero'],
+    'Guanajuato': ['León', 'Guanajuato', 'Irapuato', 'Celaya', 'Salamanca', 'San Miguel de Allende'],
+    'Guerrero': ['Acapulco', 'Chilpancingo', 'Zihuatanejo', 'Taxco', 'Iguala'],
+    'Hidalgo': ['Pachuca', 'Tulancingo', 'Huejutla', 'Actopan', 'Tula'],
+    'Jalisco': ['Guadalajara', 'Zapopan', 'Tonalá', 'Puerto Vallarta', 'Lagos de Moreno', 'Autlán'],
+    'México': ['Toluca', 'Ecatepec', 'Nezahualcóyotl', 'Naucalpan', 'Tlalnepantla', 'Cuautitlán Izcalli'],
+    'Michoacán': ['Morelia', 'Uruapan', 'Lázaro Cárdenas', 'Apatzingán', 'Zamora'],
+    'Morelos': ['Cuernavaca', 'Jiutepec', 'Temixco', 'Cuautla', 'Jojutla'],
+    'Nayarit': ['Tepic', 'Xalisco', 'San Blas', 'Sayulita'],
+    'Nuevo León': ['Monterrey', 'Guadalupe', 'San Nicolás', 'Apodaca', 'Santa Catarina'],
+    'Oaxaca': ['Oaxaca de Juárez', 'Tlacolula de Matamoros', 'Ocotlán de Morelos', 'Etla', 'Guevea de Humboldt', 'Ixtlán de Juárez', 'Miahuatlán de Porfirio Díaz', 'Puerto Escondido', 'Salina Cruz', 'Santo Domingo Xagacia', 'Tututepec de Melchor Ocampo', 'Tuxtepec', 'Pinotepa Nacional', 'Santiago Apostol', 'San Juan Bautista Tuxtepec'],
+    'Puebla': ['Puebla', 'Tehuacán', 'Cholula', 'Atlixco', 'Zacatlán'],
+    'Querétaro': ['Querétaro', 'San Juan del Río', 'Tequisquiapan', 'Jalpan'],
+    'Quintana Roo': ['Cancún', 'Playa del Carmen', 'Tulum', 'Cozumel', 'Chetumal'],
+    'San Luis Potosí': ['San Luis Potosí', 'Ciudad Valles', 'Matehuala', 'Rioverde'],
+    'Sinaloa': ['Culiacán', 'Mazatlán', 'Ahome', 'Guamúchil'],
+    'Sonora': ['Hermosillo', 'Obregón', 'Navojoa', 'San Luis Río Colorado'],
+    'Tabasco': ['Villahermosa', 'Cárdenas', 'Comalcalco', 'Paraíso'],
+    'Tamaulipas': ['Ciudad Victoria', 'Reynosa', 'Nuevo Laredo', 'Matamoros'],
+    'Tlaxcala': ['Tlaxcala', 'Apizaco', 'Huamantla'],
+    'Veracruz': ['Veracruz', 'Xalapa', 'Coatzacoalcos', 'Orizaba', 'Córdoba'],
+    'Yucatán': ['Mérida', 'Progreso', 'Motul', 'Tizimín'],
+    'Zacatecas': ['Zacatecas', 'Fresnillo', 'Jerez', 'Río Grande']
   };
 
   /* ---------------------------------------------------------
@@ -5906,26 +5961,87 @@
     tira.hidden = !(sesion && !sesion.giro);
   }
 
-  (function conectarTiraGiro() {
-    var sel = document.getElementById('giro-rapido');
-    if (!sel) { return; }
+  (function conectarTirasUbicacionGiro() {
+    var selEstado = document.getElementById('estado-rapido');
+    var selMunicipio = document.getElementById('municipio-rapido');
+    var inputBuscar = document.getElementById('municipio-buscar');
+    var selGiro = document.getElementById('giro-rapido');
+    var tiraUbicacion = document.getElementById('tira-ubicacion');
+    var tiraMunicipio = document.getElementById('tira-municipio');
+    var tiraGiro = document.getElementById('tira-giro');
+
+    if (!selEstado || !selGiro) { return; }
+
+    /* Llenar estados */
+    Object.keys(ESTADOS_MUNICIPIOS).forEach(function (estado) {
+      var o = document.createElement('option');
+      o.value = estado;
+      o.textContent = estado;
+      selEstado.appendChild(o);
+    });
+
+    /* Llenar giros */
     Object.keys(GIROS_TEXTO).forEach(function (k) {
       var o = document.createElement('option');
-      o.value = k; o.textContent = GIROS_TEXTO[k];
-      sel.appendChild(o);
+      o.value = k;
+      o.textContent = GIROS_TEXTO[k];
+      selGiro.appendChild(o);
     });
-    sel.addEventListener('change', function () {
-      if (!sel.value) { return; }
-      guardarGiro(sel.value);
+
+    /* Cambio de estado */
+    selEstado.addEventListener('change', function () {
+      if (!selEstado.value) { return; }
+      var municipios = ESTADOS_MUNICIPIOS[selEstado.value] || [];
+      selMunicipio.innerHTML = '<option value="">Elige tu municipio…</option>';
+      inputBuscar.value = '';
+      municipios.forEach(function (m) {
+        var o = document.createElement('option');
+        o.value = m;
+        o.textContent = m;
+        selMunicipio.appendChild(o);
+      });
+      tiraUbicacion.hidden = true;
+      tiraMunicipio.hidden = false;
+      inputBuscar.focus();
+    });
+
+    /* Búsqueda de municipios */
+    inputBuscar.addEventListener('input', function () {
+      var txt = inputBuscar.value.toLowerCase();
+      var opts = selMunicipio.querySelectorAll('option');
+      opts.forEach(function (o) {
+        o.hidden = o.value && !o.textContent.toLowerCase().includes(txt);
+      });
+    });
+
+    /* Cambio de municipio */
+    selMunicipio.addEventListener('change', function () {
+      if (!selMunicipio.value) { return; }
+      if (sesion) { sesion.municipio = selMunicipio.value; sesion.estado = selEstado.value; guardarSesion(); }
+      tiraMunicipio.hidden = true;
+      tiraGiro.hidden = false;
+      avisar('Municipio: ' + selMunicipio.value);
+    });
+
+    /* Cambio de giro */
+    selGiro.addEventListener('change', function () {
+      if (!selGiro.value) { return; }
+      guardarGiro(selGiro.value);
       pintarTiraGiro();
       avisar('Perfecto. De aquí en adelante te respondo con ejemplos de lo tuyo.');
     });
-    var cerrar = document.getElementById('cerrar-tira-giro');
-    if (cerrar) {
-      cerrar.addEventListener('click', function () {
-        document.getElementById('tira-giro').hidden = true;
-      });
-    }
+
+    /* Botones cerrar */
+    ['#cerrar-tira-ubicacion', '#cerrar-tira-municipio', '#cerrar-tira-giro'].forEach(function (sel) {
+      var btn = $(sel);
+      if (btn) {
+        btn.addEventListener('click', function () {
+          tiraUbicacion.hidden = true;
+          tiraMunicipio.hidden = true;
+          tiraGiro.hidden = true;
+        });
+      }
+    });
   })();
 
   ['#sesion-nombre', '#sesion-nombre-movil'].forEach(function (sel) {
