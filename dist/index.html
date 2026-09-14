@@ -546,8 +546,11 @@
 
   /* ---------- calendario del cultivo ---------- */
   .calendario{
-    display:grid; grid-template-columns:repeat(12, minmax(2.6rem, 1fr));
-    gap:2px; min-width:32rem;
+    display:grid; grid-template-columns:repeat(12, minmax(1.8rem, 1fr));
+    gap:2px; width:100%; box-sizing:border-box;
+  }
+  @media (min-width:640px){
+    .calendario{ grid-template-columns:repeat(12, minmax(2.6rem, 1fr)); }
   }
   .calendario__mes{
     padding:.55rem .3rem; text-align:center; border-radius:2px;
@@ -2976,7 +2979,7 @@
                  no se alarga y quien no quiera contestar, la cierra. -->
             <div id="tira-giro" class="px-5 sm:px-8 py-3.5 border-b border-borde flex flex-wrap items-center gap-3" hidden>
               <label for="giro-rapido" class="text-[0.9rem] text-texto">¿De qué es tu negocio?</label>
-              <select id="giro-rapido" class="campo flex-1" style="min-width:190px; padding-top:.5rem; padding-bottom:.5rem">
+              <select id="giro-rapido" class="campo flex-1" style="padding-top:.5rem; padding-bottom:.5rem">
                 <option value="">Elige el tuyo…</option>
               </select>
               <button type="button" id="cerrar-tira-giro" class="btn-suave shrink-0" style="margin:0">Ahora no</button>
