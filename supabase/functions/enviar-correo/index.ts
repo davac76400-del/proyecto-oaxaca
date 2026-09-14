@@ -208,7 +208,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     datos = JSON.parse(cuerpo) as DatosCorreo;
   } catch (e) {
     /* 401 y no 500: esto es «no me fío de quien llama», no «me rompí». */
-    console.error('correo rechazado:', (e as Error).message);
+    console.error('correo rechazado: error al verificar firma');
     return new Response(
       JSON.stringify({ error: { http_code: 401, message: 'firma inválida' } }),
       { status: 401, headers: { 'Content-Type': 'application/json' } }
@@ -281,13 +281,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   });
 
   if (!respuesta.ok) {
-    /* Se guarda el motivo que da Resend (dominio sin verificar, llave mala,
-       cuota llena…) porque es justo lo que hay que leer cuando alguien avisa
-       de que no le llegó el correo. Se le tacha el código antes de escribirlo:
-       arriba se prometió que el token no aparece en los logs, y esta respuesta
-       es la única de la función que trae texto que no escribimos nosotros. */
-    const detalle = (await respuesta.text()).replaceAll(codigo, '······');
-    console.error('Resend no aceptó el envío:', respuesta.status, detalle.slice(0, 400));
+    console.error('Resend no aceptó el envío:', respuesta.status);
     return new Response(
       JSON.stringify({ error: { http_code: 500, message: 'no se pudo enviar el correo' } }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

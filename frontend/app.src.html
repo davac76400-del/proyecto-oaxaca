@@ -5047,6 +5047,7 @@
      dejara a esa persona atorada a media pantalla de registro. */
   function abandonarVerificacion() {
     if (relojRefresco) { clearTimeout(relojRefresco); relojRefresco = null; }
+    almacen.borrar(claveConvs()); /* limpia conversaciones antes de sesion=null */
     sesion = null;
     borrarTokens();
     almacen.borrar(CLAVE_SESION);
@@ -5689,6 +5690,7 @@
     var t = leerTokens();
     if (t) { pedirAuth('/logout', { metodo: 'POST', token: t.access_token }).catch(function () {}); }
     if (relojRefresco) { clearTimeout(relojRefresco); relojRefresco = null; }
+    almacen.borrar(claveConvs()); /* borra las conversaciones del usuario actual antes de sesion=null */
     sesion = null;
     borrarTokens();
     almacen.borrar(CLAVE_SESION);
@@ -6450,12 +6452,23 @@
   function nodoYo(texto, foto) {
     var d = document.createElement('div');
     d.className = 'msg flex justify-end';
-    var dentro = '';
+    var grupo = document.createElement('div');
+    grupo.className = 'grupo-yo';
+
     if (foto) {
-      dentro += '<img src="' + foto + '" alt="Foto que mandaste" class="foto-enviada">';
+      var img = document.createElement('img');
+      img.src = foto;
+      img.alt = 'Foto que mandaste';
+      img.className = 'foto-enviada';
+      grupo.appendChild(img);
     }
-    dentro += '<p class="burbuja-yo">' + nl2br(texto) + '</p>';
-    d.innerHTML = '<div class="grupo-yo">' + dentro + '</div>';
+
+    var p = document.createElement('p');
+    p.className = 'burbuja-yo';
+    p.innerHTML = nl2br(texto);
+    grupo.appendChild(p);
+
+    d.appendChild(grupo);
     return d;
   }
   function mensajeYo(texto, foto) {
@@ -6720,6 +6733,8 @@
   $('#btn-guardadas').addEventListener('click', pintarGuardadas);
 
   function nodoIA(res) {
+    if (!res || typeof res !== 'object') { return document.createElement('div'); }
+
     var d = document.createElement('div');
     d.className = 'msg flex gap-4';
     d.innerHTML = '<span class="avatar-ia" aria-hidden="true"><i></i></span>';
@@ -6776,8 +6791,9 @@
   }
 
   function mensajeIA(res, noGuardar) {
+    if (!res || typeof res !== 'object') { return; }
     hilo.appendChild(nodoIA(res));
-    pintarSugerencias(res.chips);
+    pintarSugerencias(res.chips || []);
     irAlFinal();
     if (noGuardar) { return; }
     var c = convActiva();
