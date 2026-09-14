@@ -1873,10 +1873,10 @@
         <button type="button" data-portada="si" class="btn-linea">Personalizar mi asistente</button>
       </div>
 
-      <div class="mt-7">
-        <button type="button" data-abrir="modal-tutorial" class="btn-suave">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 18.5z"/><path d="M10 9l5 3-5 3z"/></svg>
-          Ver el video tutorial
+      <div class="mt-9">
+        <button type="button" data-abrir="modal-tutorial" class="btn-linea !py-3.5 !px-6 !text-[1rem] flex items-center justify-center gap-3">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 18.5z"/><path d="M10 9l5 3-5 3z"/></svg>
+          <span>Guía Interactiva</span>
         </button>
       </div>
 
@@ -3672,8 +3672,8 @@
     </button>
     <div class="banda-greca" style="--acento:#8CDB2B" aria-hidden="true"></div>
     <div class="modal__cuerpo">
-      <p class="rotulo mb-4">Tutorial</p>
-      <h3 id="titulo-tutorial" class="text-3xl mb-7">Cómo usar la IA en tu negocio.</h3>
+      <p class="rotulo mb-4">Guía Interactiva</p>
+      <h3 id="titulo-tutorial" class="text-3xl mb-7">Guía Interactiva de Agricultura con IA</h3>
 
       <div class="flex gap-3 mb-8">
         <button type="button" id="ayuda-video" class="btn-neon !py-2.5 !px-4 !text-[0.9rem] flex-1 justify-center">
@@ -9550,6 +9550,9 @@
      en localStorage — eso lo puede escribir cualquiera. */
   mostrarPortada();
   arrancarAuth();
+
+  /* Garantizar que la app inicia arriba, sin scroll automático */
+  window.scrollTo(0, 0);
 
   /* Si la app YA estaba abierta y le pegan el enlace en la misma pestaña,
      el navegador solo cambia el fragmento y no recarga nada: arrancarAuth()
