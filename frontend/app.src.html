@@ -1239,53 +1239,6 @@
   .lista-fuentes__que{ color:rgb(var(--texto)); font-weight:600; font-size:.98rem; }
   .lista-fuentes__quien{ color:rgb(var(--tenue)); font-size:.87rem; line-height:1.45; }
 
-  .sim-hora{
-    display:flex; align-items:center; justify-content:space-between; gap:1rem;
-    flex-wrap:wrap; margin-top:1rem; padding-top:1rem;
-    border-top:1px solid rgb(var(--borde));
-  }
-  .sim-hora__campo{
-    display:inline-flex; align-items:center; gap:.25rem;
-    border:1px solid rgb(var(--borde)); border-radius:var(--radio);
-    padding:.4rem .7rem; background:rgb(var(--barro)); color:rgb(var(--tenue));
-  }
-  .sim-hora__campo:focus-within{ border-color:rgb(var(--cian)); }
-  .sim-hora__campo input{
-    width:5rem; border:0; background:transparent; outline:none;
-    font-family:inherit; font-size:1rem; color:rgb(var(--texto)); font-weight:600;
-  }
-
-  /* ---------- simulador de ganancias ---------- */
-  .simulador{
-    background:rgb(var(--barro)); border:1px solid rgb(var(--borde));
-    border-radius:var(--radio-card); box-shadow:var(--sombra-suave); padding:1.5rem 1.6rem;
-  }
-  .simulador input[type="range"]{
-    -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:99px;
-    background:rgb(var(--barroalto)); border:1px solid rgb(var(--borde)); outline:none; cursor:pointer;
-  }
-  .simulador input[type="range"]::-webkit-slider-thumb{
-    -webkit-appearance:none; appearance:none; width:26px; height:26px; border-radius:50%;
-    background:linear-gradient(135deg, rgb(var(--cian)), rgb(var(--violeta)));
-    box-shadow:var(--sombra-suave); cursor:pointer; border:2px solid rgb(var(--barro));
-  }
-  .simulador input[type="range"]::-moz-range-thumb{
-    width:24px; height:24px; border-radius:50%;
-    background:linear-gradient(135deg, rgb(var(--cian)), rgb(var(--violeta)));
-    box-shadow:var(--sombra-media); cursor:pointer; border:2px solid rgb(var(--barro));
-  }
-  .sim-resultado{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:.9rem; margin-top:1.3rem;
-  }
-  .sim-caja{
-    background:rgb(var(--barroalto)); border:1px solid rgb(var(--borde));
-    border-radius:var(--radio); padding:.9rem 1rem; text-align:center;
-  }
-  .sim-cifra{
-    font-family:'Fraunces',Georgia,serif; font-size:1.9rem; line-height:1.1;
-    color:rgb(var(--cian)); font-weight:600;
-  }
-  .sim-etiqueta{ font-size:.78rem; color:rgb(var(--tenue)); margin-top:.2rem; }
 
   /* =====================================================================
      IMPRESIÓN · exportar la respuesta de la IA a PDF
@@ -2482,7 +2435,7 @@
         <select id="sel-lugar" class="campo"></select>
       </div>
       <div class="filtro-campo">
-        <label for="sel-cultivo" class="filtro-rotulo">¿Qué quieres sembrar?</label>
+        <label for="sel-cultivo" class="filtro-rotulo">¿Qué estás sembrando?</label>
         <select id="sel-cultivo" class="campo"></select>
       </div>
       <button type="button" id="btn-mi-ubicacion" class="btn-linea filtro-boton">
@@ -3086,51 +3039,38 @@
           <div class="guia-puntos mt-4" id="sabias-puntos" aria-label="Ver otro dato"></div>
         </div>
 
-        <!-- Simulador de ganancias -->
-        <div class="simulador">
-          <p class="rotulo mb-3" style="color:rgb(var(--cian))">Saca tu cuenta</p>
-          <label for="sim-horas" class="block text-[0.92rem] text-texto mb-1">
-            ¿Cuántas horas al día le dedicas a escribir, cotizar y contestar mensajes?
-          </label>
-          <p class="text-tenue text-[0.82rem] mb-4">
-            Mueve la barra. Te digo cuánto recuperarías si le delegas esa parte al asistente.
+        <!-- Guía de cultivos: referencias y calendarios -->
+        <div class="guia-cultivos">
+          <p class="rotulo mb-3" style="color:rgb(var(--verde))">El campo en tu teléfono</p>
+          <h3 class="text-2xl mb-4 text-texto">Cultivos de Oaxaca: cuándo y cómo.</h3>
+          <p class="text-tenue text-[0.92rem] leading-relaxed mb-6">
+            Maíz, frijol, café, mezcal, verduras: cada uno tiene su tiempo. La IA te ayuda
+            a conocer cuándo siembras en tu pueblo, qué cuidados necesita en cada mes,
+            y cuándo esperar la cosecha. Tu parcela no es la de tu vecino — el clima sí cambia de un lado al otro.
           </p>
 
-          <input type="range" id="sim-horas" min="1" max="10" value="3" step="1"
-                 aria-describedby="sim-horas-valor">
-          <p id="sim-horas-valor" class="text-center mt-3 text-texto font-semibold">
-            <span id="sim-n">3</span> horas al día
-          </p>
-
-          <!-- Antes esto valía 150 pesos porque sí. Nadie de fuera sabe
-               cuánto vale la hora de otra persona: que lo ponga quien lo usa. -->
-          <div class="sim-hora">
-            <label for="sim-valor-hora" class="text-[0.92rem] text-texto">¿En cuánto pones tu hora?</label>
-            <div class="sim-hora__campo">
-              <span aria-hidden="true">$</span>
-              <input type="number" id="sim-valor-hora" value="80" min="0" max="5000" step="10"
-                     inputmode="numeric" aria-label="Cuánto vale tu hora en pesos">
+          <div class="grid sm:grid-cols-2 gap-5">
+            <div class="p-4 rounded-lg bg-barroalto/30 border border-borde">
+              <p class="text-sm text-tenue uppercase tracking-wide mb-2">Lluvia y riego</p>
+              <p class="text-texto">Cada cultivo bebe diferente. El maíz pide lluvia constante; el mezcal, apenas la necesaria.</p>
+            </div>
+            <div class="p-4 rounded-lg bg-barroalto/30 border border-borde">
+              <p class="text-sm text-tenue uppercase tracking-wide mb-2">Plagas y clima</p>
+              <p class="text-texto">Si ves una mancha en la hoja, mándame una foto. Te digo si es cosa de riego, insecto o enfermedad.</p>
+            </div>
+            <div class="p-4 rounded-lg bg-barroalto/30 border border-borde">
+              <p class="text-sm text-tenue uppercase tracking-wide mb-2">Calendario de luna</p>
+              <p class="text-texto">Siembra con la luna nueva para raíces, con luna creciente para lo que crece arriba. La tradición tiene dato.</p>
+            </div>
+            <div class="p-4 rounded-lg bg-barroalto/30 border border-borde">
+              <p class="text-sm text-tenue uppercase tracking-wide mb-2">Mezcal y agave</p>
+              <p class="text-texto">Tarda años en crecer, pero vale el esperar. Pregúntale a la IA cómo se prepara la tierra, cuándo se corta y qué rendimiento esperar.</p>
             </div>
           </div>
 
-          <div class="sim-resultado">
-            <div class="sim-caja">
-              <p class="sim-cifra" id="sim-horas-mes">45</p>
-              <p class="sim-etiqueta">horas libres al mes</p>
-            </div>
-            <div class="sim-caja">
-              <p class="sim-cifra" id="sim-dinero">$6750</p>
-              <p class="sim-etiqueta">valor de tu tiempo al mes</p>
-            </div>
-            <div class="sim-caja">
-              <p class="sim-cifra" id="sim-dias">5</p>
-              <p class="sim-etiqueta">días completos que recuperas</p>
-            </div>
-          </div>
-
-          <p class="text-tenue text-[0.78rem] mt-4 leading-relaxed">
-            La cuenta usa el valor de hora que tú pusiste y supone que el asistente te quita
-            la mitad de ese trabajo. Es para darte una idea con tus propios números, no es una promesa.
+          <p class="text-tenue text-[0.78rem] mt-6 leading-relaxed">
+            Lo que te diga la IA viene de datos reales del clima, ciclos agrícolas de SADER e INIFAP,
+            y experiencia de la gente de Oaxaca. Pero tu tierra es única: prueba, anota y ajusta según lo que ves.
           </p>
         </div>
       </div>
@@ -3859,6 +3799,12 @@
     <div class="banda-greca" style="--acento:#8CDB2B" aria-hidden="true"></div>
     <div class="modal__cuerpo">
       <p class="rotulo mb-4">Mi cuenta</p>
+
+      <h3 class="text-3xl mb-6">Tus reconocimientos.</h3>
+      <div id="zona-badges" class="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-12">
+        <!-- Los badges se pintan aquí dinámicamente -->
+      </div>
+
       <h3 id="titulo-cambiar-clave" class="text-3xl mb-6">Cambiar mi contraseña.</h3>
 
       <form id="form-cambiar-clave" class="space-y-5" novalidate>
@@ -4011,6 +3957,33 @@
        completa (o se inyecta al construir con OAXINTEGRA_API_URL). */
     ENDPOINT: '/api/ia'
   };
+
+  /* Badges/Insignias de reconocimiento para agricultores */
+  var BADGES = [
+    { id: 'primer-chat', nombre: '🌱 Primer brote', desc: 'Tu primer mensaje a la IA' },
+    { id: 'diez-chats', nombre: '🌿 Crecimiento', desc: '10 platicas completadas' },
+    { id: 'cambio-cultivo', nombre: '🌾 Experimentador', desc: 'Trabajas con 3+ cultivos' },
+    { id: 'lluvia-checker', nombre: '💧 Monitor de agua', desc: 'Consultaste lluvia 5 veces' },
+    { id: 'luna-planner', nombre: '🌙 Sembrador lunar', desc: 'Usaste el calendario de luna' },
+    { id: 'mezcal-knowledge', nombre: '🍂 Mezcalero', desc: 'Preguntaste sobre agave' },
+    { id: 'clima-expert', nombre: '⛅ Experto climático', desc: 'Consultaste clima 10 veces' },
+    { id: 'dedicado', nombre: '🏆 Dedicado', desc: '30 o más mensajes en una plática' }
+  ];
+
+  /* Función para renderizar badges en Mi Cuenta */
+  function pintarBadges() {
+    var zona = $('#zona-badges');
+    if (!zona) { return; }
+    zona.innerHTML = '';
+    BADGES.forEach(function (b, i) {
+      var badge = document.createElement('div');
+      badge.className = 'badge-item text-center p-3 rounded-lg bg-barroalto/50 border border-borde hover:bg-barroalto transition-colors';
+      badge.title = b.desc;
+      badge.innerHTML = '<div class="text-3xl mb-2">' + b.nombre.split(' ')[0] + '</div>' +
+                        '<p class="text-xs text-tenue">' + b.nombre.split(' ').slice(1).join(' ') + '</p>';
+      zona.appendChild(badge);
+    });
+  }
 
   /* =========================================================
      1. UTILIDADES
@@ -5591,6 +5564,7 @@
     $('#btn-guardar-clave').disabled = false;
     $('#girador-guardar-clave').hidden = true;
     $('#texto-btn-guardar-clave').textContent = 'Guardar mi contraseña nueva';
+    pintarBadges();
     abrirModal('modal-cambiar-clave');
     setTimeout(function () { $('#ac-clave').focus(); }, 120);
   }
@@ -6404,10 +6378,23 @@
       b.innerHTML =
         '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="shrink-0" aria-hidden="true"><path d="M4 5h16v12H9l-5 4z"/></svg>' +
         '<span class="nombre-conv">' + esc(c.titulo) + '</span>' +
+        '<span class="editar-conv" role="button" tabindex="0" aria-label="Renombrar esta plática">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94m-5.75-5.75l2.5-2.5a2.121 2.121 0 013 3l-2.5 2.5"/></svg>' +
+        '</span>' +
         '<span class="quitar" role="button" tabindex="0" aria-label="Borrar esta plática">' +
           '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
         '</span>';
       b.addEventListener('click', function (e) {
+        if (e.target.closest('.editar-conv')) {
+          e.stopPropagation();
+          var nuevoNombre = prompt('Renombra esta plática:', c.titulo).trim();
+          if (nuevoNombre && nuevoNombre !== c.titulo) {
+            c.titulo = nuevoNombre.slice(0, 50);
+            guardarConvs(); pintarListaConvs(); pintarHilo();
+            avisar('Plática renombrada.');
+          }
+          return;
+        }
         if (e.target.closest('.quitar')) {
           e.stopPropagation();
           if (!confirm('¿Borrar «' + c.titulo + '»? No se puede deshacer.')) { return; }
@@ -7272,37 +7259,6 @@
   })();
 
 
-  /* ---------------------------------------------------------
-     C · SIMULADOR DE GANANCIAS
-     --------------------------------------------------------- */
-  (function simulador() {
-    var barra = $('#sim-horas');
-    var campoHora = $('#sim-valor-hora');
-    if (!barra || !campoHora) { return; }
-    var DIAS_MES = 30;
-    var PARTE_QUE_DELEGA = 0.5; /* el asistente se lleva la mitad de esa carga */
-
-    function calcular() {
-      var horasDia = Number(barra.value);
-      /* Si el campo se deja vacío o con un disparate, se cae a 0 en vez de
-         pintar "NaN": el resultado queda en cero y se entiende solo. */
-      var valorHora = Math.max(0, Math.min(5000, Number(campoHora.value) || 0));
-      var ahorroDia = horasDia * PARTE_QUE_DELEGA;
-      var horasMes = Math.round(ahorroDia * DIAS_MES);
-      var dinero = horasMes * valorHora;
-      var dias = Math.round(horasMes / 8);
-
-      $('#sim-n').textContent = horasDia;
-      $('#sim-horas-mes').textContent = horasMes;
-      /* cifras sin comas ni puntos, tal como se pidió */
-      $('#sim-dinero').textContent = '$' + dinero;
-      $('#sim-dias').textContent = dias;
-    }
-
-    barra.addEventListener('input', calcular);
-    campoHora.addEventListener('input', calcular);
-    calcular();
-  })();
 
 
   /* ---------------------------------------------------------
@@ -8029,7 +7985,22 @@
       nota:'Lo del Papaloapan y el Istmo. Pide mucha agua todo el año, casi siempre con riego.' },
     { id:'alfalfa', nombre:'Alfalfa', siembra:[10,11], cosecha:[1,2,3,4,5,6,7,8,9,10,11,12], dias:'primer corte a los 90; luego cada 30',
       lluviaMin:0, tempSuelo:10, aguaCiclo:'1200 a 1600 mm', perenne:true, riego:true,
-      nota:'Para el ganado. Es de riego y una vez establecida da cortes todo el año.' }
+      nota:'Para el ganado. Es de riego y una vez establecida da cortes todo el año.' },
+    { id:'hortaliza', nombre:'Hortaliza (huerto)', siembra:[2,3,4,5,6,7,8,9], cosecha:[3,4,5,6,7,8,9,10,11],
+      dias:'60 a 90 según verdura', lluviaMin:15, tempSuelo:12, aguaCiclo:'300 a 500 mm', baseGD:10, gdCiclo:800, perenne:false,
+      nota:'Lechugas, cilantro, epazote, nabo, zanahoria, rábano. Se dan bien en terraza y maceta. Agua constante, sol 6 horas mínimo.' },
+    { id:'cilantro', nombre:'Cilantro', siembra:[2,3,4,5,8,9,10,11], cosecha:[3,4,5,6,9,10,11,12],
+      dias:'40 a 60', lluviaMin:10, tempSuelo:10, aguaCiclo:'200 a 300 mm', baseGD:0, gdCiclo:600, perenne:false,
+      nota:'La hierba más usada en cocina oaxaqueña. Se siembra densamente. Corta antes de que florezca si quieres hoja tierna.' },
+    { id:'epazote', nombre:'Epazote', siembra:[2,3,4,5,6,7,8,9], cosecha:[4,5,6,7,8,9,10,11],
+      dias:'50 a 70', lluviaMin:10, tempSuelo:12, aguaCiclo:'250 a 400 mm', perenne:true,
+      nota:'Se da casi sola, incluso entre piedras. Hoja para frijoles negros, tamales. Una vez prendida llega año tras año.' },
+    { id:'chayote', nombre:'Chayote', siembra:[3,4,5], cosecha:[11,12,1,2,3], dias:'8 meses primer fruto',
+      lluviaMin:20, tempSuelo:16, aguaCiclo:'600 a 800 mm', perenne:true,
+      nota:'Trepador vigoroso. Se planta en tutor. La raíz (chayotextle) y el fruto se comen. Rinde mucho.' },
+    { id:'zapallo', nombre:'Zapallo o calabacín', siembra:[4,5,6,7], cosecha:[6,7,8,9,10],
+      dias:'60 a 80', lluviaMin:15, tempSuelo:15, aguaCiclo:'350 a 500 mm', baseGD:10, gdCiclo:900, perenne:false,
+      nota:'Fruto alargado tierno. Se cosecha pequeño (20-25 cm) para que sea sabroso. Si dejas crecer mucho, se pone duro y amargo.' }
   ];
 
   var MESES_CORTOS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
