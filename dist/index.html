@@ -789,22 +789,37 @@
   .msg{ animation:aparece .4s ease both; }
   @keyframes aparece{ from{opacity:0; transform:translateY(10px)} }
   .burbuja-yo{
-    background:rgb(var(--barroalto)); border:1px solid rgb(var(--borde)); border-radius:3px;
-    padding:.9rem 1.25rem; font-size:.98rem; line-height:1.6; max-width:85%;
+    background:color-mix(in srgb, rgb(var(--cian)) 9%, rgb(var(--barroalto)));
+    border:1px solid color-mix(in srgb, rgb(var(--cian)) 22%, transparent);
+    border-radius:8px;
+    padding:1rem 1.4rem; font-size:.96rem; line-height:1.65; max-width:85%;
   }
+  .burbuja-ia{
+    background:transparent; border:none; padding:0; max-width:90%;
+  }
+  .burbuja-ia > *{
+    font-size:.96rem; line-height:1.65; color:rgb(var(--texto));
+  }
+  .burbuja-ia p{ margin:0.5rem 0; }
+  .burbuja-ia p:first-child{ margin-top:0; }
+  .burbuja-ia p:last-child{ margin-bottom:0; }
   /* avatar del asistente: capas de profundidad (fondo con gradiente +
      borde + glow) en vez del cuadrado plano de antes, para que se sienta
      como una presencia con volumen, no un icono. */
   .avatar-ia{
-    position:relative; flex-shrink:0; width:2.35rem; height:2.35rem; border-radius:7px;
+    position:relative; flex-shrink:0; width:2.35rem; height:2.35rem; border-radius:5px;
     display:grid; place-items:center;
-    background:linear-gradient(155deg, color-mix(in srgb, rgb(var(--cian)) 16%, rgb(var(--barroalto))) 0%, rgb(var(--barroalto)) 100%);
-    border:1px solid color-mix(in srgb, rgb(var(--cian)) 45%, transparent);
-    box-shadow:0 0 16px color-mix(in srgb, rgb(var(--cian)) 20%, transparent), var(--sombra-suave);
+    background:linear-gradient(135deg, rgb(var(--verde)) 0%, color-mix(in srgb, rgb(var(--verde)) 80%, rgb(var(--ambar))) 100%);
+    border:1px solid color-mix(in srgb, rgb(var(--verde)) 35%, transparent);
+    box-shadow:0 2px 8px color-mix(in srgb, rgb(var(--verde)) 18%, transparent), var(--sombra-suave);
   }
   .avatar-ia i{
-    width:.5rem; height:.5rem; background:rgb(var(--cian)); transform:rotate(45deg);
-    box-shadow:0 0 10px rgb(var(--cian)); display:block; border-radius:1px;
+    width:1.1rem; height:1.1rem; background:transparent; display:block;
+    opacity:.95;
+    /* una hoja de maíz estilizada: cultivo de la tierra */
+    mask-image:url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="white"><path d="M12 2c0 0-2 3-2 6c0 2 1 4 2 5c1-1 2-3 2-5c0-3-2-6-2-6M10 8c-1.5 0-3 1-3 2.5s1.5 3 3 4c1.5-1 3-2.5 3-4S11.5 8 10 8M14 8c1.5 0 3 1 3 2.5S15.5 13.5 14 14c-1.5-1-3-2.5-3-4S12.5 8 14 8M12 14c0 0 2 2 2 4s-1 4-2 5s-2-3-2-5s2-4 2-4"/></svg>');
+    -webkit-mask-image:url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="white"><path d="M12 2c0 0-2 3-2 6c0 2 1 4 2 5c1-1 2-3 2-5c0-3-2-6-2-6M10 8c-1.5 0-3 1-3 2.5s1.5 3 3 4c1.5-1 3-2.5 3-4S11.5 8 10 8M14 8c1.5 0 3 1 3 2.5S15.5 13.5 14 14c-1.5-1-3-2.5-3-4S12.5 8 14 8M12 14c0 0 2 2 2 4s-1 4-2 5s-2-3-2-5s2-4 2-4"/></svg>');
+    background:rgb(250 250 245);
   }
   .avatar-ia[data-pensando="si"]::after{
     content:''; position:absolute; inset:-4px; border-radius:9px; pointer-events:none;
@@ -1030,19 +1045,27 @@
 
   /* ---------- botones del chat ---------- */
   .boton-enviar{
-    width:38px; height:38px; display:grid; place-items:center; border-radius:var(--radio);
-    background:rgb(var(--cian)); color:var(--tinta-inversa);
-    box-shadow:0 0 0 1px color-mix(in srgb, rgb(var(--cian)) 45%, transparent);
-    transition:box-shadow .25s ease;
+    width:40px; height:40px; display:grid; place-items:center; border-radius:8px; flex-shrink:0;
+    background:linear-gradient(135deg, rgb(var(--verde)) 0%, color-mix(in srgb, rgb(var(--verde)) 85%, rgb(var(--ambar))) 100%);
+    color:rgb(250 250 245);
+    box-shadow:0 2px 8px color-mix(in srgb, rgb(var(--verde)) 22%, transparent);
+    transition:all .25s ease; border:1px solid transparent; cursor:pointer;
   }
-  .boton-enviar:hover{ box-shadow:0 0 0 1px rgb(var(--cian)), var(--sombra-suave); }
+  .boton-enviar:hover{
+    transform:translateY(-2px);
+    box-shadow:0 4px 14px color-mix(in srgb, rgb(var(--verde)) 35%, transparent);
+  }
   .boton-micro{
-    width:38px; height:38px; display:grid; place-items:center; border-radius:var(--radio); flex-shrink:0;
+    width:40px; height:40px; display:grid; place-items:center; border-radius:8px; flex-shrink:0;
     background:transparent; color:rgb(var(--tenue)); cursor:pointer;
     border:1px solid rgb(var(--borde));
-    transition:color .25s ease, border-color .25s ease, background .25s ease;
+    transition:all .25s ease;
   }
-  .boton-micro:hover{ color:rgb(var(--rosa)); border-color:rgb(var(--rosa)); }
+  .boton-micro:hover{
+    color:rgb(var(--verde));
+    border-color:rgb(var(--verde));
+    background:color-mix(in srgb, rgb(var(--verde)) 6%, transparent);
+  }
   .boton-micro[data-oyendo="si"]{
     background:rgb(var(--rosa)); color:var(--tinta-inversa); border-color:rgb(var(--rosa));
     animation:latido 1.3s ease-in-out infinite;
@@ -2953,7 +2976,7 @@
                 <span class="hidden md:inline-block w-2.5 h-2.5 rounded-full bg-rosa/70 shrink-0"></span>
                 <span class="hidden md:inline-block w-2.5 h-2.5 rounded-full bg-ambar/70 shrink-0"></span>
                 <span class="hidden md:inline-block w-2.5 h-2.5 rounded-full bg-verde/70 shrink-0"></span>
-                <span class="ml-2 text-[0.85rem] text-tenue truncate" id="titulo-conv">OaxIntegra IA · Asistente</span>
+                <span class="ml-2 text-[0.85rem] text-tenue truncate font-fraunces font-semibold text-texto" id="titulo-conv">Tu ayudante de confianza</span>
               </div>
               <button type="button" id="estado-conexion" class="rotulo !text-[0.6rem] border border-borde px-2 py-1 rounded-[2px] shrink-0 cursor-pointer hover:border-cian transition-colors" title="Toca para revisar si el asistente está conectado">Modo local</button>
             </div>
