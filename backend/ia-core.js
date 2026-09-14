@@ -25,15 +25,13 @@ const CONFIG = {
   /* Para fotos hace falta un modelo que sepa VER. El de texto no puede.
      Este también es gratuito (termina en :free). */
   LLAMA_MODELO_FOTO: process.env.OPENROUTER_MODEL_VISION || 'meta-llama/llama-3.2-11b-vision-instruct:free',
-  GEMINI_MODELO: process.env.GEMINI_MODEL    || 'gemini-3.6-flash',
+  GEMINI_MODELO: process.env.GEMINI_MODEL    || 'gemini-2.0-flash',
   GEMINI_BASE:  process.env.GEMINI_URL_BASE  || 'https://generativelanguage.googleapis.com/v1beta/models/',
   LIMITE_MS:    Number(process.env.IA_TIMEOUT_MS || 20000),
   MAX_TOKENS:   900,
-  /* Gemini Flash piensa antes de escribir, y lo que piensa se cobra del mismo
-     tope que la respuesta: con 900 gastaba ~800 pensando y cortaba la frase a
-     media palabra. De ahí el tope aparte y el pensar en corto. */
+  /* Gemini 2.0 Flash es rápido y barato. Sin thinking profundo para ahorrar tokens. */
   GEMINI_MAX_TOKENS: Number(process.env.GEMINI_MAX_TOKENS || 2500),
-  GEMINI_PENSAR: process.env.GEMINI_THINKING || 'low',
+  GEMINI_PENSAR: process.env.GEMINI_THINKING || false,
   TEMPERATURA:  0.7
 };
 
