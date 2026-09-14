@@ -3686,19 +3686,68 @@
       </div>
 
       <div id="panel-video-tutorial">
-        <div class="marco-video relative w-full rounded-[3px] overflow-hidden border border-borde" style="aspect-ratio:16/9">
-          <iframe class="absolute inset-0 w-full h-full border-0"
-                  src="https://www.youtube-nocookie.com/embed/h82ywf1qMEA"
-                  title="Tutorial: cómo usar la inteligencia artificial"
-                  allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                  allowfullscreen loading="lazy"></iframe>
+        <div class="space-y-6">
+          <div class="p-6 rounded-lg" style="background:rgba(140,219,43,.12); border:1px solid rgba(140,219,43,.3)">
+            <h4 class="text-2xl mb-4 text-texto">¿Qué es la inteligencia artificial?</h4>
+            <p class="text-tenue leading-relaxed mb-4">
+              La inteligencia artificial es un programa que aprendió leyendo millones de textos. Es como un estudiante muy aplicado que leyó libros, artículos, guías y conversaciones de todo el mundo. Ahora, cuando tú le haces una pregunta, busca en lo que aprendió y te da una respuesta.
+            </p>
+            <p class="text-tenue leading-relaxed">
+              <strong style="color:rgb(var(--cian))">En tu caso:</strong> aprendió sobre agricultura, clima, cultivos, plagas y todo lo que hace un agricultor. No es mágico — es un asistente que aprendió mucho y te ayuda a pensar mejor tus decisiones.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-lg" style="background:rgba(45,212,191,.12); border:1px solid rgba(45,212,191,.3)">
+            <h4 class="text-2xl mb-4 text-texto">¿Qué es un prompt?</h4>
+            <p class="text-tenue leading-relaxed mb-4">
+              Un prompt es simplemente una <strong>indicación o pregunta</strong> que tú le das a la IA. Es lo que escribes en la caja de abajo cuando quieres una respuesta.
+            </p>
+            <p class="text-tenue leading-relaxed mb-4">
+              <strong style="color:rgb(var(--naranja))">Ejemplo de prompt malo:</strong><br>
+              «¿Qué hago?» — muy vago, la IA no sabe qué cultivas.
+            </p>
+            <p class="text-tenue leading-relaxed">
+              <strong style="color:rgb(var(--verde))">Ejemplo de prompt bueno:</strong><br>
+              «Tengo tomate en Oaxaca, media hectárea, tierra arcillosa. No llueve hace 10 días y los tomates están con las hojas un poco marchitas. ¿Qué hago?»
+            </p>
+          </div>
+
+          <div class="p-6 rounded-lg" style="background:rgba(255,152,0,.12); border:1px solid rgba(255,152,0,.3)">
+            <h4 class="text-2xl mb-4 text-texto">¿Cómo funciona la IA?</h4>
+            <p class="text-tenue leading-relaxed mb-4">
+              Cuando escribes tu pregunta, la IA hace esto:
+            </p>
+            <ol class="text-tenue leading-relaxed space-y-2" style="list-style:decimal; margin-left:1.5rem">
+              <li><strong style="color:rgb(var(--cian))">Lee lo que escribiste</strong> — entiende que tienes tomate, que está en Oaxaca, que hay falta de agua.</li>
+              <li><strong style="color:rgb(var(--cian))">Busca en su memoria</strong> — recuerda todo lo que sabe sobre tomates, sequía, clima de Oaxaca.</li>
+              <li><strong style="color:rgb(var(--cian))">Crea una respuesta</strong> — basada en lo que mejor funciona en tu situación exacta.</li>
+              <li><strong style="color:rgb(var(--cian))">Te la muestra</strong> — en forma de consejo que puedes leer, entender y poner en práctica.</li>
+            </ol>
+          </div>
+
+          <div class="p-6 rounded-lg" style="background:rgba(232,63,94,.12); border:1px solid rgba(232,63,94,.3)">
+            <h4 class="text-2xl mb-4 text-texto">¿Cómo la usas correctamente?</h4>
+            <div class="space-y-3 text-tenue leading-relaxed">
+              <p><strong style="color:rgb(var(--ambar))">1. Cuéntale de ti:</strong> «Siembro maíz en Tlacolula, tengo 2 hectáreas, lluvia escasa.»</p>
+              <p><strong style="color:rgb(var(--ambar))">2. Sé específico:</strong> No digas «¿Qué hago?» — di «¿Cuándo riego si hace calor?»</p>
+              <p><strong style="color:rgb(var(--ambar))">3. Da detalles:</strong> Si hay un problema, cuéntale todo: color de hojas, cuándo empezó, qué lluvia tuvo.</p>
+              <p><strong style="color:rgb(var(--ambar))">4. Lee con cuidado:</strong> La respuesta no es un mandato — es un consejo. Verifica tú en tu parcela.</p>
+              <p><strong style="color:rgb(var(--ambar))">5. Pregunta de nuevo:</strong> Si no entiendes, vuelve a preguntar de otra forma.</p>
+            </div>
+          </div>
+
+          <div class="p-6 rounded-lg" style="background:rgba(76,175,80,.12); border:1px solid rgba(76,175,80,.3)">
+            <h4 class="text-2xl mb-4 text-texto">¿Por qué es importante?</h4>
+            <p class="text-tenue leading-relaxed mb-4">
+              Porque no estás solo en tu parcela. Tienes un asesor disponible 24/7 que conoce tu cultivo, tu clima y tu tierra. Aprende de ti, se adapta a lo que haces y te ayuda a tomar decisiones mejores.
+            </p>
+            <p class="text-tenue leading-relaxed">
+              <strong style="color:rgb(var(--verde))">Resultado:</strong> más cosecha, menos desperdicio, menos riesgo, menos trabajo.
+            </p>
+          </div>
         </div>
-        <div class="flex flex-wrap gap-3 mt-5">
-          <a href="https://www.youtube.com/watch?v=h82ywf1qMEA" target="_blank" rel="noopener noreferrer" class="btn-linea !py-2.5 !px-4 !text-[0.9rem]">
-            Abrirlo directo en YouTube
-          </a>
-          <button type="button" id="ayuda-pasos-2" class="btn-suave">Prefiero leerlo</button>
-        </div>
+
+        <button type="button" id="ayuda-pasos-2" class="btn-suave mt-8 w-full justify-center">Prefiero ver los pasos de otra forma</button>
       </div>
 
       <div id="panel-pasos-tutorial" hidden>
