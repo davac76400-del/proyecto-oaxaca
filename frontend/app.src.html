@@ -1137,7 +1137,7 @@
   /* ---------- la lluvia sobre la milpa ---------- */
   .escena-milpa{
     position:relative; overflow:hidden;
-    min-height:min(78svh, 620px);
+    min-height:min(100svh, 800px);
     display:flex; align-items:center;
     border-top:1px solid rgb(var(--borde));
     isolation:isolate;
@@ -2327,10 +2327,10 @@
 <!-- ==================== GUÍA: CÓMO USAR LA IA PARA TU CULTIVO ==================== -->
 <section class="seccion-gris" aria-labelledby="guia-ia-titulo">
   <div class="contenedor-normal">
-    <div class="mb-10">
+    <div class="mb-10 text-center">
       <p class="rotulo mb-3" style="color:rgb(var(--cian))">Aprende paso a paso</p>
       <h2 class="text-4xl sm:text-5xl mb-4" id="guia-ia-titulo">Cómo usar la IA en tu parcela</h2>
-      <p class="text-tenue text-lg leading-relaxed max-w-2xl">
+      <p class="text-tenue text-lg leading-relaxed max-w-2xl mx-auto">
         La inteligencia artificial es una herramienta que aprende de lo que le preguntas. Aquí te mostramos cómo usarla desde el primer día hasta convertirla en parte de tu rutina.
       </p>
     </div>
@@ -9622,8 +9622,8 @@
       lienzo.height = Math.round(altoL * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       /* la cantidad de gotas va con el tamaño: en un celular no hacen falta
-         las mismas que en un monitor grande */
-      var cuantas = Math.round(Math.min(220, Math.max(60, ancho / 6)));
+         las mismas que en un monitor grande. Aumentadas para lluvia más visible */
+      var cuantas = Math.round(Math.min(320, Math.max(100, ancho / 4)));
       gotas = [];
       for (var i = 0; i < cuantas; i++) { gotas.push(nuevaGota(true)); }
     }
@@ -9632,10 +9632,10 @@
       return {
         x: Math.random() * (ancho + 120) - 60,
         y: enCualquierParte ? Math.random() * altoL : -20 - Math.random() * 80,
-        largo: 11 + Math.random() * 19,
-        vel: 7 + Math.random() * 9,
-        grosor: Math.random() < 0.3 ? 1.8 : 1.2,
-        alfa: 0.3 + Math.random() * 0.5
+        largo: 14 + Math.random() * 24,
+        vel: 8 + Math.random() * 11,
+        grosor: Math.random() < 0.3 ? 2.2 : 1.4,
+        alfa: 0.4 + Math.random() * 0.5
       };
     }
 
