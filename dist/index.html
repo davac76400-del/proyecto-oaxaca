@@ -7759,6 +7759,147 @@
     }
   })();
 
+  /* ---------------------------------------------------------
+     A.5 · GEOLOCALIZACIÓN Y CAPTURA DE CÁMARA
+     --------------------------------------------------------- */
+  var ubicacionActual = null;
+  var camaraActiva = null;
+
+  function obtenerUbicacion(callback) {
+    if (!navigator.geolocation) {
+      avisar('Tu navegador no soporta geolocalización.');
+      if (callback) callback(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        ubicacionActual = { lat: pos.coords.latitude, lon: pos.coords.longitude, precision: pos.coords.accuracy };
+        marcarProgreso('ubicacion');
+        avisar('Ubicación obtenida: ' + Math.round(pos.coords.latitude * 100) / 100 + ', ' + Math.round(pos.coords.longitude * 100) / 100);
+        if (callback) callback(ubicacionActual);
+      },
+      function (err) {
+        avisar('No pude acceder a tu ubicación. Verifica los permisos.');
+        if (callback) callback(null);
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  }
+
+  function capturarDesdeCamara(callback) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      avisar('Tu navegador no soporta captura de cámara.');
+      if (callback) callback(null);
+      return;
+    }
+    avisar('Accediendo a tu cámara…');
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(function (stream) {
+        camaraActiva = stream;
+        mostrarCapturadorCamara(stream, callback);
+      })
+      .catch(function (err) {
+        avisar('No pude acceder a tu cámara. Verifica los permisos.');
+        if (callback) callback(null);
+      });
+  }
+
+  function mostrarCapturadorCamara(stream, callback) {
+    var modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = '<div class="modal__fondo"></div>' +
+      '<div class="modal__panel" style="max-width:500px">' +
+        '<div class="modal__cuerpo">' +
+          '<h3 class="text-2xl mb-4">Capturar foto</h3>' +
+          '<video id="video-captura" style="width:100%; border-radius:4px; margin-bottom:1rem; background:#000"></video>' +
+          '<div style="display:flex; gap:1rem">' +
+            '<button type="button" id="btn-capturar-foto" class="btn-neon flex-1">📸 Capturar</button>' +
+            '<button type="button" id="btn-cerrar-camara" class="btn-linea flex-1">Cancelar</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    var video = modal.querySelector('#video-captura');
+    video.srcObject = stream;
+    video.play();
+
+    modal.querySelector('#btn-capturar-foto').addEventListener('click', function () {
+      var canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      var uri = canvas.toDataURL('image/jpeg', 0.82);
+      fotoPendiente = uri;
+      $('#previa-foto-img').src = uri;
+      $('#previa-foto-peso').textContent = Math.round(uri.length * 0.75 / 1024) + ' KB · se manda junto con tu mensaje';
+      $('#previa-foto').hidden = false;
+      entrada.focus();
+      marcarProgreso('fotoCapturada');
+      detenerCamara();
+      modal.remove();
+      avisar('Foto capturada.');
+      if (callback) callback(uri);
+    });
+
+    modal.querySelector('#btn-cerrar-camara').addEventListener('click', function () {
+      detenerCamara();
+      modal.remove();
+      if (callback) callback(null);
+    });
+
+    modal.querySelector('.modal__fondo').addEventListener('click', function () {
+      detenerCamara();
+      modal.remove();
+      if (callback) callback(null);
+    });
+  }
+
+  function detenerCamara() {
+    if (camaraActiva) {
+      camaraActiva.getTracks().forEach(function (track) { track.stop(); });
+      camaraActiva = null;
+    }
+  }
+
+  /* modificar el botón de foto para mostrar opciones */
+  var botonFotoOriginal = $('#btn-foto');
+  if (botonFotoOriginal) {
+    botonFotoOriginal.addEventListener('click', function () {
+      var menuFoto = document.createElement('div');
+      menuFoto.className = 'modal';
+      menuFoto.innerHTML = '<div class="modal__fondo"></div>' +
+        '<div class="modal__panel" style="max-width:400px">' +
+          '<div class="modal__cuerpo">' +
+            '<h3 class="text-xl mb-4">¿Qué quieres hacer?</h3>' +
+            '<div style="display:flex; flex-direction:column; gap:0.75rem">' +
+              '<button type="button" id="opt-subir-archivo" class="btn-linea">📁 Subir archivo</button>' +
+              '<button type="button" id="opt-capturar" class="btn-linea">📸 Capturar con cámara</button>' +
+              '<button type="button" id="opt-cerrar" class="btn-linea">Cancelar</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(menuFoto);
+
+      menuFoto.querySelector('#opt-subir-archivo').addEventListener('click', function () {
+        menuFoto.remove();
+        $('#archivo-foto').click();
+      });
+
+      menuFoto.querySelector('#opt-capturar').addEventListener('click', function () {
+        menuFoto.remove();
+        capturarDesdeCamara();
+      });
+
+      menuFoto.querySelector('#opt-cerrar').addEventListener('click', function () {
+        menuFoto.remove();
+      });
+
+      menuFoto.querySelector('.modal__fondo').addEventListener('click', function () {
+        menuFoto.remove();
+      });
+    });
+  }
 
   /* ---------------------------------------------------------
      B · GUARDAR COMO IMAGEN (Canvas)
