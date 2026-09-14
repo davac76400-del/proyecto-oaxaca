@@ -110,6 +110,9 @@
     --texto:36 28 19;       /* casi negro café, máxima legibilidad */
     --tenue:74 63 50;       /* café oscuro — lectura garantizada, nada claro */
     --tinta-inversa:#FFFDF8; --violeta:109 44 176; --amarillo:154 107 8; --glow:0;
+    /* el agua de la escena de la milpa: azul pizarra, que es lo que se ve
+       sobre un fondo claro. En modo noche se aclara (más abajo). */
+    --lluvia:74 116 140;
     /* relieve en capas: una sombra de contacto ajustada + una ambiental larga,
        para que las tarjetas y el chapulín tengan profundidad real en vez de
        una sola sombra plana (23 sep 2026). */
@@ -124,6 +127,7 @@
        de IA" de antes: casi negro, con la más mínima tibieza en vez de azul
        puro (23 sep 2026). */
     --obsidiana:10 9 12; --barro:17 19 26; --barroalto:24 27 38; --borde:43 49 66;
+    --lluvia:132 184 208;   /* sobre casi negro, la gota tiene que aclararse */
     /* mismo giro que en modo día: turquesa profundo tipo piedra, no el aqua
        #00F2FE saturado al máximo que cualquiera asocia con "IA genérica".
        Contraste: 9.15:1 sobre --barroalto. */
@@ -324,6 +328,284 @@
     transition:border-color .25s var(--ease-salida), color .25s var(--ease-salida);
   }
   .btn-suave:hover{ border-color:rgb(var(--verde)); color:rgb(var(--verde)); }
+
+  /* ---------- entrar sin cuenta ----------
+     Discreto a propósito: es la tercera opción, no la primera. Punteado,
+     sin relleno y en tono tenue, para que se lea como "salida de prueba"
+     y no compita con Iniciar sesión. */
+  .separador-o{
+    display:flex; align-items:center; gap:.9rem; margin:1.4rem 0 1.1rem;
+    color:rgb(var(--tenue)); font-size:.8rem; letter-spacing:.14em; text-transform:uppercase;
+  }
+  .separador-o::before, .separador-o::after{
+    content:''; flex:1; height:1px; background:rgb(var(--borde));
+  }
+  .btn-invitado{
+    display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
+    background:transparent; color:rgb(var(--tenue)); font-family:inherit; font-size:.96rem;
+    font-weight:500; padding:.85rem 1.4rem; border-radius:var(--radio); cursor:pointer;
+    border:1px dashed rgb(var(--borde));
+    transition:border-color .25s var(--ease-salida), color .25s var(--ease-salida), background .25s var(--ease-salida);
+  }
+  .btn-invitado:hover{
+    border-color:rgb(var(--verde)); color:rgb(var(--verde));
+    background:color-mix(in srgb, rgb(var(--verde)) 6%, transparent);
+  }
+
+  /* La cinta de aviso mientras se anda de invitado. Fija abajo para que no
+     se pierda al bajar la página: la promesa de "no guardo nada" tiene que
+     estar a la vista todo el rato, no solo en la pantalla de entrada. */
+  .cinta-invitado{
+    position:fixed; left:0; right:0; bottom:0; z-index:45;
+    display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.5rem .9rem;
+    padding:.7rem 1rem; font-size:.88rem; line-height:1.4;
+    background:color-mix(in srgb, rgb(var(--barroalto)) 96%, transparent);
+    border-top:1px solid rgb(var(--borde));
+    color:rgb(var(--tenue));
+    backdrop-filter:blur(8px);
+    box-shadow:0 -6px 20px rgba(0,0,0,.07);
+  }
+  .cinta-invitado__punto{
+    width:.45rem; height:.45rem; background:rgb(var(--ambar)); rotate:45deg; flex:none;
+  }
+  .cinta-invitado__crear{
+    background:transparent; border:1px solid rgb(var(--cian)); color:rgb(var(--cian));
+    font-family:inherit; font-size:.85rem; font-weight:600; cursor:pointer;
+    padding:.35rem .85rem; border-radius:var(--radio);
+    transition:background .2s var(--ease-salida);
+  }
+  .cinta-invitado__crear:hover{ background:color-mix(in srgb, rgb(var(--cian)) 10%, transparent); }
+  /* el pie de página no puede quedar tapado por la cinta. En un celular la
+     cinta se parte en dos o tres líneas, así que ahí hace falta más hueco. */
+  body[data-invitado="si"]{ padding-bottom:7rem; }
+  @media (min-width:640px){ body[data-invitado="si"]{ padding-bottom:3.6rem; } }
+
+  /* ================== EL TIEMPO EN TU PARCELA ==================
+     Los filtros van en UNA fila arriba de todo lo que gobiernan: el lugar
+     y el cultivo mandan sobre el veredicto, la gráfica y el calendario a
+     la vez, así que no pueden vivir dentro de ninguna tarjeta.
+     ============================================================= */
+  .filtros-parcela{
+    display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end;
+    padding:1.1rem 1.2rem; border:1px solid rgb(var(--borde)); border-radius:var(--radio-card);
+    background:rgb(var(--barroalto));
+  }
+  .filtro-campo{ flex:1 1 210px; min-width:0; }
+  .filtro-rotulo{
+    display:block; font-size:.82rem; color:rgb(var(--tenue)); margin-bottom:.4rem;
+    letter-spacing:.04em;
+  }
+  .filtros-parcela .campo{ width:100%; padding-top:.62rem; padding-bottom:.62rem; }
+  .filtro-boton{ flex:0 0 auto; padding:.72rem 1.1rem; font-size:.92rem; }
+
+  /* ---------- el veredicto ----------
+     El color NUNCA va solo: cada estado trae su propio icono y su frase.
+     Quien no distingue verde de ámbar lee exactamente lo mismo. */
+  .veredicto{
+    display:flex; gap:0; overflow:hidden;
+    border:1px solid rgb(var(--borde)); border-radius:var(--radio-card);
+    background:rgb(var(--barro)); box-shadow:var(--sombra-suave);
+  }
+  .veredicto__marca{ width:5px; flex:none; background:rgb(var(--tenue)); }
+  .veredicto[data-estado="siembra"]  .veredicto__marca{ background:rgb(var(--verde)); }
+  .veredicto[data-estado="espera"]   .veredicto__marca{ background:rgb(var(--ambar)); }
+  .veredicto[data-estado="fuera"]    .veredicto__marca{ background:rgb(var(--naranja)); }
+  .veredicto[data-estado="sinred"]   .veredicto__marca{ background:rgb(var(--tenue)); }
+  .veredicto__cuerpo{ padding:1.5rem 1.6rem; min-width:0; }
+  .veredicto__encabezado{ display:flex; align-items:center; gap:.75rem; margin-bottom:.55rem; }
+  .veredicto__ico{ flex:none; display:inline-flex; line-height:0; }
+  .veredicto[data-estado="siembra"] .veredicto__ico{ color:rgb(var(--verde)); }
+  .veredicto[data-estado="espera"]  .veredicto__ico{ color:rgb(var(--ambar)); }
+  .veredicto[data-estado="fuera"]   .veredicto__ico{ color:rgb(var(--naranja)); }
+  .veredicto[data-estado="cargando"] .veredicto__ico,
+  .veredicto[data-estado="sinred"]   .veredicto__ico{ color:rgb(var(--tenue)); }
+  .veredicto__titulo{
+    font-family:'Fraunces',Georgia,serif; font-size:1.55rem; line-height:1.2;
+    color:rgb(var(--texto)); font-weight:700; margin:0;
+  }
+  .veredicto__razon{ color:rgb(var(--tenue)); line-height:1.55; margin:0; max-width:62ch; }
+  .veredicto__pruebas{
+    list-style:none; margin:1rem 0 0; padding:0;
+    display:flex; flex-wrap:wrap; gap:.5rem .7rem;
+  }
+  .veredicto__pruebas li{
+    font-size:.85rem; color:rgb(var(--tenue));
+    border:1px solid rgb(var(--borde)); border-radius:2px; padding:.3rem .65rem;
+    display:inline-flex; align-items:center; gap:.45rem;
+  }
+  .veredicto__pruebas li::before{
+    content:''; width:.4rem; height:.4rem; rotate:45deg; flex:none;
+    background:currentColor; opacity:.55;
+  }
+
+  /* ---------- tarjetas de dato ---------- */
+  .tarjeta-dato{
+    border:1px solid rgb(var(--borde)); border-radius:var(--radio-card);
+    background:rgb(var(--barro)); padding:1.35rem 1.45rem;
+    box-shadow:var(--sombra-suave);
+  }
+  .tarjeta-dato__cabeza{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    flex-wrap:wrap; gap:.75rem; margin-bottom:1.1rem;
+  }
+  .tarjeta-dato__titulo{
+    font-family:'Fraunces',Georgia,serif; font-size:1.25rem; color:rgb(var(--texto));
+    margin:0 0 .2rem; font-weight:700;
+  }
+  .tarjeta-dato__sub{ font-size:.86rem; color:rgb(var(--tenue)); margin:0; line-height:1.45; }
+  .tarjeta-dato__pie{ font-size:.82rem; color:rgb(var(--tenue)); margin:.55rem 0 0; line-height:1.45; }
+  .tenue-nota{ opacity:.8; }
+  .tarjeta-dato--cifra{ display:flex; flex-direction:column; justify-content:center; }
+  /* proporcional, no tabular: a este tamaño las cifras de ancho fijo se
+     ven sueltas. Y en la misma sans del resto, no en la serif de títulos. */
+  /* clamp porque aquí no va un número, va una palabra: "Buena" y
+     "Encharcada" tienen que caber igual en una columna estrecha. */
+  .cifra-grande{
+    font-size:clamp(1.9rem, 4.4vw, 2.7rem); line-height:1.05; font-weight:700;
+    color:rgb(var(--texto)); margin:.4rem 0 .7rem; letter-spacing:-.02em;
+  }
+  .cifra-mediana{
+    font-size:1.9rem; line-height:1; font-weight:700; color:rgb(var(--texto));
+    margin:.35rem 0 0; letter-spacing:-.02em;
+  }
+
+  .medidor{
+    position:relative; height:.55rem; border-radius:99px;
+    background:color-mix(in srgb, rgb(var(--tenue)) 16%, transparent);
+    overflow:visible;
+  }
+  .medidor__relleno{
+    display:block; height:100%; width:0; border-radius:99px;
+    background:rgb(var(--cian)); transition:width .6s var(--ease-salida);
+  }
+  .medidor[data-seco="si"] .medidor__relleno{ background:rgb(var(--ambar)); }
+  /* la rayita del mínimo para sembrar: sin ella el porcentaje no dice nada */
+  .medidor__marca{
+    position:absolute; top:-.25rem; bottom:-.25rem; width:2px;
+    background:rgb(var(--texto)); opacity:.55; left:0;
+  }
+
+  /* ---------- gráfica de lluvia ----------
+     Barras finas con la punta redondeada, ancladas a la línea de base.
+     La separación entre barras es hueco del fondo, no un borde pintado. */
+  .grafica-lluvia{ width:100%; }
+  .grafica-lluvia svg{ display:block; width:100%; height:auto; overflow:visible; }
+  .gl-rejilla{ stroke:rgb(var(--borde)); stroke-width:1; }
+  .gl-base{ stroke:rgb(var(--borde)); stroke-width:1; }
+  .gl-tick{ fill:rgb(var(--tenue)); font-size:10px; font-variant-numeric:tabular-nums; }
+  .gl-dia{ fill:rgb(var(--tenue)); font-size:10px; }
+  .gl-dia[data-hoy="si"]{ fill:rgb(var(--texto)); font-weight:700; }
+  .gl-valor{ fill:rgb(var(--texto)); font-size:10.5px; font-weight:700; }
+  .gl-barra{ fill:rgb(var(--cian)); transition:opacity .18s ease; }
+  /* el pronóstico es el mismo dato con menos certeza: mismo tono, más
+     claro. No es otra categoría, así que no lleva otro color. */
+  .gl-barra[data-cuando="viene"]{ fill:color-mix(in srgb, rgb(var(--cian)) 42%, rgb(var(--barro))); }
+  .gl-barra[data-seca="si"]{ fill:color-mix(in srgb, rgb(var(--tenue)) 30%, rgb(var(--barro))); }
+  .gl-toque{ fill:transparent; cursor:pointer; }
+  .gl-col[data-activa="si"] .gl-barra{ opacity:.72; }
+  .gl-hoy{ stroke:rgb(var(--texto)); stroke-width:1.5; opacity:.45; }
+  .gl-hoy-txt{ fill:rgb(var(--texto)); font-size:9.5px; font-weight:700; letter-spacing:.1em; }
+
+  .leyenda-lluvia{ display:flex; gap:.9rem; flex-wrap:wrap; font-size:.8rem; color:rgb(var(--tenue)); }
+  .leyenda-lluvia__par{ display:inline-flex; align-items:center; gap:.4rem; }
+  .leyenda-lluvia__mancha{ width:.7rem; height:.7rem; border-radius:2px; flex:none; }
+  .leyenda-lluvia__mancha[data-tipo="caida"]{ background:rgb(var(--cian)); }
+  .leyenda-lluvia__mancha[data-tipo="viene"]{ background:color-mix(in srgb, rgb(var(--cian)) 42%, rgb(var(--barro))); box-shadow:inset 0 0 0 1px rgb(var(--borde)); }
+
+  .globo-lluvia{
+    position:fixed; z-index:60; pointer-events:none; opacity:0;
+    background:rgb(var(--barro)); border:1px solid rgb(var(--borde));
+    border-radius:var(--radio); padding:.55rem .75rem; font-size:.83rem;
+    color:rgb(var(--texto)); box-shadow:var(--sombra-media);
+    transition:opacity .12s ease; line-height:1.4; max-width:15rem;
+  }
+  .globo-lluvia[data-visible="si"]{ opacity:1; }
+  .globo-lluvia strong{ display:block; font-size:.95rem; }
+
+  /* ---------- tabla accesible (el gemelo de cada gráfica) ---------- */
+  .tabla-desplegable{ margin-top:1rem; border-top:1px solid rgb(var(--borde)); padding-top:.8rem; }
+  .tabla-desplegable summary{
+    cursor:pointer; font-size:.85rem; color:rgb(var(--tenue)); list-style:none;
+    display:inline-flex; align-items:center; gap:.45rem;
+  }
+  .tabla-desplegable summary::-webkit-details-marker{ display:none; }
+  .tabla-desplegable summary::before{
+    content:'▸'; transition:rotate .2s var(--ease-salida); display:inline-block;
+  }
+  .tabla-desplegable[open] summary::before{ rotate:90deg; }
+  .tabla-desplegable summary:hover{ color:rgb(var(--cian)); }
+  .tabla-envoltura{ overflow-x:auto; }
+  .tabla-datos{ width:100%; border-collapse:collapse; margin-top:.8rem; font-size:.85rem; }
+  .tabla-datos th, .tabla-datos td{
+    text-align:left; padding:.45rem .7rem; border-bottom:1px solid rgb(var(--borde));
+    white-space:nowrap;
+  }
+  .tabla-datos th{ color:rgb(var(--tenue)); font-weight:600; font-size:.78rem;
+                   text-transform:uppercase; letter-spacing:.08em; }
+  .tabla-datos td{ color:rgb(var(--texto)); font-variant-numeric:tabular-nums; }
+
+  /* ---------- calendario del cultivo ---------- */
+  .calendario{
+    display:grid; grid-template-columns:repeat(12, minmax(2.6rem, 1fr));
+    gap:2px; min-width:32rem;
+  }
+  .calendario__mes{
+    padding:.55rem .3rem; text-align:center; border-radius:2px;
+    background:color-mix(in srgb, rgb(var(--tenue)) 9%, transparent);
+    font-size:.78rem; color:rgb(var(--tenue));
+  }
+  .calendario__mes[data-fase="siembra"]{
+    background:color-mix(in srgb, rgb(var(--verde)) 24%, rgb(var(--barro)));
+    color:rgb(var(--texto)); font-weight:600;
+  }
+  .calendario__mes[data-fase="crece"]{
+    background:color-mix(in srgb, rgb(var(--cian)) 16%, rgb(var(--barro)));
+    color:rgb(var(--texto));
+  }
+  .calendario__mes[data-fase="cosecha"]{
+    background:color-mix(in srgb, rgb(var(--ambar)) 26%, rgb(var(--barro)));
+    color:rgb(var(--texto)); font-weight:600;
+  }
+  .calendario__mes[data-ahora="si"]{ box-shadow:inset 0 0 0 2px rgb(var(--texto)); }
+  .calendario__eti{ display:block; font-size:.64rem; letter-spacing:.05em; opacity:.85; margin-top:.15rem; }
+
+  .ficha-cultivo{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(11rem, 1fr));
+    gap:1rem 1.3rem; margin:1.3rem 0 0; padding-top:1.1rem;
+    border-top:1px solid rgb(var(--borde));
+  }
+  .ficha-cultivo dt{
+    font-size:.76rem; text-transform:uppercase; letter-spacing:.1em;
+    color:rgb(var(--tenue)); margin-bottom:.2rem;
+  }
+  .ficha-cultivo dd{ margin:0; color:rgb(var(--texto)); font-size:.95rem; line-height:1.45; }
+
+  /* ---------- elegir cultivo dentro del chat ---------- */
+  .tira-cultivos{
+    padding:.85rem 1.25rem 1rem; border-bottom:1px solid rgb(var(--borde));
+    background:color-mix(in srgb, rgb(var(--verde)) 5%, rgb(var(--barro)));
+  }
+  @media (min-width:640px){ .tira-cultivos{ padding-inline:2rem; } }
+  .tira-cultivos__cabeza{
+    display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap; margin-bottom:.65rem;
+  }
+  .tira-cultivos__titulo{ font-size:.95rem; color:rgb(var(--texto)); font-weight:600; }
+  .tira-cultivos__nota{ font-size:.82rem; color:rgb(var(--tenue)); }
+  /* en un celular la fila se desliza de lado en vez de amontonarse */
+  .tira-cultivos__lista{
+    display:flex; gap:.5rem; overflow-x:auto; padding-bottom:.2rem;
+    scrollbar-width:thin;
+  }
+  .chip-cultivo{
+    flex:none; cursor:pointer; font-family:inherit; font-size:.88rem;
+    background:rgb(var(--barro)); color:rgb(var(--texto));
+    border:1px solid rgb(var(--borde)); border-radius:99px; padding:.42rem .9rem;
+    transition:border-color .2s var(--ease-salida), background .2s var(--ease-salida);
+  }
+  .chip-cultivo:hover{
+    border-color:rgb(var(--verde));
+    background:color-mix(in srgb, rgb(var(--verde)) 10%, rgb(var(--barro)));
+  }
 
   /* ---------- tarjetas · con profundidad real ----------
      El giro 3D (rotateX/rotateY según la posición del cursor, sección 13 del
@@ -816,9 +1098,138 @@
   .sabias-dato{ display:none; animation:entra-dato .5s ease both; }
   .sabias-dato[data-activo="si"]{ display:block; }
   @keyframes entra-dato{ from{ opacity:0; transform:translateY(10px); } }
+  /* clamp: aquí caben números cortos ("570") y frases ("De temporal"), y
+     los dos tienen que verse bien en la misma caja. */
   .sabias-cifra{
-    font-family:'Fraunces',Georgia,serif; font-size:2.6rem; line-height:1;
-    color:rgb(var(--cian)); margin-bottom:.35rem; font-weight:600;
+    font-family:'Fraunces',Georgia,serif; font-size:clamp(1.9rem, 5vw, 2.6rem);
+    line-height:1.05; color:rgb(var(--cian)); margin-bottom:.35rem; font-weight:600;
+  }
+  /* Cada dato dice de dónde sale. Si un número no puede citar su fuente,
+     no debería estar en la página. */
+  .sabias-fuente{
+    display:block; margin-top:.5rem; font-size:.76rem; letter-spacing:.06em;
+    text-transform:uppercase; opacity:.78;
+  }
+
+  /* ---------- la lluvia sobre la milpa ---------- */
+  .escena-milpa{
+    position:relative; overflow:hidden;
+    min-height:min(78svh, 620px);
+    display:flex; align-items:center;
+    border-top:1px solid rgb(var(--borde));
+    isolation:isolate;
+  }
+  /* El campo se ancla abajo y ocupa poco más de la mitad: si se estira a
+     toda la sección, la tierra se come la pantalla y la milpa queda hundida
+     al fondo. Así las matas se ven de cuerpo entero y el texto respira. */
+  .escena-milpa__campo{
+    position:absolute; left:0; right:0; bottom:0;
+    width:100%; height:62%; z-index:-2;
+  }
+  /* el cielo, detrás de todo, para que arriba no quede un hueco */
+  .escena-milpa::before{
+    content:''; position:absolute; inset:0; z-index:-3;
+    background:linear-gradient(to bottom,
+      rgb(var(--obsidiana)) 0%,
+      color-mix(in srgb, rgb(var(--barroalto)) 70%, rgb(var(--obsidiana))) 100%);
+  }
+  .escena-milpa__lluvia{
+    position:absolute; inset:0; width:100%; height:100%; z-index:-1;
+    pointer-events:none;
+  }
+  .escena-milpa__texto{
+    max-width:80rem; margin-inline:auto; padding:3rem 1.25rem;
+    width:100%;
+  }
+  @media (min-width:640px){ .escena-milpa__texto{ padding-inline:2rem; } }
+  /* la caja del texto se despega del campo para que se lea siempre */
+  .escena-milpa__texto > *{
+    position:relative;
+    text-shadow:0 1px 14px color-mix(in srgb, rgb(var(--obsidiana)) 80%, transparent);
+  }
+  .mata{ transform-box:fill-box; transform-origin:bottom center; }
+
+  /* ---------- del agave al mezcal ----------
+     Apagado es el estado normal: gris, quieto y perfectamente legible. El
+     encendido es un extra. Así, si el JS no corre o alguien pidió menos
+     movimiento, los seis pasos se leen igual de bien. */
+  /* Tres y tres. Con auto-fit se acomodaban cuatro arriba y dos abajo,
+     dejando un hueco que se veía a medio terminar. */
+  .pasos-mezcal{
+    list-style:none; margin:0; padding:0;
+    display:grid; gap:1.1rem;
+    grid-template-columns:1fr;
+  }
+  @media (min-width:640px){ .pasos-mezcal{ grid-template-columns:repeat(2, 1fr); } }
+  @media (min-width:1024px){ .pasos-mezcal{ grid-template-columns:repeat(3, 1fr); } }
+  .paso-mezcal{
+    position:relative; padding:1.6rem 1.4rem 1.5rem;
+    border:1px solid rgb(var(--borde)); border-radius:var(--radio-card);
+    background:rgb(var(--barro));
+    color:rgb(var(--tenue));
+    transition:border-color .5s var(--ease-salida), color .5s var(--ease-salida),
+               transform .5s var(--ease-salida), box-shadow .5s var(--ease-salida);
+  }
+  .paso-mezcal[data-vivo="si"]{
+    border-color:color-mix(in srgb, rgb(var(--ambar)) 55%, rgb(var(--borde)));
+    color:rgb(var(--ambar));
+    transform:translateY(-4px);
+    box-shadow:var(--sombra-media);
+  }
+  .paso-mezcal__num{
+    position:absolute; top:1.1rem; right:1.2rem;
+    font-family:'Space Mono',ui-monospace,monospace; font-size:.78rem;
+    letter-spacing:.12em; color:rgb(var(--tenue)); opacity:.55;
+  }
+  .paso-mezcal[data-vivo="si"] .paso-mezcal__num{ color:rgb(var(--ambar)); opacity:.9; }
+  /* el dibujo hereda "color", que es lo único que cambia al encenderse */
+  .paso-mezcal__dibujo{ width:66px; height:66px; display:block; margin-bottom:1rem; }
+  .paso-mezcal__titulo{
+    font-family:'Fraunces',Georgia,serif; font-size:1.28rem; font-weight:700;
+    color:rgb(var(--texto)); margin:0 0 .45rem;
+  }
+  .paso-mezcal__texto{
+    margin:0; font-size:.94rem; line-height:1.55; color:rgb(var(--tenue));
+  }
+  /* la línea que hila un paso con el siguiente, solo en pantalla ancha */
+  @media (min-width:1024px){
+    .paso-mezcal::after{
+      content:''; position:absolute; top:3.4rem; right:-1.1rem; width:1.1rem; height:1px;
+      background:rgb(var(--borde));
+    }
+    /* al final de cada fila de tres no hay nada a la derecha que unir */
+    .paso-mezcal:nth-child(3n)::after, .paso-mezcal:last-child::after{ display:none; }
+  }
+
+  /* ---------- de dónde sale cada dato ---------- */
+  .lista-fuentes{
+    list-style:none; margin:2.5rem 0 0; padding:0; text-align:left;
+    display:grid; gap:.6rem;
+  }
+  .lista-fuentes li{
+    display:flex; flex-direction:column; gap:.2rem;
+    border:1px solid rgb(var(--borde)); border-left:3px solid rgb(var(--cian));
+    border-radius:var(--radio); padding:.85rem 1.1rem;
+    background:rgb(var(--barro));
+  }
+  .lista-fuentes li:last-child{ border-left-color:rgb(var(--ambar)); }
+  .lista-fuentes__que{ color:rgb(var(--texto)); font-weight:600; font-size:.98rem; }
+  .lista-fuentes__quien{ color:rgb(var(--tenue)); font-size:.87rem; line-height:1.45; }
+
+  .sim-hora{
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    flex-wrap:wrap; margin-top:1rem; padding-top:1rem;
+    border-top:1px solid rgb(var(--borde));
+  }
+  .sim-hora__campo{
+    display:inline-flex; align-items:center; gap:.25rem;
+    border:1px solid rgb(var(--borde)); border-radius:var(--radio);
+    padding:.4rem .7rem; background:rgb(var(--barro)); color:rgb(var(--tenue));
+  }
+  .sim-hora__campo:focus-within{ border-color:rgb(var(--cian)); }
+  .sim-hora__campo input{
+    width:5rem; border:0; background:transparent; outline:none;
+    font-family:inherit; font-size:1rem; color:rgb(var(--texto)); font-weight:600;
   }
 
   /* ---------- simulador de ganancias ---------- */
@@ -1103,6 +1514,13 @@
   Estás sin conexión. Tus pláticas siguen aquí; el asistente vuelve en cuanto regrese tu internet.
 </div>
 
+<!-- recordatorio de que se anda sin cuenta y nada se está guardando -->
+<div id="cinta-invitado" class="cinta-invitado" role="status" hidden>
+  <span class="cinta-invitado__punto" aria-hidden="true"></span>
+  <span>Andas sin cuenta: <span class="text-texto">tu plática se borra al cerrar esta pestaña.</span></span>
+  <button type="button" id="btn-crear-desde-invitado" class="cinta-invitado__crear">Crear mi cuenta y guardarla</button>
+</div>
+
 <header id="encabezado" class="encabezado fixed top-0 inset-x-0 z-50 border-b border-transparent">
   <div class="max-w-7xl mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between">
 
@@ -1124,8 +1542,8 @@
     <nav class="hidden lg:flex items-center gap-6 xl:gap-7 text-[0.95rem]" aria-label="Navegación principal">
       <a href="#proposito"    class="enlace-nav">Propósito</a>
       <a href="#herramientas" class="enlace-nav">Herramientas</a>
+      <a href="#parcela"      class="enlace-nav">Mi parcela</a>
       <a href="#demo"         class="enlace-nav">Salto de la IA</a>
-      <a href="#contacto"     class="enlace-nav">Contacto</a>
       <button type="button" id="btn-guia" class="btn-guia" aria-label="Abrir la guía interactiva">
         <span class="btn-guia__ico" aria-hidden="true">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H12v16h5.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg>
@@ -1164,12 +1582,8 @@
     <nav class="flex flex-col gap-4 text-lg" aria-label="Navegación móvil">
       <a href="#proposito"    class="enlace-nav">Propósito</a>
       <a href="#herramientas" class="enlace-nav">Herramientas</a>
+      <a href="#parcela"      class="enlace-nav">Mi parcela</a>
       <a href="#demo"         class="enlace-nav">Salto de la IA</a>
-      <a href="#contacto"     class="enlace-nav">Contacto</a>
-      <a href="https://wa.me/529514614505" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-verde">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.3A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.7-6.1c-.3-.1-1.5-.8-1.8-.9s-.4-.1-.6.1-.6.9-.8 1-.3.2-.6 0a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5s-.6-1.4-.8-1.9-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3A2.9 2.9 0 0 0 6.7 12a5 5 0 0 0 1 2.4 11.4 11.4 0 0 0 4.4 3.9c1.6.6 2.2.7 3 .6a2.6 2.6 0 0 0 1.7-1.2 2.1 2.1 0 0 0 .1-1.2c0-.2-.2-.3-.5-.4z"/></svg>
-        Contáctanos si hay un problema
-      </a>
       <button type="button" id="btn-tema-movil" class="btn-linea mt-2 w-full justify-center" aria-label="Cambiar entre modo día y noche">
         <svg class="ico-sol" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
         <svg class="ico-luna" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -1677,6 +2091,330 @@
     </div>
   </div>
 </section>
+<!-- ==================== LA LLUVIA SOBRE LA MILPA ====================
+     Es video sin ser video. Se dibuja en el propio navegador: pesa unos
+     kilobytes en vez de los megas que pesaría un clip, funciona sin señal
+     y no se entrecorta en un teléfono de gama baja — que es con lo que se
+     va a ver esto en la mayor parte de Oaxaca.
+
+     La escena avanza con el scroll: arriba la tierra está seca, y conforme
+     se baja empieza a llover, brota la milpa y se hace mazorca. Es el ciclo
+     del que habla la sección de abajo, contado sin una sola palabra.
+     ================================================================== -->
+<section id="milpa" class="escena-milpa" aria-labelledby="milpa-titulo">
+  <canvas id="lienzo-lluvia" class="escena-milpa__lluvia" aria-hidden="true"></canvas>
+
+  <svg class="escena-milpa__campo" viewBox="0 0 1200 420" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="cieloMilpa" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="rgb(var(--obsidiana))"/>
+        <stop offset="100%" stop-color="rgb(var(--barroalto))"/>
+      </linearGradient>
+      <linearGradient id="tierraMilpa" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#6b4f2a"/>
+        <stop offset="100%" stop-color="#3d2c16"/>
+      </linearGradient>
+    </defs>
+    <rect width="1200" height="420" fill="url(#cieloMilpa)"/>
+    <!-- los cerros del fondo -->
+    <path d="M0 300 L150 232 L280 288 L430 206 L600 280 L760 218 L920 286 L1080 240 L1200 292 L1200 420 L0 420Z"
+          fill="rgb(var(--verde))" opacity=".16"/>
+    <path d="M0 322 L190 268 L360 316 L520 262 L700 318 L880 268 L1050 312 L1200 276 L1200 420 L0 420Z"
+          fill="rgb(var(--verde))" opacity=".24"/>
+    <rect y="330" width="1200" height="90" fill="url(#tierraMilpa)"/>
+    <!-- los surcos -->
+    <g stroke="#2a1e0f" stroke-width="2" opacity=".35">
+      <path d="M0 352 Q600 344 1200 352"/>
+      <path d="M0 374 Q600 364 1200 374"/>
+      <path d="M0 398 Q600 386 1200 398"/>
+    </g>
+    <g id="matas-milpa"></g>
+  </svg>
+
+  <div class="escena-milpa__texto">
+    <p class="rotulo mb-4">El ciclo de siempre</p>
+    <h2 id="milpa-titulo" class="text-3xl sm:text-4xl lg:text-5xl mb-4">
+      Llueve, <span class="text-verde">nace</span>, y se levanta.
+    </h2>
+    <p class="text-tenue leading-relaxed" style="max-width:44ch">
+      Así ha sido siempre. Lo nuevo es poder saber, con los datos de hoy,
+      cuál de esos tres momentos te toca esta semana.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== EL TIEMPO EN TU PARCELA ====================
+     Esta sección es la que ninguna IA de uso general trae: no contesta de
+     memoria, va por el dato del día a un modelo del clima y lo cruza con la
+     regla de siembra del cultivo que la persona eligió.
+     ================================================================== -->
+<section id="parcela" class="relative py-24 sm:py-32 border-t border-borde/60">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+
+    <div class="revela max-w-3xl mb-12">
+      <p class="rotulo mb-6">El tiempo en tu parcela</p>
+      <h2 class="text-4xl sm:text-5xl lg:text-[3.4rem] mb-7">¿<span class="text-verde">Siembro</span> o me espero?</h2>
+      <p class="text-lg text-tenue leading-relaxed">
+        Dime dónde está tu terreno y qué quieres sembrar. Miro la lluvia que ya cayó,
+        la que viene y cómo está la tierra por dentro, y te digo si ya es tiempo.
+        <span class="text-texto">No es una adivinanza: son datos del clima de hoy.</span>
+      </p>
+    </div>
+
+    <!-- Una sola fila de filtros arriba de todo lo que gobierna -->
+    <div class="revela filtros-parcela mb-8">
+      <div class="filtro-campo">
+        <label for="sel-lugar" class="filtro-rotulo">¿Dónde está tu terreno?</label>
+        <select id="sel-lugar" class="campo"></select>
+      </div>
+      <div class="filtro-campo">
+        <label for="sel-cultivo" class="filtro-rotulo">¿Qué quieres sembrar?</label>
+        <select id="sel-cultivo" class="campo"></select>
+      </div>
+      <button type="button" id="btn-mi-ubicacion" class="btn-linea filtro-boton">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+        Usar mi ubicación
+      </button>
+    </div>
+
+    <!-- EL VEREDICTO · lo primero y lo más grande de la sección -->
+    <div id="veredicto" class="revela veredicto" data-estado="cargando">
+      <div class="veredicto__marca" aria-hidden="true"></div>
+      <div class="veredicto__cuerpo">
+        <div class="veredicto__encabezado">
+          <span class="veredicto__ico" id="veredicto-ico" aria-hidden="true"></span>
+          <p class="veredicto__titulo" id="veredicto-titulo">Consultando el clima de tu zona…</p>
+        </div>
+        <p class="veredicto__razon" id="veredicto-razon">
+          Un momento, estoy viendo cuánto ha llovido por ahí.
+        </p>
+        <ul class="veredicto__pruebas" id="veredicto-pruebas"></ul>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-[1.55fr_1fr] gap-6 mt-6">
+
+      <!-- LLUVIA · lo que cayó y lo que viene -->
+      <figure class="revela tarjeta-dato">
+        <figcaption class="tarjeta-dato__cabeza">
+          <div>
+            <h3 class="tarjeta-dato__titulo">Lluvia, día por día</h3>
+            <p class="tarjeta-dato__sub" id="lluvia-sub">Milímetros que caen en cada día</p>
+          </div>
+          <div class="leyenda-lluvia">
+            <span class="leyenda-lluvia__par"><span class="leyenda-lluvia__mancha" data-tipo="caida"></span>Ya cayó</span>
+            <span class="leyenda-lluvia__par"><span class="leyenda-lluvia__mancha" data-tipo="viene"></span>Va a caer</span>
+          </div>
+        </figcaption>
+        <div id="grafica-lluvia" class="grafica-lluvia" role="img" aria-labelledby="lluvia-alt"></div>
+        <p id="lluvia-alt" class="sr-only"></p>
+        <details class="tabla-desplegable">
+          <summary>Ver los números en una tabla</summary>
+          <div class="tabla-envoltura">
+            <table class="tabla-datos" id="tabla-lluvia"></table>
+          </div>
+        </details>
+      </figure>
+
+      <!-- CÓMO ESTÁ LA TIERRA -->
+      <div class="revela flex flex-col gap-4">
+        <div class="tarjeta-dato tarjeta-dato--cifra">
+          <p class="tarjeta-dato__sub">Humedad de la tierra <span class="tenue-nota">(a 5 cm, donde va la semilla)</span></p>
+          <p class="cifra-grande" id="cifra-humedad">—</p>
+          <div class="medidor" role="img" id="medidor-humedad" aria-label="Humedad de la tierra">
+            <span class="medidor__relleno" id="medidor-humedad-relleno"></span>
+            <span class="medidor__marca" id="medidor-humedad-marca" title="Mínimo para sembrar"></span>
+          </div>
+          <p class="tarjeta-dato__pie" id="pie-humedad">Midiendo…</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="tarjeta-dato tarjeta-dato--cifra">
+            <p class="tarjeta-dato__sub">Llovido en 7 días</p>
+            <p class="cifra-mediana" id="cifra-acumulado">—</p>
+            <p class="tarjeta-dato__pie" id="pie-acumulado">&nbsp;</p>
+          </div>
+          <div class="tarjeta-dato tarjeta-dato--cifra">
+            <p class="tarjeta-dato__sub">Tierra templada</p>
+            <p class="cifra-mediana" id="cifra-temp-suelo">—</p>
+            <p class="tarjeta-dato__pie" id="pie-temp-suelo">&nbsp;</p>
+          </div>
+        </div>
+
+        <button type="button" id="btn-preguntar-parcela" class="btn-neon w-full">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4L4 21l1.2-7.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+          Preguntarle al asistente sobre esto
+        </button>
+      </div>
+    </div>
+
+    <!-- EL CALENDARIO DEL CULTIVO -->
+    <div class="revela mt-8">
+      <div class="tarjeta-dato">
+        <div class="tarjeta-dato__cabeza">
+          <div>
+            <h3 class="tarjeta-dato__titulo" id="calendario-titulo">Calendario del año</h3>
+            <p class="tarjeta-dato__sub" id="calendario-sub">Cuándo se siembra y cuándo se levanta</p>
+          </div>
+        </div>
+        <div class="tabla-envoltura">
+          <div class="calendario" id="calendario-cultivo"></div>
+        </div>
+        <dl class="ficha-cultivo" id="ficha-cultivo"></dl>
+      </div>
+    </div>
+
+    <p class="text-[0.82rem] text-tenue mt-6 leading-relaxed max-w-3xl">
+      El clima viene de <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer" class="text-cian hover:underline">Open-Meteo</a>,
+      que junta las mediciones de satélites y estaciones de los servicios meteorológicos.
+      Las fechas de siembra y los días a cosecha son los que usan los técnicos del campo en Oaxaca.
+      Es una orientación seria, pero la última palabra la tiene quien conoce su tierra.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== DEL AGAVE AL MEZCAL ====================
+     Los seis pasos reales de un palenque oaxaqueño, dibujados a mano en
+     SVG. Se van encendiendo conforme se baja: el que te toca va en color y
+     los demás esperan en gris. Es el oficio contado como es, no un adorno.
+     ============================================================== -->
+<section id="mezcal" class="relative py-24 sm:py-32 border-t border-borde/60 grabado">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <div class="revela max-w-3xl mb-14">
+      <p class="rotulo mb-6">El oficio, paso a paso</p>
+      <h2 class="text-4xl sm:text-5xl lg:text-[3.4rem] mb-7">
+        Del <span class="text-ambar">agave</span> al mezcal.
+      </h2>
+      <p class="text-lg text-tenue leading-relaxed">
+        Ocho años de espera y seis pasos de trabajo para una botella.
+        Esto es lo que hay detrás, y es justo lo que ninguna máquina puede hacer por ti.
+      </p>
+    </div>
+
+    <ol class="pasos-mezcal" id="pasos-mezcal">
+      <li class="paso-mezcal" data-paso="1">
+        <span class="paso-mezcal__num" aria-hidden="true">01</span>
+        <svg class="paso-mezcal__dibujo" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <path d="M50 88 L50 62" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M50 66 Q26 52 16 24 Q38 36 50 62" fill="currentColor" opacity=".2"/>
+          <path d="M50 66 Q74 52 84 24 Q62 36 50 62" fill="currentColor" opacity=".28"/>
+          <path d="M50 68 Q34 48 30 14 Q46 36 50 62" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M50 68 Q66 48 70 14 Q54 36 50 62" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M50 66 Q22 58 10 40 Q34 48 50 62" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M50 66 Q78 58 90 40 Q66 48 50 62" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M50 40 L50 8" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 4" opacity=".6"/>
+        </svg>
+        <h3 class="paso-mezcal__titulo">Crece el maguey</h3>
+        <p class="paso-mezcal__texto">
+          De seis a ocho años en el cerro. Cuando quiere echar el quiote es que ya está.
+        </p>
+      </li>
+
+      <li class="paso-mezcal" data-paso="2">
+        <span class="paso-mezcal__num" aria-hidden="true">02</span>
+        <svg class="paso-mezcal__dibujo" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <circle cx="50" cy="62" r="21" fill="currentColor" opacity=".22"/>
+          <circle cx="50" cy="62" r="21" stroke="currentColor" stroke-width="2.4"/>
+          <path d="M36 55 L64 55M33 64 L67 64M37 73 L63 73" stroke="currentColor" stroke-width="1.7" opacity=".65"/>
+          <path d="M22 34 L44 47" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M14 26 L26 38 L20 43 L10 31Z" fill="currentColor" opacity=".35"/>
+          <path d="M14 26 L26 38 L20 43 L10 31Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M72 30 q6 8 2 15" stroke="currentColor" stroke-width="1.6" opacity=".5" stroke-linecap="round"/>
+        </svg>
+        <h3 class="paso-mezcal__titulo">La jima</h3>
+        <p class="paso-mezcal__texto">
+          Con la coa se le tumban las pencas hasta dejar la piña pelona.
+          Es pura mano y pura fuerza.
+        </p>
+      </li>
+
+      <li class="paso-mezcal" data-paso="3">
+        <span class="paso-mezcal__num" aria-hidden="true">03</span>
+        <svg class="paso-mezcal__dibujo" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <path d="M10 84 L50 34 L90 84Z" fill="currentColor" opacity=".16"/>
+          <path d="M10 84 L50 34 L90 84Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M8 84 L92 84" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="38" cy="70" r="5.5" stroke="currentColor" stroke-width="1.8"/>
+          <circle cx="56" cy="74" r="6.5" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M44 26 q-6 -9 0 -16M52 24 q7 -10 0 -18M60 28 q-5 -8 1 -14"
+                stroke="currentColor" stroke-width="1.9" stroke-linecap="round" opacity=".75"/>
+        </svg>
+        <h3 class="paso-mezcal__titulo">El horno de tierra</h3>
+        <p class="paso-mezcal__texto">
+          Tres o cuatro días bajo piedra caliente y tierra. De ahí sale el humo
+          que se le queda para siempre.
+        </p>
+      </li>
+
+      <li class="paso-mezcal" data-paso="4">
+        <span class="paso-mezcal__num" aria-hidden="true">04</span>
+        <svg class="paso-mezcal__dibujo" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <ellipse cx="50" cy="72" rx="38" ry="12" fill="currentColor" opacity=".14"/>
+          <ellipse cx="50" cy="72" rx="38" ry="12" stroke="currentColor" stroke-width="2.3"/>
+          <circle cx="50" cy="66" r="4" fill="currentColor"/>
+          <path d="M50 66 L50 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M50 30 L78 44" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <ellipse cx="78" cy="52" rx="9" ry="15" transform="rotate(76 78 52)"
+                   fill="currentColor" opacity=".3"/>
+          <ellipse cx="78" cy="52" rx="9" ry="15" transform="rotate(76 78 52)"
+                   stroke="currentColor" stroke-width="2.2"/>
+        </svg>
+        <h3 class="paso-mezcal__titulo">La molienda</h3>
+        <p class="paso-mezcal__texto">
+          La tahona, una rueda de piedra que jala un caballo, machaca la piña
+          cocida hasta sacarle el jugo.
+        </p>
+      </li>
+
+      <li class="paso-mezcal" data-paso="5">
+        <span class="paso-mezcal__num" aria-hidden="true">05</span>
+        <svg class="paso-mezcal__dibujo" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <path d="M24 30 L28 84 L72 84 L76 30Z" fill="currentColor" opacity=".15"/>
+          <path d="M24 30 L28 84 L72 84 L76 30Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M22 30 L78 30" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M26 44 L74 44M27 62 L73 62" stroke="currentColor" stroke-width="1.7" opacity=".55"/>
+          <path d="M30 52 q8 -6 14 0 t14 0 t12 0" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <circle cx="40" cy="38" r="2.4" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="56" cy="36" r="3.2" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="64" cy="40" r="2" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        <h3 class="paso-mezcal__titulo">La fermentación</h3>
+        <p class="paso-mezcal__texto">
+          En tinas de madera, entre ocho y quince días. Los bichos del aire
+          hacen lo suyo, sin que nadie les diga.
+        </p>
+      </li>
+
+      <li class="paso-mezcal" data-paso="6">
+        <span class="paso-mezcal__num" aria-hidden="true">06</span>
+        <svg class="paso-mezcal__dibujo" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <path d="M28 84 L28 54 q0 -12 10 -18 L38 46 q-4 4 -4 10 L34 84Z" fill="currentColor" opacity=".2"/>
+          <ellipse cx="38" cy="78" rx="19" ry="7" stroke="currentColor" stroke-width="2.2"/>
+          <path d="M22 78 L22 52 q0 -14 16 -20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M54 78 L54 52 q0 -14 -16 -20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M38 32 L38 22 L76 22 L76 56" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M76 58 l0 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="76" cy="70" r="3.4" fill="currentColor" opacity=".65"/>
+          <path d="M30 16 q4 -7 0 -12M44 14 q5 -8 0 -13" stroke="currentColor" stroke-width="1.7"
+                stroke-linecap="round" opacity=".6"/>
+        </svg>
+        <h3 class="paso-mezcal__titulo">La destilación</h3>
+        <p class="paso-mezcal__texto">
+          Dos vueltas por el alambique de cobre o de barro. Lo que sale de ahí
+          ya es mezcal.
+        </p>
+      </li>
+    </ol>
+
+    <p class="text-tenue text-[0.9rem] mt-10 max-w-2xl leading-relaxed">
+      Todo el mezcal que lleva denominación de origen pasa por estos pasos, y la mayor parte
+      del país sale de Oaxaca. <span class="text-texto">El asistente te ayuda a contarlo y a
+      venderlo; hacerlo sigue siendo tuyo.</span>
+    </p>
+  </div>
+</section>
+
 <!-- ==================== DEMO · ASISTENTE EN VIVO ==================== -->
 <section id="demo" class="grabado relative py-24 sm:py-32 border-t border-borde/60">
   <div class="max-w-7xl mx-auto px-5 sm:px-8">
@@ -1746,6 +2484,17 @@
               <button type="button" id="cerrar-tira-giro" class="btn-suave shrink-0" style="margin:0">Ahora no</button>
             </div>
 
+            <!-- Preguntar sin escribir: se toca el cultivo y listo. Pensado
+                 para quien no teclea a gusto en un celular, que en el campo
+                 es la mayoría. La respuesta usa el clima real de su zona. -->
+            <div id="tira-cultivos" class="tira-cultivos">
+              <div class="tira-cultivos__cabeza">
+                <span class="tira-cultivos__titulo">¿Qué vas a sembrar?</span>
+                <span class="tira-cultivos__nota">Tócale y te digo si ya es tiempo</span>
+              </div>
+              <div class="tira-cultivos__lista" id="lista-cultivos-chat"></div>
+            </div>
+
             <div id="hilo" class="hilo p-5 sm:p-8 space-y-6" role="log" aria-live="polite" aria-label="Conversación con el asistente"></div>
 
             <div id="sugerencias" class="px-5 sm:px-8 pb-5 flex flex-wrap gap-2.5"></div>
@@ -1789,31 +2538,39 @@
       <div class="grid md:grid-cols-2 gap-5 mt-8 revela">
 
         <!-- ¿Sabías qué? · rota solo cada 6 segundos -->
+        <!-- Datos reales y comprobables, cada uno con su fuente. Antes aquí
+             había tres cifras de productividad sin ninguna fuente detrás
+             ("40% más", "20 horas a la semana", "$150000 al año"): promesas
+             que nadie podía sostener. Se cambiaron por lo que sí se puede
+             mirar y verificar. -->
         <div class="sabias" id="sabias" aria-live="polite">
-          <p class="rotulo mb-3" style="color:rgb(var(--violeta))">¿Sabías qué?</p>
+          <p class="rotulo mb-3" style="color:rgb(var(--violeta))">Así es Oaxaca</p>
 
           <div class="sabias-cuerpo">
           <div class="sabias-dato" data-activo="si">
-            <p class="sabias-cifra">40%</p>
+            <p class="sabias-cifra">570</p>
             <p class="text-tenue text-[0.92rem] leading-relaxed">
-              Los negocios que empiezan a usar inteligencia artificial aumentan su
-              productividad hasta un cuarenta por ciento.
+              municipios tiene Oaxaca: casi uno de cada cuatro de todo México.
+              Ningún otro estado se le acerca.
+              <span class="sabias-fuente">Fuente: INEGI</span>
             </p>
           </div>
 
           <div class="sabias-dato">
-            <p class="sabias-cifra">20 horas</p>
+            <p class="sabias-cifra">16</p>
             <p class="text-tenue text-[0.92rem] leading-relaxed">
-              Automatizar tus respuestas te puede ahorrar más de veinte horas
-              a la semana: casi tres días de trabajo.
+              pueblos indígenas viven en Oaxaca, más el pueblo afromexicano.
+              Es el estado con más lenguas y más culturas del país.
+              <span class="sabias-fuente">Fuente: INPI</span>
             </p>
           </div>
 
           <div class="sabias-dato">
-            <p class="sabias-cifra">$150000</p>
+            <p class="sabias-cifra">De temporal</p>
             <p class="text-tenue text-[0.92rem] leading-relaxed">
-              Usar inteligencia artificial puede reducir tus costos de operación
-              hasta en ciento cincuenta mil pesos al año.
+              es la mayor parte de lo que se siembra aquí: sin riego, esperando
+              la lluvia. Por eso saber cuándo llueve vale tanto.
+              <span class="sabias-fuente">Fuente: SIAP · SADER</span>
             </p>
           </div>
 
@@ -1837,6 +2594,17 @@
             <span id="sim-n">3</span> horas al día
           </p>
 
+          <!-- Antes esto valía 150 pesos porque sí. Nadie de fuera sabe
+               cuánto vale la hora de otra persona: que lo ponga quien lo usa. -->
+          <div class="sim-hora">
+            <label for="sim-valor-hora" class="text-[0.92rem] text-texto">¿En cuánto pones tu hora?</label>
+            <div class="sim-hora__campo">
+              <span aria-hidden="true">$</span>
+              <input type="number" id="sim-valor-hora" value="80" min="0" max="5000" step="10"
+                     inputmode="numeric" aria-label="Cuánto vale tu hora en pesos">
+            </div>
+          </div>
+
           <div class="sim-resultado">
             <div class="sim-caja">
               <p class="sim-cifra" id="sim-horas-mes">45</p>
@@ -1853,8 +2621,8 @@
           </div>
 
           <p class="text-tenue text-[0.78rem] mt-4 leading-relaxed">
-            La cuenta toma tu hora en 150 pesos y supone que el asistente te quita
-            la mitad de ese trabajo. Es una guía para darte una idea, no una promesa.
+            La cuenta usa el valor de hora que tú pusiste y supone que el asistente te quita
+            la mitad de ese trabajo. Es para darte una idea con tus propios números, no es una promesa.
           </p>
         </div>
       </div>
@@ -1877,18 +2645,35 @@
       <path d="M42 57l6 6 16-16" stroke="#8CDB2B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>
     </svg>
 
-    <p class="rotulo mb-6">Verificación y datos oficiales</p>
-    <h2 class="text-4xl sm:text-5xl mb-8">Información Confiable y Verificada.</h2>
+    <!-- Antes esta sección prometía que la IA "verifica dos veces en fuentes
+         oficiales del Estado". Eso no era cierto: un modelo de lenguaje no
+         consulta nada, contesta de lo que aprendió. Ahora se dice qué dato
+         viene de una fuente que se puede ir a mirar y cuál no, que es lo que
+         de verdad permite confiar. -->
+    <p class="rotulo mb-6">De dónde sale lo que te digo</p>
+    <h2 class="text-4xl sm:text-5xl mb-8">Los datos, con su <span class="text-cian brillo-cian">fuente</span>.</h2>
     <p class="text-lg text-tenue leading-relaxed">
-      Nuestra IA está entrenada para <span class="text-texto">verificar dos veces</span> la información
-      específica sobre Oaxaca, las regulaciones locales y los datos de mercado en
-      <span class="destaca-cian">fuentes oficiales del Estado</span>, garantizando datos precisos para tu negocio.
+      Hay dos cosas distintas aquí, y conviene no confundirlas.
+      El <span class="text-texto">clima y el calendario de siembra</span> salen de fuentes que puedes
+      ir a revisar, y te decimos cuáles son. Lo que el asistente
+      <span class="text-texto">escribe</span> —tu anuncio, tu precio, tu descripción— lo redacta un modelo
+      de inteligencia artificial: sirve para arrancar, pero
+      <span class="destaca-cian">revísalo antes de usarlo</span>, sobre todo si son números o trámites.
     </p>
 
-    <ul class="flex flex-wrap justify-center gap-3 mt-10">
-      <li class="text-[0.9rem] border border-borde rounded-[2px] px-4 py-2 text-tenue">Fuentes oficiales del Estado</li>
-      <li class="text-[0.9rem] border border-borde rounded-[2px] px-4 py-2 text-tenue">Regulación local vigente</li>
-      <li class="text-[0.9rem] border border-borde rounded-[2px] px-4 py-2 text-tenue">Datos de mercado contrastados</li>
+    <ul class="lista-fuentes">
+      <li>
+        <span class="lista-fuentes__que">La lluvia y la tierra</span>
+        <span class="lista-fuentes__quien">Open-Meteo · modelos de los servicios meteorológicos, con satélite y estaciones</span>
+      </li>
+      <li>
+        <span class="lista-fuentes__que">Cuándo se siembra y se cosecha</span>
+        <span class="lista-fuentes__quien">Ciclos agrícolas de Oaxaca · SIAP · SADER e INIFAP</span>
+      </li>
+      <li>
+        <span class="lista-fuentes__que">Lo que el asistente redacta</span>
+        <span class="lista-fuentes__quien">Modelo de IA · puede equivocarse, revísalo</span>
+      </li>
     </ul>
 
     <div class="mt-14 pt-12 border-t border-borde/70">
@@ -1903,63 +2688,6 @@
         Consultar el Proyecto de Ley
       </button>
     </div>
-  </div>
-</section>
-
-<!-- ==================== CONTACTO ==================== -->
-<section id="contacto" class="grabado relative py-24 sm:py-32 border-t border-borde/60">
-  <div class="max-w-7xl mx-auto px-5 sm:px-8 grid lg:grid-cols-2 gap-14 lg:gap-20 items-start">
-
-    <div class="revela">
-      <p class="rotulo mb-6">Contacto</p>
-      <h2 class="text-4xl sm:text-5xl lg:text-[3.4rem] mb-8">Contáctanos y Únete<br>a la <span class="text-rosa">Innovación</span>.</h2>
-      <p class="text-lg text-tenue leading-relaxed max-w-lg mb-10">
-        Cuéntanos qué haces y qué te gustaría resolver. Te respondemos con pasos concretos,
-        sin compromiso y sin palabras raras.
-      </p>
-
-      <ul class="space-y-4 text-tenue">
-        <li class="flex items-start gap-4">
-          <span class="w-1.5 h-1.5 bg-cian rotate-45 shrink-0 mt-3" aria-hidden="true"></span>
-          <span>
-            <span class="block text-[0.8rem] text-tenue uppercase tracking-[0.18em]">Atención directa</span>
-            <a href="tel:+529514614505" class="tipo-display text-2xl sm:text-3xl text-texto hover:text-cian transition-colors">951 461 4505</a>
-          </span>
-        </li>
-        <li class="flex items-center gap-4">
-          <span class="w-1.5 h-1.5 bg-ambar rotate-45 shrink-0" aria-hidden="true"></span>
-          <a id="enlace-whatsapp" href="https://wa.me/529514614505" target="_blank" rel="noopener noreferrer" class="hover:text-ambar transition-colors">WhatsApp directo</a>
-        </li>
-        <li class="flex items-center gap-4">
-          <span class="w-1.5 h-1.5 bg-verde rotate-45 shrink-0" aria-hidden="true"></span>
-          <span>Oaxaca de Juárez, Oaxaca, México</span>
-        </li>
-      </ul>
-    </div>
-
-    <form id="formulario" class="revela panel-suave border border-borde rounded-[3px] p-7 sm:p-9 space-y-5" novalidate>
-      <div>
-        <label for="nombre" class="block text-[0.9rem] text-tenue mb-2">Nombre</label>
-        <input id="nombre" name="nombre" type="text" class="campo" placeholder="Cómo te llamas" autocomplete="name" data-regla="texto">
-        <p class="error-campo" id="error-nombre" hidden></p>
-      </div>
-      <div>
-        <label for="correo-contacto" class="block text-[0.9rem] text-tenue mb-2">Tu correo</label>
-        <input id="correo-contacto" name="correo" type="email" class="campo" placeholder="tucorreo@ejemplo.com" autocomplete="email" inputmode="email" data-regla="correo">
-        <p class="error-campo" id="error-correo-contacto" hidden></p>
-      </div>
-      <div>
-        <label for="mensaje" class="block text-[0.9rem] text-tenue mb-2">Mensaje</label>
-        <textarea id="mensaje" name="mensaje" rows="5" class="campo resize-y" placeholder="Cuéntanos de tu negocio y qué necesitas" data-regla="mensaje"></textarea>
-        <p class="error-campo" id="error-mensaje" hidden></p>
-      </div>
-
-      <button type="submit" id="btn-enviar-contacto" class="btn-neon w-full">
-        <span id="texto-btn-contacto">Enviar mensaje</span>
-        <svg id="flecha-contacto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        <span id="girador-contacto" class="girador" hidden></span>
-      </button>
-    </form>
   </div>
 </section>
 
@@ -1987,12 +2715,6 @@
         <button type="button" data-abrir="modal-terminos"   class="enlace-nav hover:text-texto">Términos de uso</button>
       </nav>
 
-      <a href="https://wa.me/529514614505" target="_blank" rel="noopener noreferrer"
-         class="flex items-center gap-2.5 border border-borde hover:border-verde text-tenue hover:text-verde rounded-[2px] px-4 py-2.5 transition-colors"
-         aria-label="Escríbenos por WhatsApp">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.3A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.7-6.1c-.3-.1-1.5-.8-1.8-.9s-.4-.1-.6.1-.6.9-.8 1-.3.2-.6 0a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5s-.6-1.4-.8-1.9-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3A2.9 2.9 0 0 0 6.7 12a5 5 0 0 0 1 2.4 11.4 11.4 0 0 0 4.4 3.9c1.6.6 2.2.7 3 .6a2.6 2.6 0 0 0 1.7-1.2 2.1 2.1 0 0 0 .1-1.2c0-.2-.2-.3-.5-.4z"/></svg>
-        <span class="text-[0.92rem]">WhatsApp</span>
-      </a>
     </div>
 
     <div class="mt-12 pt-8 border-t border-borde/70 flex flex-col sm:flex-row justify-between gap-3 text-[0.85rem] text-tenue">
@@ -2044,6 +2766,22 @@
         <button type="button" id="btn-ir-registro" class="btn-linea w-full justify-center">
           Registrarme
         </button>
+
+        <!-- ENTRAR SIN CUENTA · para quien nomás quiere probar.
+             Va abajo y con menos peso visual que los otros dos: es una
+             salida, no el camino principal. Pero se dice clarito lo que
+             pasa, para que nadie pierda su plática sin haber sido avisado. -->
+        <div class="separador-o" aria-hidden="true"><span>o</span></div>
+
+        <button type="button" id="btn-invitado" class="btn-invitado w-full">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" opacity=".55"/><path d="M3.5 21a8.5 8.5 0 0 1 17 0" opacity=".55"/><path d="M2 2l20 20" stroke-width="2"/></svg>
+          Entrar sin cuenta
+        </button>
+        <p class="text-tenue text-[0.84rem] leading-relaxed mt-3 text-center">
+          Pruebas todo el asistente, pero
+          <span class="text-texto">no se te guarda nada</span>: al cerrar esta
+          pestaña se borra tu plática. Puedes crear tu cuenta después.
+        </p>
       </div>
 
       <!-- ============ INICIAR SESIÓN ============ -->
@@ -2735,12 +3473,6 @@
      Esto es solo para avisar de altas nuevas y del formulario.
      ========================================================= */
   var CONFIG = {
-    // Número de WhatsApp del negocio, para el botón «Escríbenos».
-    // Es solo un enlace a wa.me, no hay ninguna integración con Meta.
-    WHATSAPP: '529514614505',
-    // Correo del negocio para el formulario de contacto.
-    // Vacío = el mensaje se abre en WhatsApp, ya escrito.
-    CORREO_CONTACTO: '',
     // Cuánto se espera a cada ayudante antes de pasar al siguiente.
     LIMITE_MS: 20000
   };
@@ -2803,27 +3535,46 @@
       .replace(/\n/g, '<br>');
   }
 
-  /* almacenamiento con respaldo en memoria (algunos navegadores lo bloquean) */
+  /* almacenamiento con respaldo en memoria (algunos navegadores lo bloquean)
+
+     MODO EFÍMERO · lo que hace de verdad la promesa del modo invitado
+     -----------------------------------------------------------------
+     Mientras está encendido, nada se escribe en el disco: todo vive en la
+     variable "memoria" y se va al cerrar la pestaña. Prometerle a alguien
+     "no guardo nada" y dejarlo en localStorage sería mentirle.
+
+     Está al revés a propósito: en efímero NO se guarda nada SALVO lo que
+     esté en SOLO_INTERFAZ. Así, el día que alguien añada una clave nueva
+     con datos de la persona, queda protegida sin tener que acordarse de
+     apuntarla aquí. Solo el modo día/noche se salva, porque es del aparato
+     y no dice nada de quién lo usa. */
+  var SOLO_INTERFAZ = { 'oaxintegra.tema': 1 };
+
   var almacen = (function () {
-    var memoria = {}, vivo = false;
+    var memoria = {}, vivo = false, efimero = false;
     try {
       window.localStorage.setItem('__oax', '1');
       window.localStorage.removeItem('__oax');
       vivo = true;
     } catch (e) { vivo = false; }
+    function enDisco(k) { return vivo && (!efimero || SOLO_INTERFAZ[k]); }
     return {
       leer: function (k) {
-        try { return vivo ? window.localStorage.getItem(k) : (memoria[k] || null); }
+        try { return enDisco(k) ? window.localStorage.getItem(k) : (memoria[k] || null); }
         catch (e) { return memoria[k] || null; }
       },
       guardar: function (k, v) {
-        try { if (vivo) { window.localStorage.setItem(k, v); } else { memoria[k] = v; } }
+        try { if (enDisco(k)) { window.localStorage.setItem(k, v); } else { memoria[k] = v; } }
         catch (e) { memoria[k] = v; }
       },
       borrar: function (k) {
         try { if (vivo) { window.localStorage.removeItem(k); } } catch (e) {}
         delete memoria[k];
-      }
+      },
+      efimero: function (si) { efimero = !!si; },
+      /* al salir del modo invitado: la memoria se vacía de golpe, no queda
+         nada de la visita anterior para la siguiente persona que lo use. */
+      olvidar: function () { memoria = {}; }
     };
   })();
 
@@ -2905,11 +3656,6 @@
     }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
     bloques.forEach(function (b) { observador.observe(b); });
   } else { bloques.forEach(function (b) { b.classList.add('visible'); }); }
-
-  /* enlaces de WhatsApp */
-  $$('.js-whatsapp, #enlace-whatsapp').forEach(function (a) {
-    a.href = 'https://wa.me/' + CONFIG.WHATSAPP;
-  });
 
   /* =========================================================
      3. MODALES
@@ -3266,6 +4012,13 @@
      Supabase confirma. Si no confirma, arrancarAuth() lo borra. */
   try { sesion = JSON.parse(almacen.leer(CLAVE_SESION) || 'null'); } catch (e) { sesion = null; }
 
+  /* Una sesión de invitado NUNCA se lee del disco: si estuviera ahí, ya se
+     habría roto la promesa. Por si un navegador viejo dejó una a medias,
+     se descarta al arrancar. */
+  if (sesion && sesion.invitado) { sesion = null; almacen.borrar(CLAVE_SESION); }
+
+  function esInvitado() { return !!(sesion && sesion.invitado); }
+
   function pintarSesion() {
     var chip = $('#sesion-chip'), boton = $('#btn-empieza');
     var chipMovil = $('#sesion-chip-movil'), botonMovil = $('#btn-perfil-movil');
@@ -3275,14 +4028,56 @@
       $('#sesion-nombre-movil').textContent = apodo;
       chip.hidden = false; boton.hidden = true;
       chipMovil.hidden = false; botonMovil.hidden = true;
-      $('#btn-guardadas').hidden = false;
+      /* Guardar una publicación es justo lo que un invitado no puede hacer:
+         se iría con la pestaña. Mejor no ofrecerlo que ofrecerlo y perderlo. */
+      $('#btn-guardadas').hidden = esInvitado();
     } else {
       chip.hidden = true; boton.hidden = false;
       chipMovil.hidden = true; botonMovil.hidden = false;
       $('#btn-guardadas').hidden = true;
     }
+    pintarCintaInvitado();
     actualizarCuentaGuardadas();
     aplicarBloqueo();
+  }
+
+  function pintarCintaInvitado() {
+    var cinta = $('#cinta-invitado');
+    if (cinta) { cinta.hidden = !esInvitado(); }
+    if (esInvitado()) { document.body.dataset.invitado = 'si'; }
+    else { delete document.body.dataset.invitado; }
+  }
+
+  /* ---------------------------------------------------------------
+     ENTRAR SIN CUENTA
+     ---------------------------------------------------------------
+     No hay usuario en Supabase, no hay tokens y no se escribe nada en el
+     disco: el almacén entra en modo efímero (ver SOLO_INTERFAZ) y todo lo
+     que pase aquí vive en memoria hasta que se cierre la pestaña.
+
+     El chat funciona igual de bien: nunca necesitó cuenta — la cuenta solo
+     sirve para guardar y para personalizar. Lo único que se pierde es
+     justo lo que se avisa que se pierde. */
+  function entrarDeInvitado() {
+    almacen.efimero(true);
+    sesion = {
+      id: 'invitado',
+      invitado: true,
+      correo: '',
+      usuario: 'Invitado',
+      nombre: 'Invitado',
+      giro: '', giroTexto: '',
+      tieneRecuperacion: false,
+      alta: new Date().toISOString()
+    };
+    convs = []; idConv = null;
+    pintarSesion();
+    pintarListaConvs();
+    ocultarPortada();
+    pintarTiraGiro();
+    saludoInicial();
+    irA('#demo');
+    avisar('Estás probando sin cuenta. Nada de lo que escribas se guarda.');
   }
 
   /* El chat está abierto para todos. El perfil solo personaliza las respuestas. */
@@ -3422,7 +4217,7 @@
     try { return JSON.parse(almacen.leer(CLAVE_PERFIL) || '{}'); } catch (e) { return {}; }
   }
   function guardarPerfilLocal() {
-    if (!sesion) { return; }
+    if (!sesion || sesion.invitado) { return; }
     var p = leerPerfilLocal();
     p[sesion.id] = { usuario: sesion.usuario, giro: sesion.giro,
                      giroTexto: sesion.giroTexto, tieneRecuperacion: sesion.tieneRecuperacion };
@@ -3435,6 +4230,9 @@
     sesion.giro = giro;
     sesion.giroTexto = GIROS_TEXTO[giro] || 'Otro';
     guardarPerfilLocal();
+    /* El invitado no tiene fila en la base a la que escribirle, y tampoco
+       queremos crearle una: el giro le sirve en esta visita y ya. */
+    if (esInvitado()) { return; }
     llamarFuncion('fijar_giro', { clave: giro, texto: sesion.giroTexto }).catch(function () {});
   }
 
@@ -3712,6 +4510,26 @@
   });
   $('#btn-registro-ya-tengo').addEventListener('click', function () {
     verVistaAuth('entrar'); $('#usuario-entrar').focus();
+  });
+  $('#btn-invitado').addEventListener('click', entrarDeInvitado);
+
+  /* Desde la cinta de abajo: se sale de invitado y se abre el registro.
+     Lo que escribió se pierde, así que se avisa antes en vez de después. */
+  $('#btn-crear-desde-invitado').addEventListener('click', function () {
+    var hayPlatica = convs.length && convs[0].mensajes && convs[0].mensajes.length > 1;
+    if (hayPlatica && !window.confirm(
+          'Para crear tu cuenta hay que empezar de nuevo, y esta plática se va a borrar. ¿Le seguimos?')) {
+      return;
+    }
+    almacen.olvidar();
+    almacen.efimero(false);
+    sesion = null;
+    convs = []; idConv = null;
+    pintarSesion();
+    pintarListaConvs();
+    mostrarPortada();
+    verVistaAuth('registro');
+    $('#reg-correo').focus();
   });
 
   /* Dejar a medias el registro (o la recuperación) y volver al inicio.
@@ -4224,6 +5042,18 @@
   /* Mi cuenta: el usuario, el correo y la opción de cambiar la contraseña. */
   function mostrarMiUsuario() {
     if (!sesion) { return; }
+    if (esInvitado()) {
+      modalExito(
+        'Andas sin cuenta',
+        'Puedes usar todo el asistente, pero tu plática se borra al cerrar esta pestaña ' +
+        'y no se guarda nada en este aparato. Si quieres conservarla, crea tu cuenta: son dos minutos.',
+        { etiqueta: 'Crear mi cuenta', accion: function () {
+            cerrarModal();
+            $('#btn-crear-desde-invitado').click();
+          } }
+      );
+      return;
+    }
     modalExito(
       'Tu usuario es ' + sesion.usuario,
       'Entras con tu usuario y tu contraseña. Tu correo, ' + sesion.correo +
@@ -4347,6 +5177,7 @@
      Salir
      --------------------------------------------------------------- */
   function cerrarSesion() {
+    var eraInvitado = esInvitado();
     var t = leerTokens();
     if (t) { pedirAuth('/logout', { metodo: 'POST', token: t.access_token }).catch(function () {}); }
     if (relojRefresco) { clearTimeout(relojRefresco); relojRefresco = null; }
@@ -4354,6 +5185,10 @@
     borrarTokens();
     almacen.borrar(CLAVE_SESION);
     almacen.borrar(CLAVE_GUARDADAS);
+    /* Salir de invitado tira la memoria entera y apaga el modo efímero: si
+       después entra alguien con su cuenta en este mismo aparato, no hereda
+       ni una línea de la visita anterior. */
+    if (eraInvitado) { almacen.olvidar(); almacen.efimero(false); }
     correoPendiente = '';
     pintarSesion();
     convs = []; idConv = null;
@@ -4608,6 +5443,11 @@
       for (var i = 0; i < lista.length; i++) { if (t.indexOf(lista[i]) >= 0) return true; }
       return false;
     };
+    /* Va primero que 'plan' a propósito: "calendario de siembra" tiene las
+       dos palabras y aquí manda la siembra. */
+    if (tiene(['sembrar', 'siembro', 'siembra', 'sembrando', 'plantar', 'ya puedo sembrar',
+               'cuándo siembro', 'cuando siembro', 'temporal', 'lluvia', 'llover',
+               'va a llover', 'temporada de siembra'])) return 'siembra';
     if (tiene(['plan', 'calendario', '7 días', '7 dias', 'siete días', 'semana de contenido'])) return 'plan';
     if (tiene(['precio', 'cuánto cobro', 'cuanto cobro', 'cobrar', 'cuánto vale', 'cuanto vale', 'mercado', 'competencia', 'ganancia', 'margen'])) return 'precio';
     if (tiene(['factur', 'rfc', 'sat', 'formaliz', 'trámite', 'tramite', 'permiso', 'impuesto', 'régimen', 'regimen', 'constancia'])) return 'tramite';
@@ -4622,6 +5462,63 @@
     return 'Tu negocio';
   }
 
+  /* ¿De qué cultivo habla? Si no nombra ninguno, se usa el que tenga
+     elegido arriba en su parcela. */
+  function cultivoEnTexto(texto) {
+    var t = texto.toLowerCase();
+    var alias = {
+      maiz:['maíz','maiz','milpa','elote','mazorca'], frijol:['frijol','frijoles'],
+      calabaza:['calabaza','calabacita'], chile:['chile','chiles'],
+      jitomate:['jitomate','tomate'], cacahuate:['cacahuate','cacahuete'],
+      sorgo:['sorgo'], trigo:['trigo'], cafe:['café','cafe','cafetal'],
+      agave:['agave','maguey','espadín','espadin','mezcal'],
+      cana:['caña','cana de azucar','caña de azúcar'], alfalfa:['alfalfa']
+    };
+    for (var id in alias) {
+      for (var i = 0; i < alias[id].length; i++) {
+        if (t.indexOf(alias[id][i]) >= 0) { return buscarCultivo(id); }
+      }
+    }
+    return null;
+  }
+
+  /* La respuesta de siembra: el mismo veredicto que pinta la sección de la
+     parcela, dicho como se lo dirías a alguien de frente. */
+  function respuestaSiembra(consulta) {
+    var c = cultivoEnTexto(consulta) || cultivoActual;
+    var lugar = lugarActual ? lugarActual.nombre : 'tu zona';
+
+    if (!climaActual) {
+      return {
+        texto: 'Te digo lo que sé de fijo del ' + c.nombre.toLowerCase() + ' en Oaxaca: se siembra ' +
+          listaMeses(c.siembra) + ' y se cosecha ' + listaMeses(c.cosecha) + '. Tarda ' + c.dias +
+          (c.perenne ? '' : ' días') + ' y pide ' + c.aguaCiclo + ' de agua en todo el ciclo. ' +
+          c.nota + '\n\nPara decirte si YA puedes sembrar esta semana necesito ver la lluvia de tu zona, ' +
+          'y ahorita no la tengo. Sube a «Mi parcela», elige tu municipio y ahí te lo digo con los milímetros en la mano.',
+        chips: ['¿Qué le pasa a mi planta?', '¿A cómo vendo mi cosecha?', '¿Qué apoyos hay para el campo?']
+      };
+    }
+
+    var v = evaluarSiembra(c, climaActual);
+    var cuerpo = v.titulo + '.\n\n' + v.razon + '\n\nEsto es lo que veo en ' + lugar + ' ahorita:\n' +
+      v.pruebas.map(function (p) { return '· ' + p; }).join('\n');
+
+    if (v.estado === 'fuera') {
+      cuerpo += '\n\nSi de todos modos quieres adelantar, lo que sí puedes ir haciendo es preparar el terreno ' +
+        'y conseguir la semilla, para estar listo cuando llegue ' + MESES_LARGOS[c.siembra[0] - 1] + '.';
+    }
+
+    return {
+      texto: cuerpo,
+      /* Esto NO es un apaño por no tener IA: son milímetros medidos y la
+         regla del cultivo. Se marca para que no salga con la disculpa de
+         "respuesta limitada", que aquí sería mentir a la baja. */
+      __medido: true,
+      chips: ['¿Cómo preparo el terreno?', '¿Qué le pasa a mi planta?',
+              '¿A cómo vendo mi ' + c.nombre.toLowerCase() + '?', '¿Qué apoyos hay para el campo?']
+    };
+  }
+
   function motorLocal(consulta) {
     var giro = detectarGiro(consulta);
     var g = GIROS[giro];
@@ -4632,6 +5529,13 @@
         texto: 'Aquí andamos. Soy el asistente de OaxIntegra IA: te ayudo a escribir lo que vendes, a ordenar tus números y a entender los trámites, en palabras sencillas. ¿De qué es tu negocio?',
         chips: ['Siembro maíz y frijol', 'Vendo mezcal', 'Tengo un comedor', 'Hago textiles en telar', 'Vendo artesanía de barro']
       };
+    }
+
+    /* Lo de sembrar se contesta con el clima de verdad, no con una frase
+       hecha. Y se contesta IGUAL aunque el servidor de la IA esté caído:
+       el dato ya está en la app y la regla también. */
+    if (intencion === 'siembra') {
+      return respuestaSiembra(consulta);
     }
 
     if (intencion === 'publicacion') {
@@ -4744,10 +5648,37 @@
     var giro = sesion ? sesion.giroTexto : 'un negocio pequeño';
     var quien = sesion ? (sesion.usuario || sesion.nombre) : 'el emprendedor';
     return 'Eres el asistente de OaxIntegra IA, para emprendedores oaxaqueños tradicionales ' +
-      '(artesanos, mezcaleros, cocineras, comerciantes). Hablas con ' + quien + ', cuyo negocio es: ' + giro + '. ' +
+      '(artesanos, mezcaleros, cocineras, comerciantes, gente del campo). Hablas con ' + quien + ', cuyo negocio es: ' + giro + '. ' +
       'Español mexicano cálido y sencillo, cero tecnicismos (nunca "prompt", "token", "endpoint"). ' +
       'Entrega siempre material listo para usar (publicación, precio, descripción), no consejos vagos. ' +
-      'La IA acompaña el oficio artesanal, nunca lo reemplaza. Máximo 200 palabras salvo que pidan más.';
+      'La IA acompaña el oficio artesanal, nunca lo reemplaza. Máximo 200 palabras salvo que pidan más.' +
+      contextoParcela();
+  }
+
+  /* El clima REAL de hoy metido en el prompt. Es la diferencia entre un
+     asistente que contesta "siembra cuando empiecen las lluvias" y uno que
+     contesta "con los 54 mm que llevas esta semana, ya puedes".
+     Solo se manda si la persona ya abrió la sección y llegó el dato: si no,
+     mejor que la IA no sepa nada a que se invente números. */
+  function contextoParcela() {
+    if (!climaActual || !lugarActual || !cultivoActual) { return ''; }
+    var t = ' DATOS REALES DEL CLIMA DE HOY, medidos, no inventados, para ' +
+      lugarActual.nombre + ' (' + lugarActual.region + ', Oaxaca), donde esta persona tiene su terreno: ' +
+      'en los últimos 7 días llovieron ' + climaActual.acumulado7 + ' mm (' +
+      climaActual.acumulado5 + ' mm en los últimos 5); para los próximos 7 días se esperan ' +
+      climaActual.vienen7 + ' mm';
+    if (climaActual.humedadSuelo !== null) {
+      t += '; la tierra a 5 cm está ' + palabraHumedad(climaActual.humedadSuelo);
+    }
+    if (climaActual.tempSuelo !== null) {
+      t += '; la tierra está a ' + Math.round(climaActual.tempSuelo) + '°C';
+    }
+    t += '. El cultivo que le interesa es ' + cultivoActual.nombre.toLowerCase() +
+      ', que en Oaxaca se siembra ' + listaMeses(cultivoActual.siembra) +
+      ' y se cosecha ' + listaMeses(cultivoActual.cosecha) + '. ' +
+      'USA ESTOS NÚMEROS cuando la pregunta sea del campo, y cítalos tal cual. ' +
+      'Nunca inventes datos de clima distintos a estos ni te los imagines para otra fecha.';
+    return t;
   }
 
   /* Las últimas vueltas de la plática, para que el asistente entienda
@@ -4835,6 +5766,12 @@
   /* nota amable cuando no hubo respuesta del asistente */
   function respuestaSinIA(local) {
     local.__origen = '';
+    /* Una respuesta armada con datos medidos se sostiene sola: no lleva
+       aviso de que sea peor, porque no lo es. */
+    if (local.__medido) {
+      local.nota = 'Esto sale del clima de tu zona y del calendario del cultivo, no de una suposición.';
+      return local;
+    }
     if (estadoServidor && !estadoServidor.listo) {
       local.nota = 'Esta respuesta la armé aquí mismo en tu equipo. Funciona bien, ' +
                    'pero es más limitada que el asistente completo.';
@@ -5540,13 +6477,25 @@
 
   function saludoInicial() {
     hilo.innerHTML = '';
-    var nombre = sesion ? sesion.nombre.split(' ')[0] : '';
+    var nombre = sesion && !sesion.invitado ? sesion.nombre.split(' ')[0] : '';
+    /* Quien tiene su negocio en el campo ve primero las preguntas del campo.
+       El resto ve las de siempre, con una del campo al final: es el terreno
+       donde este asistente hace algo que los demás no. */
+    var delCampo = sesion && sesion.giro === 'campo';
+    var chips = delCampo
+      ? ['¿Ya puedo sembrar maíz?', '¿Qué le pasa a mi planta?',
+         '¿A cómo vendo mi cosecha?', '¿Qué apoyos hay para el campo?']
+      : (sesion
+          ? ['Escríbeme una publicación para vender esta semana',
+             '¿Cómo le pongo precio a lo que vendo?',
+             '¿Qué necesito para facturar?', '¿Cuándo se siembra el maíz en Oaxaca?']
+          : ['Necesito un anuncio para vender mezcal en redes',
+             'Tengo un comedor y quiero más clientes',
+             '¿Cuándo se siembra el maíz en Oaxaca?']);
     mensajeIA({
       texto: (nombre ? 'Qué gusto verte de nuevo, ' + nombre + '. ' : '') +
-        'Soy el asistente de OaxIntegra IA. Escríbeme como le hablarías a tu ayudante: dime qué vendes y qué necesitas resolver, y te lo dejo listo para usar.',
-      chips: sesion
-        ? ['Escríbeme una publicación para vender esta semana', 'Hazme un plan de contenido para 7 días', '¿Cómo le pongo precio a lo que vendo?', '¿Qué necesito para facturar?']
-        : ['Necesito un anuncio para vender mezcal en redes', 'Tengo un comedor y quiero más clientes', '¿Qué necesito para facturar?']
+        'Soy el asistente de OaxIntegra IA. Escríbeme como le hablarías a tu ayudante: dime qué vendes o qué siembras y qué necesitas resolver, y te lo dejo listo para usar.',
+      chips: chips
     }, true);
   }
   $('#btn-limpiar').addEventListener('click', function () {
@@ -5659,41 +6608,6 @@
   /* =========================================================
      10. FORMULARIO DE CONTACTO
      ========================================================= */
-  /* Ya no hay webhook de por medio. El mensaje se arma aquí y se abre en
-     el correo o en el WhatsApp del negocio, con todo escrito. Así nunca se
-     pierde en un servidor que se cayó y la persona ve que sí salió. */
-  $('#formulario').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var nom = $('#nombre'), cor = $('#correo-contacto'), men = $('#mensaje');
-    if (!validarGrupo([nom, cor, men])) {
-      avisar('Revisa los campos marcados en naranja.');
-      return;
-    }
-
-    var cuerpo = 'Hola, soy ' + nom.value.trim() + '.\n\n' +
-                 men.value.trim() + '\n\n' +
-                 'Mi correo: ' + cor.value.trim();
-    var asunto = 'Mensaje desde OaxIntegra IA · ' + nom.value.trim();
-
-    var destino = CONFIG.CORREO_CONTACTO
-      ? 'mailto:' + CONFIG.CORREO_CONTACTO +
-        '?subject=' + encodeURIComponent(asunto) +
-        '&body=' + encodeURIComponent(cuerpo)
-      : 'https://wa.me/' + CONFIG.WHATSAPP + '?text=' + encodeURIComponent(cuerpo);
-
-    window.open(destino, '_blank', 'noopener');
-
-    e.target.reset();
-    $$('[data-regla]', e.target).forEach(function (c) {
-      c.removeAttribute('data-valido'); c.removeAttribute('data-tocado');
-    });
-    modalExito(
-      '¡Listo, ya va tu mensaje!',
-      CONFIG.CORREO_CONTACTO
-        ? 'Se abrió tu correo con todo escrito. Solo dale enviar y te contestamos a ' + cor.value.trim() + '.'
-        : 'Se abrió WhatsApp con tu mensaje ya escrito. Solo dale enviar. Si prefieres, márcanos al 951 461 4505.'
-    );
-  });
 
   /* =========================================================
      11. COPIAR LA INICIATIVA DE LEY
@@ -5839,16 +6753,19 @@
      --------------------------------------------------------- */
   (function simulador() {
     var barra = $('#sim-horas');
-    if (!barra) { return; }
-    var VALOR_HORA = 150;      /* pesos */
+    var campoHora = $('#sim-valor-hora');
+    if (!barra || !campoHora) { return; }
     var DIAS_MES = 30;
     var PARTE_QUE_DELEGA = 0.5; /* el asistente se lleva la mitad de esa carga */
 
     function calcular() {
       var horasDia = Number(barra.value);
+      /* Si el campo se deja vacío o con un disparate, se cae a 0 en vez de
+         pintar "NaN": el resultado queda en cero y se entiende solo. */
+      var valorHora = Math.max(0, Math.min(5000, Number(campoHora.value) || 0));
       var ahorroDia = horasDia * PARTE_QUE_DELEGA;
       var horasMes = Math.round(ahorroDia * DIAS_MES);
-      var dinero = horasMes * VALOR_HORA;
+      var dinero = horasMes * valorHora;
       var dias = Math.round(horasMes / 8);
 
       $('#sim-n').textContent = horasDia;
@@ -5859,6 +6776,7 @@
     }
 
     barra.addEventListener('input', calcular);
+    campoHora.addEventListener('input', calcular);
     calcular();
   })();
 
@@ -6482,6 +7400,818 @@
 
 
   /* =========================================================
+     11b. EL TIEMPO EN TU PARCELA
+     ---------------------------------------------------------
+     De dónde sale cada número, para que nadie tenga que adivinarlo:
+
+     · El clima viene de Open-Meteo (open-meteo.com). Es gratis, no pide
+       llave y deja llamarla desde el navegador, así que no pasa por
+       nuestro servidor ni cuesta nada por consulta. Detrás hay modelos de
+       los servicios meteorológicos (ECMWF, DWD, NOAA) alimentados con
+       satélites, radares y estaciones de tierra.
+
+     · Se piden 7 días HACIA ATRÁS y 7 hacia adelante. Los de atrás son
+       los que de verdad deciden: sembrar de temporal depende de lo que YA
+       se mojó la tierra, no de lo que promete el pronóstico.
+
+     · Las fechas de siembra, los días a cosecha y la temperatura a la que
+       germina cada semilla son las que manejan los técnicos agrícolas en
+       Oaxaca (ciclos primavera-verano de temporal y otoño-invierno de
+       riego). No son inventadas por la IA ni salen del modelo del clima.
+
+     SIN INTERNET SIGUE SIRVIENDO. El calendario, las fechas y la ficha de
+     cada cultivo son tablas que van dentro de la propia app. Si la señal
+     no da para traer el clima, se dice con todas sus letras y se enseña
+     lo que sí se sabe, en vez de dejar la sección vacía.
+     ========================================================= */
+
+  /* --- dónde está la parcela ---
+     Cabeceras de las ocho regiones y los municipios donde más se siembra.
+     Coordenadas de la cabecera municipal; para el clima, que se modela en
+     cuadros de unos 11 km, esa precisión sobra. */
+  var LUGARES = [
+    { id:'oaxaca',     nombre:'Oaxaca de Juárez',      region:'Valles Centrales', lat:17.0732, lon:-96.7266, alt:1555 },
+    { id:'zimatlan',   nombre:'Zimatlán de Álvarez',   region:'Valles Centrales', lat:16.8667, lon:-96.7833, alt:1500 },
+    { id:'ejutla',     nombre:'Ejutla de Crespo',      region:'Valles Centrales', lat:16.5667, lon:-96.7333, alt:1450 },
+    { id:'tlacolula',  nombre:'Tlacolula de Matamoros',region:'Valles Centrales', lat:16.9500, lon:-96.4667, alt:1620 },
+    { id:'ocotlan',    nombre:'Ocotlán de Morelos',    region:'Valles Centrales', lat:16.7972, lon:-96.6750, alt:1510 },
+    { id:'etla',       nombre:'Villa de Etla',         region:'Valles Centrales', lat:17.2000, lon:-96.8000, alt:1680 },
+    { id:'zaachila',   nombre:'Villa de Zaachila',     region:'Valles Centrales', lat:16.9500, lon:-96.7500, alt:1520 },
+    { id:'matatlan',   nombre:'Santiago Matatlán',     region:'Valles Centrales', lat:16.8667, lon:-96.3833, alt:1740 },
+    { id:'ixtlan',     nombre:'Ixtlán de Juárez',      region:'Sierra Norte',     lat:17.3333, lon:-96.4833, alt:2030 },
+    { id:'guelatao',   nombre:'Guelatao de Juárez',    region:'Sierra Norte',     lat:17.3333, lon:-96.5000, alt:1750 },
+    { id:'miahuatlan', nombre:'Miahuatlán de P. Díaz', region:'Sierra Sur',       lat:16.3333, lon:-96.5833, alt:1580 },
+    { id:'putla',      nombre:'Putla Villa de Guerrero',region:'Sierra Sur',      lat:17.0333, lon:-97.9333, alt:750  },
+    { id:'sola',       nombre:'Villa Sola de Vega',    region:'Sierra Sur',       lat:16.5167, lon:-96.9833, alt:1450 },
+    { id:'tuxtepec',   nombre:'San Juan B. Tuxtepec',  region:'Papaloapan',       lat:18.0856, lon:-96.1244, alt:30   },
+    { id:'lomabonita', nombre:'Loma Bonita',           region:'Papaloapan',       lat:18.1069, lon:-95.8850, alt:30   },
+    { id:'huajuapan',  nombre:'Huajuapan de León',     region:'Mixteca',          lat:17.8000, lon:-97.7833, alt:1640 },
+    { id:'nochixtlan', nombre:'Asunción Nochixtlán',   region:'Mixteca',          lat:17.4589, lon:-97.2278, alt:2080 },
+    { id:'tlaxiaco',   nombre:'H. Cd. de Tlaxiaco',    region:'Mixteca',          lat:17.2667, lon:-97.6833, alt:2000 },
+    { id:'juxtlahuaca',nombre:'Santiago Juxtlahuaca',  region:'Mixteca',          lat:17.3333, lon:-98.0167, alt:1600 },
+    { id:'escondido',  nombre:'Puerto Escondido',      region:'Costa',            lat:15.8667, lon:-97.0667, alt:10   },
+    { id:'pinotepa',   nombre:'Santiago Pinotepa Nac.',region:'Costa',            lat:16.3406, lon:-98.0531, alt:200  },
+    { id:'jamiltepec', nombre:'Santiago Jamiltepec',   region:'Costa',            lat:16.2833, lon:-97.8167, alt:400  },
+    { id:'huatulco',   nombre:'Santa María Huatulco',  region:'Costa',            lat:15.8333, lon:-96.3167, alt:50   },
+    { id:'juchitan',   nombre:'Juchitán de Zaragoza',  region:'Istmo',            lat:16.4333, lon:-95.0167, alt:30   },
+    { id:'salinacruz', nombre:'Salina Cruz',           region:'Istmo',            lat:16.1667, lon:-95.2000, alt:20   },
+    { id:'tehuantepec',nombre:'Sto. Domingo Tehuantepec',region:'Istmo',          lat:16.3222, lon:-95.2408, alt:50   },
+    { id:'matiasromero',nombre:'Matías Romero',        region:'Istmo',            lat:16.8778, lon:-95.0389, alt:200  },
+    { id:'teotitlan',  nombre:'Teotitlán de F. Magón', region:'Cañada',           lat:18.1333, lon:-97.0833, alt:900  },
+    { id:'cuicatlan',  nombre:'San Juan B. Cuicatlán', region:'Cañada',           lat:17.8000, lon:-96.9500, alt:600  },
+    { id:'huautla',    nombre:'Huautla de Jiménez',    region:'Cañada',           lat:18.1333, lon:-96.8333, alt:1600 }
+  ];
+
+  /* --- qué se siembra ---
+     meses van de 1 a 12. "siembra" es la ventana de temporal salvo que se
+     diga otra cosa en "nota". "lluviaMin" son los milímetros que deben
+     haberse acumulado en los últimos días ANTES de meter la semilla:
+     sembrar con la primera lluvia suelta es el error clásico — la semilla
+     germina, deja de llover y se pierde. "tempSuelo" es la temperatura
+     mínima a la que esa semilla germina. */
+  var CULTIVOS = [
+    { id:'maiz', nombre:'Maíz', siembra:[5,6,7], cosecha:[11,12,1], dias:'120 a 180',
+      lluviaMin:25, tempSuelo:12, aguaCiclo:'500 a 700 mm', perenne:false,
+      nota:'Es lo que más se siembra en Oaxaca. De temporal se mete con las primeras lluvias buenas de mayo o junio.' },
+    { id:'frijol', nombre:'Frijol', siembra:[6,7,8], cosecha:[10,11,12], dias:'90 a 120',
+      lluviaMin:20, tempSuelo:15, aguaCiclo:'300 a 400 mm', perenne:false,
+      nota:'Aguanta menos agua que el maíz. Se acostumbra sembrarlo junto con la milpa.' },
+    { id:'calabaza', nombre:'Calabaza', siembra:[5,6,7], cosecha:[9,10,11], dias:'90 a 120',
+      lluviaMin:20, tempSuelo:15, aguaCiclo:'400 a 600 mm', perenne:false,
+      nota:'La tercera de la milpa. Se siembra con el maíz y se levanta antes.' },
+    { id:'chile', nombre:'Chile', siembra:[5,6], cosecha:[10,11,12], dias:'150 a 180',
+      lluviaMin:25, tempSuelo:18, aguaCiclo:'600 a 800 mm', perenne:false,
+      nota:'Casi siempre se pasa de almácigo al terreno. Es friolento: no lo metas si la tierra está fría.' },
+    { id:'jitomate', nombre:'Jitomate', siembra:[5,6], cosecha:[9,10,11], dias:'110 a 140',
+      lluviaMin:20, tempSuelo:16, aguaCiclo:'400 a 600 mm', perenne:false,
+      nota:'También se da de riego en otoño-invierno, de diciembre a febrero, si tienes agua.' },
+    { id:'cacahuate', nombre:'Cacahuate', siembra:[6,7], cosecha:[10,11], dias:'120 a 140',
+      lluviaMin:25, tempSuelo:18, aguaCiclo:'500 a 600 mm', perenne:false,
+      nota:'Quiere tierra suelta y arenosa para que la vaina llene bien.' },
+    { id:'sorgo', nombre:'Sorgo', siembra:[5,6,7], cosecha:[10,11,12], dias:'110 a 130',
+      lluviaMin:20, tempSuelo:15, aguaCiclo:'400 a 500 mm', perenne:false,
+      nota:'Aguanta la seca mejor que el maíz. Buena opción donde llueve poco.' },
+    { id:'trigo', nombre:'Trigo', siembra:[11,12], cosecha:[3,4], dias:'120 a 150',
+      lluviaMin:0, tempSuelo:4, aguaCiclo:'400 a 500 mm', perenne:false, riego:true,
+      nota:'En Oaxaca es de riego, no de temporal: se siembra en noviembre o diciembre, cuando ya pasaron las lluvias. Si no tienes riego, este no es tu cultivo.' },
+    { id:'cafe', nombre:'Café', siembra:[6,7,8,9], cosecha:[11,12,1,2,3], dias:'da fruto al 3er año',
+      lluviaMin:30, tempSuelo:15, aguaCiclo:'1200 a 1800 mm', perenne:true,
+      nota:'La planta se mete en plena lluvia para que agarre. Oaxaca es de los estados que más café produce; se da bien arriba de los 900 metros y con sombra.' },
+    { id:'agave', nombre:'Agave espadín', siembra:[6,7,8,9], cosecha:[1,2,3,4,5,6,7,8,9,10,11,12], dias:'6 a 8 años',
+      lluviaMin:20, tempSuelo:15, aguaCiclo:'400 a 600 mm', perenne:true,
+      nota:'Del que sale el mezcal. Los hijuelos se plantan en lluvias y tardan de seis a ocho años en dar. Se jima cuando el quiote quiere salir, en cualquier mes.' },
+    { id:'cana', nombre:'Caña de azúcar', siembra:[10,11,12,1,2], cosecha:[1,2,3,4,5], dias:'12 a 18 meses',
+      lluviaMin:0, tempSuelo:18, aguaCiclo:'1500 a 2000 mm', perenne:true, riego:true,
+      nota:'Lo del Papaloapan y el Istmo. Pide mucha agua todo el año, casi siempre con riego.' },
+    { id:'alfalfa', nombre:'Alfalfa', siembra:[10,11], cosecha:[1,2,3,4,5,6,7,8,9,10,11,12], dias:'primer corte a los 90; luego cada 30',
+      lluviaMin:0, tempSuelo:10, aguaCiclo:'1200 a 1600 mm', perenne:true, riego:true,
+      nota:'Para el ganado. Es de riego y una vez establecida da cortes todo el año.' }
+  ];
+
+  var MESES_CORTOS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio',
+                      'agosto','septiembre','octubre','noviembre','diciembre'];
+
+  var CLAVE_PARCELA = 'oaxintegra.parcela';
+  var lugarActual = LUGARES[0];
+  var cultivoActual = CULTIVOS[0];
+  var climaActual = null;
+
+  function buscarLugar(id) {
+    for (var i = 0; i < LUGARES.length; i++) { if (LUGARES[i].id === id) { return LUGARES[i]; } }
+    return null;
+  }
+  function buscarCultivo(id) {
+    for (var i = 0; i < CULTIVOS.length; i++) { if (CULTIVOS[i].id === id) { return CULTIVOS[i]; } }
+    return null;
+  }
+
+  /* El lugar y el cultivo elegidos se recuerdan: quien siembra maíz en
+     Ejutla lo va a seguir sembrando ahí la próxima vez que entre. En modo
+     invitado esto se queda en memoria, como todo lo demás. */
+  function guardarParcela() {
+    almacen.guardar(CLAVE_PARCELA, JSON.stringify({ lugar: lugarActual.id, cultivo: cultivoActual.id }));
+  }
+  function leerParcela() {
+    try { return JSON.parse(almacen.leer(CLAVE_PARCELA) || '{}'); } catch (e) { return {}; }
+  }
+
+  function llenarSelectores() {
+    var selLugar = $('#sel-lugar'), selCultivo = $('#sel-cultivo');
+    if (!selLugar || !selCultivo) { return; }
+
+    var regiones = [], vistas = {};
+    LUGARES.forEach(function (l) {
+      if (!vistas[l.region]) { vistas[l.region] = []; regiones.push(l.region); }
+      vistas[l.region].push(l);
+    });
+    regiones.forEach(function (r) {
+      var grupo = document.createElement('optgroup');
+      grupo.label = r;
+      vistas[r].forEach(function (l) {
+        var o = document.createElement('option');
+        o.value = l.id; o.textContent = l.nombre;
+        grupo.appendChild(o);
+      });
+      selLugar.appendChild(grupo);
+    });
+
+    CULTIVOS.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c.id; o.textContent = c.nombre;
+      selCultivo.appendChild(o);
+    });
+
+    var guardado = leerParcela();
+    lugarActual = buscarLugar(guardado.lugar) || LUGARES[0];
+    cultivoActual = buscarCultivo(guardado.cultivo) || CULTIVOS[0];
+    selLugar.value = lugarActual.id;
+    selCultivo.value = cultivoActual.id;
+  }
+
+  /* --- traer el clima ---------------------------------------------------
+     past_days=7 es la pieza importante: el veredicto se decide sobre todo
+     con la lluvia que YA cayó. */
+  function traerClima(lugar) {
+    var u = 'https://api.open-meteo.com/v1/forecast' +
+      '?latitude=' + lugar.lat + '&longitude=' + lugar.lon +
+      '&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min' +
+      '&hourly=soil_moisture_3_to_9cm,soil_temperature_6cm' +
+      '&current=temperature_2m,relative_humidity_2m,precipitation' +
+      '&timezone=America%2FMexico_City&past_days=7&forecast_days=7';
+
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var reloj = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, 12000);
+
+    return fetch(u, ctrl ? { signal: ctrl.signal } : {})
+      .then(function (r) {
+        clearTimeout(reloj);
+        if (!r.ok) { throw new Error('el servicio del clima contestó ' + r.status); }
+        return r.json();
+      })
+      .then(function (d) {
+        if (!d || !d.daily || !d.daily.time) { throw new Error('respuesta sin datos'); }
+        return ordenarClima(d);
+      });
+  }
+
+  /* Deja el paquete de Open-Meteo en algo con lo que sea cómodo trabajar:
+     los días separados en "ya pasó" y "va a venir", y los promedios de
+     suelo del día de hoy. */
+  function ordenarClima(d) {
+    var hoyISO = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+    /* TODO lo que llega de fuera pasa por redondear(), que devuelve un
+       número o null y nada más. Estos valores terminan dentro de un innerHTML
+       (la gráfica, la tabla, el globo); si alguno se colara como texto, sería
+       una puerta de entrada para meter etiquetas en la página. Aquí se cierra
+       de una vez, en el único sitio por donde entran.
+       Los días sin fecha con forma de fecha se tiran: es una respuesta que
+       no entendemos, y vale más quedarse sin ese día que pintar "NaN". */
+    var dias = [];
+    d.daily.time.forEach(function (fecha, i) {
+      if (typeof fecha !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) { return; }
+      dias.push({
+        fecha: fecha,
+        mm: Math.max(0, redondear(d.daily.precipitation_sum[i], 1) || 0),
+        prob: d.daily.precipitation_probability_max
+                ? redondear(d.daily.precipitation_probability_max[i], 0) : null,
+        tMax: redondear(d.daily.temperature_2m_max[i], 0),
+        tMin: redondear(d.daily.temperature_2m_min[i], 0),
+        pasado: fecha < hoyISO,
+        hoy: fecha === hoyISO
+      });
+    });
+    if (!dias.length) { throw new Error('el clima llegó sin días válidos'); }
+
+    /* Humedad y temperatura del suelo: el promedio de las horas de HOY.
+       Una sola lectura puntual sube y baja demasiado con el sol. */
+    var humSuma = 0, humN = 0, tsSuma = 0, tsN = 0;
+    if (d.hourly && d.hourly.time) {
+      for (var i = 0; i < d.hourly.time.length; i++) {
+        if (d.hourly.time[i].slice(0, 10) !== hoyISO) { continue; }
+        var h = d.hourly.soil_moisture_3_to_9cm ? d.hourly.soil_moisture_3_to_9cm[i] : null;
+        var t = d.hourly.soil_temperature_6cm ? d.hourly.soil_temperature_6cm[i] : null;
+        if (typeof h === 'number') { humSuma += h; humN++; }
+        if (typeof t === 'number') { tsSuma += t; tsN++; }
+      }
+    }
+
+    var pasados = dias.filter(function (x) { return x.pasado; });
+    var ultimos5 = pasados.slice(-5);
+    var futuros = dias.filter(function (x) { return !x.pasado && !x.hoy; });
+
+    return {
+      dias: dias,
+      humedadSuelo: humN ? humSuma / humN : null,
+      tempSuelo: tsN ? tsSuma / tsN : null,
+      acumulado7: sumaMm(pasados),
+      acumulado5: sumaMm(ultimos5),
+      vienen7: sumaMm(futuros),
+      ahora: d.current || null
+    };
+  }
+
+  function sumaMm(lista) {
+    var s = 0;
+    lista.forEach(function (d) { s += d.mm || 0; });
+    return Math.round(s * 10) / 10;
+  }
+  function redondear(v, dec) {
+    if (typeof v !== 'number' || isNaN(v)) { return null; }
+    var f = Math.pow(10, dec);
+    return Math.round(v * f) / f;
+  }
+
+  /* --- la regla de siembra ---------------------------------------------
+     Esto es lo que hace útil a la sección. Un asistente de uso general
+     contesta "siembra al empezar las lluvias"; aquí se compara la lluvia
+     real de esta semana en ESTE municipio contra lo que ese cultivo
+     necesita, y se dice qué falta cuando falta. */
+  function evaluarSiembra(cultivo, clima) {
+    var mes = Number(new Date().toLocaleDateString('en-CA', { timeZone:'America/Mexico_City' }).slice(5, 7));
+    var enVentana = cultivo.siembra.indexOf(mes) >= 0;
+    var pruebas = [];
+
+    if (!clima) {
+      return { estado:'sinred',
+        titulo:'No pude traer el clima de tu zona',
+        razon:'Se cayó la señal o el servicio del clima no contestó. El calendario de aquí abajo ' +
+              'sigue sirviendo: es información que ya trae la app y no necesita internet.',
+        pruebas: [] };
+    }
+
+    var hum = clima.humedadSuelo;
+    var ts = clima.tempSuelo;
+
+    pruebas.push('Llovieron ' + clima.acumulado5 + ' mm en los últimos 5 días');
+    if (hum !== null)  { pruebas.push('La tierra está ' + palabraHumedad(hum)); }
+    if (ts !== null)   { pruebas.push('La tierra está a ' + Math.round(ts) + '°C'); }
+    pruebas.push('Se esperan ' + clima.vienen7 + ' mm esta semana');
+
+    if (!enVentana) {
+      return { estado:'fuera',
+        titulo:'No es temporada de sembrar ' + cultivo.nombre.toLowerCase(),
+        razon: 'En Oaxaca el ' + cultivo.nombre.toLowerCase() + ' se siembra ' +
+               listaMeses(cultivo.siembra) + ', y estamos en ' + MESES_LARGOS[mes - 1] + '. ' +
+               'Si lo metes ahora, lo más probable es que no te dé. ' + cultivo.nota,
+        pruebas: pruebas };
+    }
+
+    /* De riego la lluvia no manda: lo que manda es si tienes agua. */
+    if (cultivo.riego) {
+      return { estado:'siembra',
+        titulo:'Sí es temporada de sembrar ' + cultivo.nombre.toLowerCase(),
+        razon:'Este cultivo va con riego, no con la lluvia, así que lo que decide es si tienes agua ' +
+              'para todo el ciclo. ' + cultivo.nota,
+        pruebas: pruebas };
+    }
+
+    var faltas = [];
+    if (clima.acumulado5 < cultivo.lluviaMin) {
+      faltas.push('todavía no llueve lo suficiente (van ' + clima.acumulado5 + ' mm en cinco días ' +
+                  'y para ' + cultivo.nombre.toLowerCase() + ' se esperan al menos ' + cultivo.lluviaMin + ')');
+    }
+    if (hum !== null && hum < 0.18) {
+      faltas.push('la tierra está ' + palabraHumedad(hum) + ' por dentro');
+    }
+    if (ts !== null && ts < cultivo.tempSuelo) {
+      faltas.push('la tierra está fría, a ' + Math.round(ts) + '°C, y esta semilla necesita ' +
+                  cultivo.tempSuelo + '°C para nacer');
+    }
+    /* Aunque ya haya llovido bien: si no viene más agua, la planta nace y
+       se seca. Es la pérdida más común y la que más duele. */
+    var secaAdelante = clima.vienen7 < 10 && clima.acumulado5 >= cultivo.lluviaMin;
+
+    if (!faltas.length && !secaAdelante) {
+      return { estado:'siembra',
+        titulo:'Buen momento para sembrar ' + cultivo.nombre.toLowerCase(),
+        razon:'Ya llovió lo que se necesita, la tierra tiene humedad y vienen más lluvias. ' +
+              'Si vas a sembrar, esta es la semana.',
+        pruebas: pruebas };
+    }
+
+    if (secaAdelante && !faltas.length) {
+      return { estado:'espera',
+        titulo:'Llovió bien, pero aguántate unos días',
+        razon:'La tierra ya está buena, solo que para esta semana casi no viene agua (' +
+              clima.vienen7 + ' mm). Si siembras ahora, la plantita nace y se te seca. ' +
+              'Espera a que el pronóstico vuelva a marcar lluvia.',
+        pruebas: pruebas };
+    }
+
+    return { estado:'espera',
+      titulo:'Todavía no. Espérate un poco',
+      razon:'Es temporada de ' + cultivo.nombre.toLowerCase() + ', pero ' + unirFrases(faltas) +
+            '. Sembrar antes de tiempo es como tirar la semilla: nace y se pierde. ' +
+            'Vuelve a ver esto en unos días.',
+      pruebas: pruebas };
+  }
+
+  /* Dos formas de decir lo mismo: la larga encaja dentro de una frase
+     ("la tierra está con buena humedad") y la corta es la que cabe en la
+     cifra grande de la tarjeta sin desbordarse. */
+  function palabraHumedad(h) {
+    if (h < 0.10) { return 'muy seca'; }
+    if (h < 0.18) { return 'seca'; }
+    if (h < 0.30) { return 'con buena humedad'; }
+    if (h < 0.40) { return 'bien mojada'; }
+    return 'encharcada';
+  }
+  function etiquetaHumedad(h) {
+    if (h < 0.10) { return 'Muy seca'; }
+    if (h < 0.18) { return 'Seca'; }
+    if (h < 0.30) { return 'Buena'; }
+    if (h < 0.40) { return 'Mojada'; }
+    return 'Encharcada';
+  }
+  function listaMeses(meses) {
+    var n = meses.map(function (m) { return MESES_LARGOS[m - 1]; });
+    if (n.length === 1) { return 'en ' + n[0]; }
+    return 'entre ' + n.slice(0, -1).join(', ') + ' y ' + n[n.length - 1];
+  }
+  function unirFrases(lista) {
+    if (lista.length === 1) { return lista[0]; }
+    return lista.slice(0, -1).join(', ') + ' y ' + lista[lista.length - 1];
+  }
+
+  /* --- pintar el veredicto --------------------------------------------- */
+  var ICONOS_VEREDICTO = {
+    siembra:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><path d="M7.8 12.3l2.9 2.9 5.5-5.8"/></svg>',
+    espera: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><path d="M12 7.2v5.3l3.3 2"/></svg>',
+    fuera:  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><path d="M12 7.4v5.4M12 16.4h.01"/></svg>',
+    sinred: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20M16.7 16.7A10.9 10.9 0 0 1 12 18M5 12.5a10.9 10.9 0 0 1 4-2.4M2 8.8a16 16 0 0 1 4.5-2.7M22 8.8a16 16 0 0 0-8.9-3.7M12 21h.01"/></svg>',
+    cargando:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 3.2a8.8 8.8 0 1 0 8.8 8.8" opacity=".75"/></svg>'
+  };
+
+  function pintarVeredicto(v) {
+    var caja = $('#veredicto');
+    if (!caja) { return; }
+    caja.dataset.estado = v.estado;
+    $('#veredicto-ico').innerHTML = ICONOS_VEREDICTO[v.estado] || ICONOS_VEREDICTO.cargando;
+    $('#veredicto-titulo').textContent = v.titulo;
+    $('#veredicto-razon').textContent = v.razon;
+    var ul = $('#veredicto-pruebas');
+    ul.innerHTML = '';
+    (v.pruebas || []).forEach(function (p) {
+      var li = document.createElement('li');
+      li.textContent = p;
+      ul.appendChild(li);
+    });
+  }
+
+  /* --- la gráfica de lluvia --------------------------------------------
+     Una sola serie (milímetros por día), así que un solo color. Lo que ya
+     cayó va en tono lleno y lo que viene en el mismo tono más claro: no
+     son dos cosas distintas, es el mismo dato con menos certeza. El día de
+     hoy lleva su línea para no perderse.
+
+     Se etiquetan solo el día más lluvioso y el de hoy. Un número encima de
+     cada barra no lo lee nadie; para eso está la tabla de abajo. */
+  function pintarGraficaLluvia(clima) {
+    var caja = $('#grafica-lluvia');
+    if (!caja) { return; }
+    var dias = clima.dias;
+    var ancho = 720, alto = 230;
+    var mI = 34, mD = 8, mS = 22, mB = 34;
+    var util = ancho - mI - mD, utilAlto = alto - mS - mB;
+
+    var maxReal = 0;
+    dias.forEach(function (d) { if (d.mm > maxReal) { maxReal = d.mm; } });
+    var tope = Math.max(10, Math.ceil(maxReal / 10) * 10);
+    var paso = util / dias.length;
+    var anchoBarra = Math.max(6, paso - 6);   /* el hueco de 6px es fondo, no borde */
+    var idxMax = 0;
+    dias.forEach(function (d, i) { if (d.mm > dias[idxMax].mm) { idxMax = i; } });
+
+    var s = '<svg viewBox="0 0 ' + ancho + ' ' + alto + '" preserveAspectRatio="xMidYMid meet">';
+
+    /* rejilla: líneas continuas de un tono, nunca punteadas */
+    for (var g = 0; g <= 2; g++) {
+      var val = (tope / 2) * g;
+      var y = mS + utilAlto - (val / tope) * utilAlto;
+      s += '<line class="gl-rejilla" x1="' + mI + '" y1="' + y.toFixed(1) +
+           '" x2="' + (ancho - mD) + '" y2="' + y.toFixed(1) + '"/>';
+      s += '<text class="gl-tick" x="' + (mI - 7) + '" y="' + (y + 3.5).toFixed(1) +
+           '" text-anchor="end">' + val + '</text>';
+    }
+    s += '<text class="gl-tick" x="' + (mI - 7) + '" y="' + (mS - 8) +
+         '" text-anchor="end">mm</text>';
+
+    dias.forEach(function (d, i) {
+      var x = mI + i * paso + (paso - anchoBarra) / 2;
+      var h = tope ? (d.mm / tope) * utilAlto : 0;
+      var seca = d.mm < 0.15;
+      var hDibujo = seca ? 2 : Math.max(3, h);
+      var y = mS + utilAlto - hDibujo;
+      var r = Math.min(4, anchoBarra / 2, hDibujo / 2);
+
+      s += '<g class="gl-col" data-i="' + i + '">';
+      s += '<rect class="gl-barra" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) +
+           '" width="' + anchoBarra.toFixed(1) + '" height="' + hDibujo.toFixed(1) +
+           '" rx="' + r.toFixed(1) + '"' +
+           ' data-cuando="' + (d.pasado || d.hoy ? 'caida' : 'viene') + '"' +
+           (seca ? ' data-seca="si"' : '') + '/>';
+      /* zona de toque generosa: la barra puede ser de 2 px, el dedo no */
+      s += '<rect class="gl-toque" x="' + (mI + i * paso).toFixed(1) + '" y="' + mS +
+           '" width="' + paso.toFixed(1) + '" height="' + utilAlto + '"/>';
+      s += '</g>';
+
+      /* solo el día más lluvioso lleva su número encima */
+      if (i === idxMax && d.mm > 0) {
+        s += '<text class="gl-valor" x="' + (x + anchoBarra / 2).toFixed(1) + '" y="' +
+             (y - 5).toFixed(1) + '" text-anchor="middle">' + d.mm + '</text>';
+      }
+
+      var f = new Date(d.fecha + 'T12:00:00');
+      s += '<text class="gl-dia" x="' + (x + anchoBarra / 2).toFixed(1) + '" y="' +
+           (alto - mB + 16) + '" text-anchor="middle"' + (d.hoy ? ' data-hoy="si"' : '') + '>' +
+           f.getDate() + '</text>';
+    });
+
+    /* la raya de hoy */
+    var iHoy = -1;
+    dias.forEach(function (d, i) { if (d.hoy) { iHoy = i; } });
+    if (iHoy >= 0) {
+      var xh = mI + iHoy * paso + paso / 2;
+      s += '<line class="gl-hoy" x1="' + xh.toFixed(1) + '" y1="' + (mS - 12) +
+           '" x2="' + xh.toFixed(1) + '" y2="' + (mS + utilAlto) + '"/>';
+      s += '<text class="gl-hoy-txt" x="' + xh.toFixed(1) + '" y="' + (mS - 16) +
+           '" text-anchor="middle">HOY</text>';
+    }
+
+    s += '<line class="gl-base" x1="' + mI + '" y1="' + (mS + utilAlto) +
+         '" x2="' + (ancho - mD) + '" y2="' + (mS + utilAlto) + '"/>';
+    /* el mes, abajo, para que los números de día se entiendan */
+    var primero = new Date(dias[0].fecha + 'T12:00:00');
+    var ultimo = new Date(dias[dias.length - 1].fecha + 'T12:00:00');
+    var pie = MESES_CORTOS[primero.getMonth()] +
+              (primero.getMonth() !== ultimo.getMonth() ? ' — ' + MESES_CORTOS[ultimo.getMonth()] : '');
+    s += '<text class="gl-tick" x="' + mI + '" y="' + (alto - 2) + '">' + pie + '</text>';
+    s += '</svg>';
+
+    caja.innerHTML = s;
+    conectarGloboLluvia(caja, dias);
+
+    /* el texto que lee quien no ve la gráfica */
+    $('#lluvia-alt').textContent =
+      'Lluvia por día del ' + fechaLarga(dias[0].fecha) + ' al ' + fechaLarga(dias[dias.length - 1].fecha) +
+      '. En los siete días pasados cayeron ' + clima.acumulado7 + ' milímetros; ' +
+      'para los próximos siete se esperan ' + clima.vienen7 + '. ' +
+      'El día de más lluvia es ' + fechaLarga(dias[idxMax].fecha) + ', con ' + dias[idxMax].mm + ' milímetros.';
+
+    pintarTablaLluvia(dias);
+  }
+
+  function fechaLarga(iso) {
+    var f = new Date(iso + 'T12:00:00');
+    return f.getDate() + ' de ' + MESES_LARGOS[f.getMonth()];
+  }
+
+  function pintarTablaLluvia(dias) {
+    var t = $('#tabla-lluvia');
+    if (!t) { return; }
+    var h = '<thead><tr><th>Día</th><th>Lluvia</th><th>Probabilidad</th><th>Máx</th><th>Mín</th></tr></thead><tbody>';
+    dias.forEach(function (d) {
+      var f = new Date(d.fecha + 'T12:00:00');
+      h += '<tr><td>' + (d.hoy ? 'hoy · ' : '') + f.getDate() + ' ' + MESES_CORTOS[f.getMonth()] +
+           '</td><td>' + d.mm + ' mm</td><td>' + (d.prob === null ? '—' : d.prob + '%') +
+           '</td><td>' + (d.tMax === null ? '—' : d.tMax + '°') +
+           '</td><td>' + (d.tMin === null ? '—' : d.tMin + '°') + '</td></tr>';
+    });
+    t.innerHTML = h + '</tbody>';
+  }
+
+  /* El globo acompaña, no sustituye: todos estos números están también en
+     la tabla de abajo y en el texto alternativo. */
+  var globoLluvia = null;
+  function conectarGloboLluvia(caja, dias) {
+    if (!globoLluvia) {
+      globoLluvia = document.createElement('div');
+      globoLluvia.className = 'globo-lluvia';
+      globoLluvia.setAttribute('role', 'status');
+      document.body.appendChild(globoLluvia);
+    }
+    var cols = $$('.gl-col', caja);
+    cols.forEach(function (col) {
+      var d = dias[Number(col.dataset.i)];
+      function mostrar(e) {
+        var f = new Date(d.fecha + 'T12:00:00');
+        globoLluvia.innerHTML = '<strong>' + (d.hoy ? 'Hoy, ' : '') + f.getDate() + ' de ' +
+          MESES_LARGOS[f.getMonth()] + '</strong>' +
+          (d.mm > 0 ? d.mm + ' mm de lluvia' : 'Sin lluvia') +
+          (d.prob !== null && !d.pasado ? ' · ' + d.prob + '% de probabilidad' : '') +
+          (d.tMax !== null ? '<br>' + d.tMin + '° a ' + d.tMax + '°' : '');
+        var r = (e.currentTarget || col).getBoundingClientRect();
+        globoLluvia.dataset.visible = 'si';
+        var gr = globoLluvia.getBoundingClientRect();
+        var x = Math.min(Math.max(8, r.left + r.width / 2 - gr.width / 2), window.innerWidth - gr.width - 8);
+        globoLluvia.style.left = x + 'px';
+        globoLluvia.style.top = Math.max(8, r.top - gr.height - 8) + 'px';
+        col.dataset.activa = 'si';
+      }
+      function ocultar() {
+        globoLluvia.dataset.visible = 'no';
+        delete col.dataset.activa;
+      }
+      col.addEventListener('mouseenter', mostrar);
+      col.addEventListener('mouseleave', ocultar);
+      col.addEventListener('touchstart', mostrar, { passive: true });
+      col.addEventListener('touchend', ocultar);
+    });
+  }
+
+  /* --- el calendario del cultivo --------------------------------------- */
+  function pintarCalendario(cultivo) {
+    var caja = $('#calendario-cultivo');
+    if (!caja) { return; }
+    var mesAhora = Number(new Date().toLocaleDateString('en-CA', { timeZone:'America/Mexico_City' }).slice(5, 7));
+
+    var h = '';
+    for (var m = 1; m <= 12; m++) {
+      var fase = '', eti = '';
+      if (cultivo.siembra.indexOf(m) >= 0) { fase = 'siembra'; eti = 'siembra'; }
+      else if (cultivo.cosecha.indexOf(m) >= 0) { fase = 'cosecha'; eti = 'cosecha'; }
+      else if (entreSiembraYCosecha(cultivo, m)) { fase = 'crece'; eti = 'crece'; }
+      h += '<div class="calendario__mes" data-fase="' + fase + '"' +
+           (m === mesAhora ? ' data-ahora="si"' : '') + '>' +
+           MESES_CORTOS[m - 1] +
+           (eti ? '<span class="calendario__eti">' + eti + '</span>' : '') +
+           '</div>';
+    }
+    caja.innerHTML = h;
+
+    $('#calendario-titulo').textContent = 'El año del ' + cultivo.nombre.toLowerCase();
+    $('#calendario-sub').textContent = cultivo.perenne
+      ? 'Es planta de varios años: se planta una vez y da por temporadas.'
+      : 'Verde es sembrar, azul es que va creciendo, ámbar es levantar la cosecha.';
+
+    var ficha = $('#ficha-cultivo');
+    ficha.innerHTML =
+      dato('Se siembra', capitalizar(listaMeses(cultivo.siembra))) +
+      dato('Se cosecha', capitalizar(listaMeses(cultivo.cosecha))) +
+      dato('Tarda', cultivo.dias + (cultivo.perenne ? '' : ' días')) +
+      dato('Agua del ciclo', cultivo.aguaCiclo) +
+      dato(cultivo.riego ? 'Cómo se riega' : 'Lluvia antes de sembrar',
+           cultivo.riego ? 'Necesita riego' : 'Al menos ' + cultivo.lluviaMin + ' mm en cinco días') +
+      dato('Nace a partir de', cultivo.tempSuelo + '°C de tierra') +
+      '<div style="grid-column:1/-1"><dt>Lo que hay que saber</dt><dd>' + esc(cultivo.nota) + '</dd></div>';
+  }
+
+  function dato(t, v) {
+    return '<div><dt>' + esc(t) + '</dt><dd>' + esc(String(v)) + '</dd></div>';
+  }
+  function capitalizar(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function entreSiembraYCosecha(cultivo, m) {
+    if (cultivo.perenne) { return false; }
+    var ini = cultivo.siembra[cultivo.siembra.length - 1];
+    var fin = cultivo.cosecha[0];
+    if (ini < fin) { return m > ini && m < fin; }
+    return m > ini || m < fin;   /* el ciclo cruza el año */
+  }
+
+  /* --- los números de la derecha --------------------------------------- */
+  function pintarCifrasSuelo(clima, cultivo) {
+    var hum = clima ? clima.humedadSuelo : null;
+    var medidor = $('#medidor-humedad');
+
+    if (hum === null || hum === undefined) {
+      $('#cifra-humedad').textContent = '—';
+      $('#pie-humedad').textContent = 'No llegó el dato de la tierra.';
+      $('#medidor-humedad-relleno').style.width = '0%';
+    } else {
+      /* la escala llega a 0.45: arriba de eso el suelo ya está encharcado */
+      var pct = Math.min(100, Math.round((hum / 0.45) * 100));
+      $('#cifra-humedad').textContent = etiquetaHumedad(hum);
+      $('#medidor-humedad-relleno').style.width = pct + '%';
+      medidor.dataset.seco = hum < 0.18 ? 'si' : 'no';
+      medidor.setAttribute('aria-label',
+        'Humedad de la tierra: ' + palabraHumedad(hum) + ', ' + Math.round(hum * 100) +
+        ' por ciento de volumen. El mínimo para sembrar es 18 por ciento.');
+      $('#medidor-humedad-marca').style.left = Math.round((0.18 / 0.45) * 100) + '%';
+      $('#pie-humedad').textContent = (hum < 0.18
+        ? 'Le falta para el mínimo de siembra, que es la rayita. '
+        : 'Ya pasó el mínimo de siembra, que es la rayita. ') +
+        'Va en ' + Math.round(hum * 100) + '% de agua en la tierra.';
+    }
+
+    if (!clima) {
+      $('#cifra-acumulado').textContent = '—';
+      $('#cifra-temp-suelo').textContent = '—';
+      $('#pie-acumulado').textContent = '';
+      $('#pie-temp-suelo').textContent = '';
+      return;
+    }
+
+    var mesHoy = Number(new Date().toLocaleDateString('en-CA', { timeZone:'America/Mexico_City' }).slice(5, 7));
+    var esTemporada = cultivo.siembra.indexOf(mesHoy) >= 0;
+    $('#cifra-acumulado').textContent = clima.acumulado7 + ' mm';
+    /* Fuera de temporada no se dice "alcanza para sembrar": el agua estará
+       bien, pero la respuesta de arriba es que no se siembra, y las dos
+       frases juntas se contradicen. */
+    $('#pie-acumulado').textContent = cultivo.riego
+      ? 'Este cultivo va con riego, no con la lluvia.'
+      : (!esTemporada
+          ? 'Fuera de la temporada de siembra.'
+          : (clima.acumulado5 >= cultivo.lluviaMin
+              ? 'Alcanza para sembrar ' + cultivo.nombre.toLowerCase() + '.'
+              : 'Para ' + cultivo.nombre.toLowerCase() + ' se esperan ' + cultivo.lluviaMin + ' mm en cinco días.'));
+
+    if (clima.tempSuelo === null) {
+      $('#cifra-temp-suelo').textContent = '—';
+      $('#pie-temp-suelo').textContent = '';
+    } else {
+      $('#cifra-temp-suelo').textContent = Math.round(clima.tempSuelo) + '°';
+      $('#pie-temp-suelo').textContent = clima.tempSuelo >= cultivo.tempSuelo
+        ? 'Suficiente para que nazca.'
+        : 'Fría: esta semilla pide ' + cultivo.tempSuelo + '°.';
+    }
+  }
+
+  /* --- refrescar todo --------------------------------------------------- */
+  var pidiendoClima = false;
+  function refrescarParcela(traer) {
+    pintarCalendario(cultivoActual);
+    $('#lluvia-sub').textContent = 'Milímetros por día en ' + lugarActual.nombre;
+
+    if (!traer && climaActual) {
+      pintarVeredicto(evaluarSiembra(cultivoActual, climaActual));
+      pintarCifrasSuelo(climaActual, cultivoActual);
+      return Promise.resolve();
+    }
+
+    if (pidiendoClima) { return Promise.resolve(); }
+    pidiendoClima = true;
+    pintarVeredicto({ estado:'cargando',
+      titulo:'Viendo el clima de ' + lugarActual.nombre + '…',
+      razon:'Un momento, estoy trayendo la lluvia de los últimos días.', pruebas: [] });
+
+    return traerClima(lugarActual).then(function (c) {
+      climaActual = c;
+      pintarVeredicto(evaluarSiembra(cultivoActual, c));
+      pintarGraficaLluvia(c);
+      pintarCifrasSuelo(c, cultivoActual);
+    }).catch(function () {
+      climaActual = null;
+      pintarVeredicto(evaluarSiembra(cultivoActual, null));
+      pintarCifrasSuelo(null, cultivoActual);
+      $('#grafica-lluvia').innerHTML =
+        '<p class="text-tenue text-[0.9rem] py-8 text-center">' +
+        'Sin conexión no puedo traer la lluvia. El calendario de abajo sí funciona.</p>';
+    }).then(function () { pidiendoClima = false; });
+  }
+
+  /* La fila de cultivos del chat. Tocar uno vale por escribir la pregunta
+     entera: se fija como cultivo de la parcela (para que la sección de
+     arriba quede igual) y se manda ya con el clima real dentro. */
+  function llenarTiraCultivos() {
+    var lista = $('#lista-cultivos-chat');
+    if (!lista) { return; }
+    lista.innerHTML = '';
+    CULTIVOS.forEach(function (c) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip-cultivo';
+      b.textContent = c.nombre;
+      b.addEventListener('click', function () {
+        cultivoActual = c;
+        var sel = $('#sel-cultivo');
+        if (sel) { sel.value = c.id; }
+        guardarParcela();
+        refrescarParcela(!climaActual);
+        preguntar('¿Ya puedo sembrar ' + c.nombre.toLowerCase() + '?');
+      });
+      lista.appendChild(b);
+    });
+  }
+
+  function arrancarParcela() {
+    if (!$('#sel-lugar')) { return; }
+    llenarSelectores();
+
+    $('#sel-lugar').addEventListener('change', function () {
+      lugarActual = buscarLugar(this.value) || LUGARES[0];
+      guardarParcela();
+      refrescarParcela(true);
+    });
+    $('#sel-cultivo').addEventListener('change', function () {
+      cultivoActual = buscarCultivo(this.value) || CULTIVOS[0];
+      guardarParcela();
+      refrescarParcela(false);
+    });
+
+    /* "Usar mi ubicación": se queda con el municipio de la lista que esté
+       más cerca, en vez de mandar las coordenadas exactas de la persona.
+       Para el clima da igual y así nadie tiene que confiarnos dónde vive. */
+    $('#btn-mi-ubicacion').addEventListener('click', function () {
+      var b = this;
+      if (!navigator.geolocation) {
+        avisar('Tu navegador no deja compartir la ubicación. Elige tu municipio de la lista.');
+        return;
+      }
+      b.disabled = true;
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        var mejor = null, menor = Infinity;
+        LUGARES.forEach(function (l) {
+          var dx = l.lat - pos.coords.latitude, dy = l.lon - pos.coords.longitude;
+          var d = dx * dx + dy * dy;
+          if (d < menor) { menor = d; mejor = l; }
+        });
+        b.disabled = false;
+        if (!mejor) { return; }
+        lugarActual = mejor;
+        $('#sel-lugar').value = mejor.id;
+        guardarParcela();
+        avisar('Te puse en ' + mejor.nombre + ', que es lo más cerca que tengo.');
+        refrescarParcela(true);
+      }, function () {
+        b.disabled = false;
+        avisar('No me dejaste ver tu ubicación. Puedes elegir tu municipio de la lista.');
+      }, { timeout: 10000, maximumAge: 600000 });
+    });
+
+    llenarTiraCultivos();
+
+    /* Llevar el dato al asistente. La pregunta se arma con los números que
+       la persona está viendo, no con una frase genérica: así la IA contesta
+       sobre ESTA parcela y no sobre el campo en abstracto. */
+    $('#btn-preguntar-parcela').addEventListener('click', function () {
+      irA('#demo');
+      var p = 'Estoy en ' + lugarActual.nombre + ', Oaxaca, y quiero sembrar ' +
+              cultivoActual.nombre.toLowerCase() + '. ';
+      if (climaActual) {
+        p += 'En los últimos 7 días llovieron ' + climaActual.acumulado7 + ' mm (' +
+             climaActual.acumulado5 + ' mm en los últimos 5), para esta semana se esperan ' +
+             climaActual.vienen7 + ' mm';
+        if (climaActual.humedadSuelo !== null) {
+          p += ' y la tierra está ' + palabraHumedad(climaActual.humedadSuelo);
+        }
+        p += '. ¿Qué me recomiendas hacer y qué debo cuidar?';
+      } else {
+        p += '¿Qué debo revisar antes de sembrar y cómo le hago?';
+      }
+      setTimeout(function () { preguntar(p); }, 320);
+    });
+
+    /* La sección no pide el clima hasta que alguien la va a ver: quien
+       entra solo al chat no gasta datos de su teléfono en esto. */
+    var seccion = document.getElementById('parcela');
+    if (seccion && 'IntersectionObserver' in window) {
+      var vigia = new IntersectionObserver(function (entradas) {
+        if (entradas[0].isIntersecting) {
+          vigia.disconnect();
+          refrescarParcela(true);
+        }
+      }, { rootMargin: '200px' });
+      vigia.observe(seccion);
+      pintarCalendario(cultivoActual);
+    } else {
+      refrescarParcela(true);
+    }
+  }
+
+
+  /* =========================================================
      12. ARRANQUE
      ========================================================= */
   /* --- modo día / noche --- */
@@ -6512,6 +8242,7 @@
   pintarSesion();
   pintarPaso();
   saludoInicial();
+  arrancarParcela();
 
   /* La portada se muestra siempre primero. arrancarAuth() decide si la
      quita: o porque venimos del enlace del correo, o porque los tokens
@@ -6528,6 +8259,259 @@
       arrancarAuth();
     }
   });
+
+  /* =========================================================
+     12b. LA LLUVIA SOBRE LA MILPA
+     ---------------------------------------------------------
+     Dibujada, no filmada. Un clip de lluvia decente pesa varios megas y en
+     media Oaxaca no terminaría de cargar; esto son unos kilobytes de código
+     que el propio navegador pinta, y se ve igual de vivo.
+
+     Todo lo mueve una sola variable: cuánto se ha bajado por la sección.
+     A 0 la tierra está seca y sin nada sembrado; a 1 llueve fuerte y la
+     milpa ya dio mazorca.
+
+     Se detiene sola cuando la sección sale de la pantalla, para no gastar
+     batería animando algo que nadie está viendo. Y si la persona pidió
+     menos movimiento en su sistema, no se anima nada: se pinta la milpa
+     crecida de una vez y ya.
+     ========================================================= */
+  (function escenaMilpa() {
+    var seccion = document.getElementById('milpa');
+    var lienzo = document.getElementById('lienzo-lluvia');
+    var grupoMatas = document.getElementById('matas-milpa');
+    if (!seccion || !lienzo || !grupoMatas) { return; }
+
+    /* --- las matas de maíz, sembradas en tresbolillo para que no se vean
+       formadas como soldados --- */
+    var MATAS = 26;
+    var matas = [];
+    for (var i = 0; i < MATAS; i++) {
+      var fila = i % 3;
+      var x = 24 + (i * 47) % 1160 + (fila * 17);
+      var base = 338 + fila * 21;
+      var escala = 0.72 + fila * 0.19;
+      matas.push({ x: x, base: base, escala: escala, retraso: (i % 7) / 7 });
+    }
+
+    grupoMatas.innerHTML = matas.map(function (m, i) {
+      var alto = 118;
+      return '<g class="mata" data-i="' + i + '" transform="translate(' + m.x + ',' + m.base + ') scale(' + m.escala.toFixed(2) + ')">' +
+        '<path d="M0 0 L0 -' + alto + '" stroke="#2f5416" stroke-width="4.6" stroke-linecap="round" fill="none"/>' +
+        '<path d="M0 -28 Q -32 -42 -50 -26" stroke="#3d6b1d" stroke-width="6.5" fill="none" stroke-linecap="round"/>' +
+        '<path d="M0 -50 Q 33 -64 52 -44" stroke="#44761f" stroke-width="6.5" fill="none" stroke-linecap="round"/>' +
+        '<path d="M0 -72 Q -30 -86 -47 -68" stroke="#3d6b1d" stroke-width="5.6" fill="none" stroke-linecap="round"/>' +
+        '<path d="M0 -94 Q 28 -106 44 -90" stroke="#44761f" stroke-width="5.2" fill="none" stroke-linecap="round"/>' +
+        /* la mazorca y el penacho solo se ven al final del recorrido */
+        '<g class="mazorca" opacity="0">' +
+        '<ellipse cx="11" cy="-62" rx="8" ry="17" fill="#c9962b"/>' +
+        '<path d="M11 -79 q5 -10 11 -14" stroke="#8a6a1f" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+        '</g>' +
+        '<g class="espiga" opacity="0">' +
+        '<path d="M0 -' + alto + ' q-9 -16 -14 -24M0 -' + alto + ' q9 -16 15 -23M0 -' + alto + ' l0 -26"' +
+        ' stroke="#9d8a4e" stroke-width="2.8" fill="none" stroke-linecap="round"/>' +
+        '</g>' +
+        '</g>';
+    }).join('');
+
+    var nodosMata = $$('.mata', grupoMatas);
+    var mazorcas = $$('.mazorca', grupoMatas);
+    var espigas = $$('.espiga', grupoMatas);
+
+    function pintarCrecimiento(p) {
+      for (var i = 0; i < nodosMata.length; i++) {
+        var m = matas[i];
+        /* cada mata arranca un poco después que la anterior: el campo no
+           brota todo al mismo segundo */
+        var suyo = Math.max(0, Math.min(1, (p - m.retraso * 0.35) / 0.62));
+        var alto = 0.06 + suyo * 0.94;
+        nodosMata[i].setAttribute('transform',
+          'translate(' + m.x + ',' + m.base + ') scale(' + (m.escala * 1).toFixed(3) + ',' +
+          (m.escala * alto).toFixed(3) + ')');
+        var grano = Math.max(0, Math.min(1, (suyo - 0.72) / 0.28));
+        mazorcas[i].setAttribute('opacity', grano.toFixed(2));
+        espigas[i].setAttribute('opacity', grano.toFixed(2));
+      }
+    }
+
+    /* --- la lluvia --- */
+    var ctx = lienzo.getContext ? lienzo.getContext('2d') : null;
+    if (!ctx) { pintarCrecimiento(1); return; }
+
+    var gotas = [], ancho = 0, altoL = 0, dpr = 1;
+    var progreso = 0, corriendo = false, marco = null, aLaVista = false;
+
+    /* El color del agua vive en el CSS (--lluvia), como el resto de la
+       paleta, y no escrito aquí dentro: así el modo noche lo aclara solo.
+       Se lee una vez y cada vez que cambian de modo, nunca en cada
+       fotograma — getComputedStyle 60 veces por segundo se nota. */
+    var colorLluvia = 'rgb(74,116,140)';
+    function leerColorLluvia() {
+      var v = getComputedStyle(document.documentElement).getPropertyValue('--lluvia').trim();
+      if (v) { colorLluvia = 'rgb(' + v + ')'; }
+    }
+    leerColorLluvia();
+    new MutationObserver(leerColorLluvia)
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-tema'] });
+
+    function medir() {
+      var r = seccion.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      ancho = Math.max(1, Math.round(r.width));
+      altoL = Math.max(1, Math.round(r.height));
+      lienzo.width = Math.round(ancho * dpr);
+      lienzo.height = Math.round(altoL * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      /* la cantidad de gotas va con el tamaño: en un celular no hacen falta
+         las mismas que en un monitor grande */
+      var cuantas = Math.round(Math.min(220, Math.max(60, ancho / 6)));
+      gotas = [];
+      for (var i = 0; i < cuantas; i++) { gotas.push(nuevaGota(true)); }
+    }
+
+    function nuevaGota(enCualquierParte) {
+      return {
+        x: Math.random() * (ancho + 120) - 60,
+        y: enCualquierParte ? Math.random() * altoL : -20 - Math.random() * 80,
+        largo: 11 + Math.random() * 19,
+        vel: 7 + Math.random() * 9,
+        grosor: Math.random() < 0.3 ? 1.8 : 1.2,
+        alfa: 0.3 + Math.random() * 0.5
+      };
+    }
+
+    var salpicaduras = [];
+
+    function cuadro() {
+      marco = null;
+      ctx.clearRect(0, 0, ancho, altoL);
+
+      /* la lluvia arranca a un tercio del recorrido y arrecia desde ahí */
+      var fuerza = Math.max(0, Math.min(1, (progreso - 0.18) / 0.55));
+      var activas = Math.round(gotas.length * fuerza);
+      var sesgo = 1.6 + fuerza * 1.2;   /* la inclinación del aguacero */
+      var suelo = altoL * 0.78;
+
+      ctx.strokeStyle = colorLluvia;
+      ctx.lineCap = 'round';
+
+      for (var i = 0; i < activas; i++) {
+        var g = gotas[i];
+        ctx.globalAlpha = g.alfa * (0.55 + fuerza * 0.45);
+        ctx.lineWidth = g.grosor;
+        ctx.beginPath();
+        ctx.moveTo(g.x, g.y);
+        ctx.lineTo(g.x - sesgo * (g.largo / 5), g.y + g.largo);
+        ctx.stroke();
+
+        g.y += g.vel * (0.55 + fuerza * 0.75);
+        g.x -= sesgo * 0.55;
+
+        if (g.y > suelo) {
+          if (salpicaduras.length < 40 && Math.random() < 0.32) {
+            salpicaduras.push({ x: g.x, y: suelo + Math.random() * (altoL - suelo) * 0.5, r: 0, vida: 1 });
+          }
+          gotas[i] = nuevaGota(false);
+        }
+      }
+
+      /* el aro que deja la gota al pegar en la tierra */
+      ctx.strokeStyle = 'rgba(168,205,220,.55)';
+      ctx.lineWidth = 1;
+      for (var s = salpicaduras.length - 1; s >= 0; s--) {
+        var p = salpicaduras[s];
+        p.r += 0.75; p.vida -= 0.045;
+        if (p.vida <= 0) { salpicaduras.splice(s, 1); continue; }
+        ctx.globalAlpha = p.vida * 0.5 * fuerza;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, p.r * 2.1, p.r * 0.6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      if (corriendo) { marco = requestAnimationFrame(cuadro); }
+    }
+
+    function medirProgreso() {
+      var r = seccion.getBoundingClientRect();
+      var alto = window.innerHeight || 800;
+      /* 0 cuando la sección apenas asoma por abajo, 1 cuando ya casi se va
+         por arriba */
+      var p = (alto - r.top) / (alto + r.height);
+      progreso = Math.max(0, Math.min(1, p));
+      pintarCrecimiento(progreso);
+    }
+
+    function arrancar() {
+      if (corriendo || !animar) { return; }
+      corriendo = true;
+      if (marco === null) { marco = requestAnimationFrame(cuadro); }
+    }
+    function parar() {
+      corriendo = false;
+      if (marco !== null) { cancelAnimationFrame(marco); marco = null; }
+    }
+
+    medir();
+
+    if (!animar) {
+      /* sin movimiento: la milpa ya crecida y ni una gota */
+      pintarCrecimiento(1);
+      return;
+    }
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (e) {
+        aLaVista = e[0].isIntersecting;
+        if (aLaVista) { medirProgreso(); arrancar(); } else { parar(); }
+      }, { rootMargin: '80px' }).observe(seccion);
+    } else {
+      aLaVista = true; arrancar();
+    }
+
+    var esperando = false;
+    window.addEventListener('scroll', function () {
+      if (!aLaVista || esperando) { return; }
+      esperando = true;
+      requestAnimationFrame(function () { medirProgreso(); esperando = false; });
+    }, { passive: true });
+
+    var relojMedida = null;
+    window.addEventListener('resize', function () {
+      clearTimeout(relojMedida);
+      relojMedida = setTimeout(function () { medir(); medirProgreso(); }, 180);
+    });
+
+    medirProgreso();
+  })();
+
+
+  /* =========================================================
+     12c. LOS PASOS DEL MEZCAL SE VAN ENCENDIENDO
+     ---------------------------------------------------------
+     El paso que queda a la altura de los ojos se pone en ámbar y los demás
+     esperan en gris. Es solo un realce: apagados los seis se leen igual, así
+     que quien traiga el JS bloqueado o haya pedido menos movimiento no se
+     pierde absolutamente nada.
+     ========================================================= */
+  (function pasosMezcal() {
+    var lista = document.getElementById('pasos-mezcal');
+    if (!lista || !animar) { return; }
+    var pasos = $$('.paso-mezcal', lista);
+    if (!pasos.length || !('IntersectionObserver' in window)) { return; }
+
+    /* La franja de disparo es la banda central de la pantalla: un paso se
+       enciende cuando llega al medio, no cuando asoma por la orilla. */
+    var vigia = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (e) {
+        if (e.isIntersecting) { e.target.dataset.vivo = 'si'; }
+        else { delete e.target.dataset.vivo; }
+      });
+    }, { rootMargin: '-38% 0px -38% 0px' });
+
+    pasos.forEach(function (p) { vigia.observe(p); });
+  })();
+
 
   /* =========================================================
      13. PROFUNDIDAD 3D E INTERACTIVIDAD
