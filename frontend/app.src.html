@@ -1639,41 +1639,6 @@
   .globo-texto{ font-size:.88rem; line-height:1.6; color:rgb(var(--texto)); }
 
   /* ---------- calculadora de precios ---------- */
-  .calc-precio{
-    margin-top:1rem; padding:1.1rem 1.2rem;
-    background:rgb(var(--barroalto)); border:1px solid rgb(var(--borde));
-    border-radius:var(--radio-card);
-  }
-  .calc-ayuda{ font-size:.82rem; color:rgb(var(--tenue)); margin-bottom:1rem; line-height:1.5; }
-  .calc-fila{
-    display:flex; justify-content:space-between; align-items:baseline; gap:1rem;
-    font-size:.86rem; color:rgb(var(--texto)); margin:.85rem 0 .3rem;
-  }
-  .calc-val{ color:rgb(var(--cian)); font-weight:700; white-space:nowrap; }
-  .calc-barra{
-    -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:99px;
-    background:rgb(var(--barro)); border:1px solid rgb(var(--borde)); outline:none; cursor:pointer;
-  }
-  .calc-barra::-webkit-slider-thumb{
-    -webkit-appearance:none; appearance:none; width:22px; height:22px; border-radius:50%;
-    background:rgb(var(--cian)); border:2px solid rgb(var(--barro));
-    box-shadow:var(--sombra-suave); cursor:pointer;
-  }
-  .calc-barra::-moz-range-thumb{
-    width:20px; height:20px; border-radius:50%;
-    background:rgb(var(--cian)); border:2px solid rgb(var(--barro)); cursor:pointer;
-  }
-  .calc-salida{
-    display:flex; flex-wrap:wrap; gap:1.5rem; align-items:flex-end;
-    margin-top:1.2rem; padding-top:1rem; border-top:1px solid rgb(var(--borde));
-  }
-  .calc-cifra{
-    font-family:'Fraunces',Georgia,serif; font-size:2.2rem; line-height:1;
-    color:rgb(var(--cian)); font-weight:600;
-  }
-  .calc-cifra--chica{ font-size:1.4rem; color:rgb(var(--tenue)); }
-  .calc-etiqueta{ font-size:.75rem; color:rgb(var(--tenue)); margin-top:.15rem; }
-  .calc-nota{ font-size:.78rem; color:rgb(var(--tenue)); line-height:1.55; margin-top:.9rem; }
 
   /* ---------- medallas ---------- */
   .panel-medallas{
@@ -6529,7 +6494,7 @@
     }
     /* respuesta sin tarjeta: se toma su texto quitando los botones */
     var copia = caja.cloneNode(true);
-    Array.prototype.forEach.call(copia.querySelectorAll('button, .chip, .calc-precio'), function (n) {
+    Array.prototype.forEach.call(copia.querySelectorAll('button, .chip'), function (n) {
       n.parentNode.removeChild(n);
     });
     return (copia.innerText || copia.textContent || '').trim();
@@ -6760,8 +6725,6 @@
       cuerpo.appendChild(nota);
     }
 
-    /* si habló de precios, se le pone abajo la calculadora */
-    if (pareceDePrecios(res)) { cuerpo.appendChild(calculadoraPrecios()); }
 
     /* Guardar y compartir en TODA respuesta, no solo en las tarjetas de
        publicación: una guía de trámites o una lista de precios también se
@@ -7729,70 +7692,6 @@
      alguien pregunta por precios, la calculadora le sirve aunque la respuesta
      no repita esas palabras. */
   var ultimaPregunta = '';
-  function pareceDePrecios(res) {
-    var t = ((res && res.texto) || '') + ' ' +
-            ((res && res.publicacion && res.publicacion.cuerpo) || '') + ' ' +
-            ((res && res.pasos && res.pasos.titulo) || '') + ' ' +
-            ultimaPregunta;
-    return /precio|precios|cobrar|cuánto vale|cuanto vale|cuánto cobro|costo|costos|ganancia|margen|barato|caro/i.test(t);
-  }
-
-  function calculadoraPrecios() {
-    var caja = document.createElement('div');
-    caja.className = 'calc-precio';
-    caja.innerHTML =
-      '<p class="rotulo mb-1" style="color:rgb(var(--cian))">Saca tu precio</p>' +
-      '<p class="calc-ayuda">Mueve las tres barras con tus números reales. El precio se ajusta solo.</p>' +
-
-      '<label class="calc-fila"><span>Lo que te costó el material</span>' +
-      '<b class="calc-val" data-eco="costo">$150</b></label>' +
-      '<input type="range" class="calc-barra" data-campo="costo" min="0" max="3000" step="25" value="150">' +
-
-      '<label class="calc-fila"><span>Horas que le metiste</span>' +
-      '<b class="calc-val" data-eco="horas">6 h</b></label>' +
-      '<input type="range" class="calc-barra" data-campo="horas" min="1" max="80" step="1" value="6">' +
-
-      '<label class="calc-fila"><span>Cuánto quieres ganar encima</span>' +
-      '<b class="calc-val" data-eco="margen">40%</b></label>' +
-      '<input type="range" class="calc-barra" data-campo="margen" min="0" max="200" step="5" value="40">' +
-
-      '<div class="calc-salida">' +
-        '<div><p class="calc-cifra" data-eco="final">$0</p>' +
-        '<p class="calc-etiqueta">precio sugerido</p></div>' +
-        '<div><p class="calc-cifra calc-cifra--chica" data-eco="base">$0</p>' +
-        '<p class="calc-etiqueta">lo que te cuesta hacerla</p></div>' +
-      '</div>' +
-      '<p class="calc-nota" data-eco="nota"></p>';
-
-    var VALOR_HORA = 150;   /* pesos por hora de trabajo */
-    var EXTRAS = 0.18;      /* transporte, luz, empaque, merma */
-
-    function eco(nombre) { return caja.querySelector('[data-eco="' + nombre + '"]'); }
-    function valor(campo) { return Number(caja.querySelector('[data-campo="' + campo + '"]').value); }
-
-    function recalcular() {
-      var costo = valor('costo'), horas = valor('horas'), margen = valor('margen');
-      var trabajo = horas * VALOR_HORA;
-      var base = Math.round((costo + trabajo) * (1 + EXTRAS));
-      var final = Math.round(base * (1 + margen / 100));
-
-      eco('costo').textContent = '$' + costo;
-      eco('horas').textContent = horas + ' h';
-      eco('margen').textContent = margen + '%';
-      eco('base').textContent = '$' + base;
-      eco('final').textContent = '$' + final;
-      eco('nota').textContent =
-        'Tu tiempo va contado a ' + VALOR_HORA + ' pesos la hora (' + horas + ' h = $' + trabajo +
-        ') y se suma un ' + Math.round(EXTRAS * 100) + '% por lo que no se ve: transporte, luz, ' +
-        'empaque y lo que se echa a perder. De ahí sale tu ganancia de ' + margen + '%.';
-    }
-
-    Array.prototype.forEach.call(caja.querySelectorAll('.calc-barra'), function (b) {
-      b.addEventListener('input', recalcular);
-    });
-    recalcular();
-    return caja;
-  }
 
 
   /* ---------------------------------------------------------
