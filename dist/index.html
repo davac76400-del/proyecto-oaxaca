@@ -3038,6 +3038,10 @@
                   aria-label="Mandarle una foto al asistente" title="Mandar una foto">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.2"/><path d="M8 5l1.2-2h5.6L16 5"/></svg>
           </button>
+          <button type="button" id="btn-ubicacion" class="boton-micro"
+                  aria-label="Compartir tu ubicación actual" title="Compartir ubicación">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </button>
           <button type="button" id="btn-microfono" class="boton-micro" hidden
                   aria-label="Dictar tu mensaje con la voz" title="Dictar con la voz">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></svg>
@@ -8013,6 +8017,20 @@
 
       menuFoto.querySelector('.modal__fondo').addEventListener('click', function () {
         menuFoto.remove();
+      });
+    });
+  }
+
+  /* conectar botón de ubicación */
+  var botonUbicacion = $('#btn-ubicacion');
+  if (botonUbicacion) {
+    botonUbicacion.addEventListener('click', function () {
+      obtenerUbicacion(function(ubicacion) {
+        if (ubicacion) {
+          var mensaje = '📍 Mi ubicación: ' + ubicacion.lat.toFixed(5) + ', ' + ubicacion.lon.toFixed(5) + ' (precisión: ' + Math.round(ubicacion.precision) + 'm)';
+          $('#entrada-chat').value = mensaje;
+          $('#entrada-chat').focus();
+        }
       });
     });
   }
