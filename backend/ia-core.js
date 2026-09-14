@@ -25,7 +25,7 @@ const CONFIG = {
   /* Para fotos hace falta un modelo que sepa VER. El de texto no puede.
      Este también es gratuito (termina en :free). */
   LLAMA_MODELO_FOTO: process.env.OPENROUTER_MODEL_VISION || 'meta-llama/llama-3.2-11b-vision-instruct:free',
-  GEMINI_MODELO: process.env.GEMINI_MODEL    || 'gemini-2.0-flash',
+  GEMINI_MODELO: process.env.GEMINI_MODEL    || 'gemini-3.6-flash',
   GEMINI_BASE:  process.env.GEMINI_URL_BASE  || 'https://generativelanguage.googleapis.com/v1beta/models/',
   LIMITE_MS:    Number(process.env.IA_TIMEOUT_MS || 20000),
   MAX_TOKENS:   900,
