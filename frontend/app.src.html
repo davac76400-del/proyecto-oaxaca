@@ -3026,14 +3026,19 @@
                 <span class="hidden md:inline-block w-2.5 h-2.5 rounded-full bg-verde/70 shrink-0"></span>
                 <span class="ml-2 text-[0.85rem] text-tenue truncate font-fraunces font-semibold text-texto" id="titulo-conv">Tu ayudante de confianza</span>
               </div>
+              <button type="button" id="btn-cambiar-ubicacion" class="rotulo !text-[0.6rem] border border-borde px-2 py-1 rounded-[2px] shrink-0 cursor-pointer hover:border-cian transition-colors" title="Toca para cambiar tu estado o municipio">📍 <span id="texto-ubicacion-actual">Sin ubicación</span></button>
               <button type="button" id="estado-conexion" class="rotulo !text-[0.6rem] border border-borde px-2 py-1 rounded-[2px] shrink-0 cursor-pointer hover:border-cian transition-colors" title="Toca para revisar si el asistente está conectado">Modo local</button>
             </div>
 
-            <!-- Se pregunta ubicación y giro DESPUÉS de entrar -->
+            <!-- Se pregunta ubicación y giro DESPUÉS de entrar. El botón de
+                 arriba (btn-cambiar-ubicacion) vuelve a abrir esta misma tira
+                 en cualquier momento, no solo la primera vez: antes, una vez
+                 elegido el estado, no había manera de cambiarlo desde el chat. -->
             <div id="tira-ubicacion" class="px-5 sm:px-8 py-3.5 border-b border-borde flex flex-wrap items-center gap-3" hidden>
               <label for="estado-rapido" class="text-[0.9rem] text-texto">¿En qué estado estás?</label>
               <select id="estado-rapido" class="campo flex-1" style="padding-top:.5rem; padding-bottom:.5rem">
                 <option value="">Elige tu estado…</option>
+                <option value="__ninguno__">Ninguno / prefiero no decir</option>
               </select>
               <button type="button" id="cerrar-tira-ubicacion" class="btn-suave shrink-0" style="margin:0">Ahora no</button>
             </div>
@@ -6084,6 +6089,23 @@ enfocar($('#correo-recuperar'));
     var faltaGiro = sesion && !sesion.giro;
     if (tUbicacion) { tUbicacion.hidden = !faltaEstado; }
     tGiro.hidden = !(faltaGiro && !faltaEstado);
+    pintarBotonUbicacion();
+  }
+
+  /* El botón "📍" de la barra del chat siempre muestra dónde está la
+     persona ahora mismo (o que no dijo), y sirve para volver a abrir la
+     tira de estado/municipio en cualquier momento — no solo la primera
+     vez que entra. */
+  function pintarBotonUbicacion() {
+    var t = document.getElementById('texto-ubicacion-actual');
+    if (!t) { return; }
+    if (sesion && sesion.municipio) {
+      t.textContent = sesion.municipio + (sesion.estado ? ', ' + sesion.estado : '');
+    } else if (sesion && sesion.estado) {
+      t.textContent = sesion.estado;
+    } else {
+      t.textContent = 'Sin ubicación';
+    }
   }
 
   (function conectarTirasUbicacionGiro() {
@@ -6094,6 +6116,7 @@ enfocar($('#correo-recuperar'));
     var tiraUbicacion = document.getElementById('tira-ubicacion');
     var tiraMunicipio = document.getElementById('tira-municipio');
     var tiraGiro = document.getElementById('tira-giro');
+    var btnCambiarUbicacion = document.getElementById('btn-cambiar-ubicacion');
     var municipiosEstado = [];
 
     if (!selEstado || !selGiro) { return; }
@@ -6118,7 +6141,10 @@ enfocar($('#correo-recuperar'));
       if (sesion) { sesion.municipio = nombre; sesion.estado = selEstado.value; guardarPerfilLocal(); }
       listaResultados.hidden = true;
       tiraMunicipio.hidden = true;
-      tiraGiro.hidden = false;
+      /* Si ya tenía giro elegido, no hace falta volver a preguntarlo:
+         basta con cerrar la tira y quedarse en el chat. */
+      tiraGiro.hidden = !(sesion && !sesion.giro);
+      pintarBotonUbicacion();
       avisar('Municipio: ' + nombre);
     }
 
@@ -6149,6 +6175,15 @@ enfocar($('#correo-recuperar'));
     /* Cambio de estado */
     selEstado.addEventListener('change', function () {
       if (!selEstado.value) { return; }
+      if (selEstado.value === '__ninguno__') {
+        if (sesion) { sesion.estado = ''; sesion.municipio = ''; guardarPerfilLocal(); }
+        selEstado.value = '';
+        tiraUbicacion.hidden = true;
+        tiraMunicipio.hidden = true;
+        pintarBotonUbicacion();
+        avisar('Sin ubicación: no voy a poder darte clima ni cultivos de tu zona hasta que la elijas.');
+        return;
+      }
       municipiosEstado = ESTADOS_MUNICIPIOS[selEstado.value] || [];
       inputBuscar.value = '';
       tiraUbicacion.hidden = true;
@@ -6173,6 +6208,18 @@ enfocar(inputBuscar);
       avisar('Perfecto. De aquí en adelante te respondo con ejemplos de lo tuyo.');
     });
 
+    /* El botón "📍 [tu ubicación]" de la barra: vuelve a abrir la tira de
+       estado en cualquier momento, aunque ya se haya elegido antes. */
+    if (btnCambiarUbicacion) {
+      btnCambiarUbicacion.addEventListener('click', function () {
+        tiraGiro.hidden = true;
+        tiraMunicipio.hidden = true;
+        selEstado.value = (sesion && sesion.estado) || '';
+        tiraUbicacion.hidden = false;
+        enfocar(selEstado);
+      });
+    }
+
     /* Botones cerrar */
     ['#cerrar-tira-ubicacion', '#cerrar-tira-municipio', '#cerrar-tira-giro'].forEach(function (sel) {
       var btn = $(sel);
@@ -6184,6 +6231,8 @@ enfocar(inputBuscar);
         });
       }
     });
+
+    pintarBotonUbicacion();
   })();
 
   ['#sesion-nombre', '#sesion-nombre-movil'].forEach(function (sel) {
@@ -8624,7 +8673,11 @@ enfocar($('#entrada-chat'));
                       'agosto','septiembre','octubre','noviembre','diciembre'];
 
   var CLAVE_PARCELA = 'oaxintegra.parcela';
-  var lugarActual = LUGARES[0];
+  /* Representa "todavía no elegiste dónde está tu terreno": lat/lon en
+     null es la señal para no pedir clima de ningún lado hasta que la
+     persona misma elija estado y municipio (o use su ubicación GPS). */
+  var LUGAR_VACIO = { id: 'ninguno', nombre: '', region: '', lat: null, lon: null, alt: null };
+  var lugarActual = LUGAR_VACIO;
   var cultivoActual = CULTIVOS[0];
   var climaActual = null;
 
@@ -8676,7 +8729,10 @@ enfocar($('#entrada-chat'));
         lat: guardado.lat, lon: guardado.lon, alt: null
       };
     } else {
-      lugarActual = LUGARES[0];
+      /* Sin nada guardado todavía: no se asume Oaxaca de Juárez por la
+         persona. Se queda sin ubicación hasta que ella misma elija estado
+         y municipio (o toque "Usar mi ubicación"). */
+      lugarActual = LUGAR_VACIO;
     }
     cultivoActual = buscarCultivo(guardado.cultivo) || CULTIVOS[0];
     selCultivo.value = cultivoActual.id;
@@ -9584,8 +9640,24 @@ enfocar($('#entrada-chat'));
   function refrescarParcela(traer) {
     pintarCalendario(cultivoActual);
     pintarAvance();
-    $('#lluvia-sub').textContent = 'Milímetros por día en ' + lugarActual.nombre;
     marcarCultivoConsultado(cultivoActual.id);
+
+    if (lugarActual.lat === null) {
+      climaActual = null;
+      pintarVeredicto({ estado:'sinred',
+        titulo:'Elige tu estado y municipio',
+        razon:'Todavía no sé dónde está tu terreno. Elige tu estado y municipio arriba (o toca ' +
+              '"Usar mi ubicación") para que pueda decirte si ya es tiempo de sembrar.',
+        pruebas: [] });
+      pintarCifrasSuelo(null, cultivoActual);
+      pintarBalance(null);
+      pintarCanicula(null);
+      $('#lluvia-sub').textContent = 'Elige tu ubicación para ver la lluvia';
+      $('#grafica-lluvia').innerHTML =
+        '<p class="text-tenue text-[0.9rem] py-8 text-center">Elige tu estado y municipio para ver la lluvia.</p>';
+      return Promise.resolve();
+    }
+    $('#lluvia-sub').textContent = 'Milímetros por día en ' + lugarActual.nombre;
 
     if (!traer && climaActual) {
       pintarVeredicto(evaluarSiembra(cultivoActual, climaActual));
@@ -10159,7 +10231,12 @@ enfocar($('#entrada-chat'));
     }
 
     /* Estados: los mismos 32 de ESTADOS_MUNICIPIOS que ya usa el resto de
-       la app (perfil, tira de onboarding). Un solo lugar de verdad. */
+       la app (perfil, tira de onboarding). Un solo lugar de verdad. La
+       opción "Ninguno" deja limpiar la ubicación otra vez, a propósito:
+       sin ella, elegido un estado ya no había forma de quitarlo. */
+    var optNinguno = document.createElement('option');
+    optNinguno.value = '__ninguno__'; optNinguno.textContent = 'Ninguno / prefiero no decir';
+    selEstado.appendChild(optNinguno);
     Object.keys(ESTADOS_MUNICIPIOS).sort().forEach(function (estado) {
       var o = document.createElement('option');
       o.value = estado; o.textContent = estado;
@@ -10207,6 +10284,16 @@ enfocar($('#entrada-chat'));
     }
 
     selEstado.addEventListener('change', function () {
+      if (selEstado.value === '__ninguno__') {
+        lugarActual = LUGAR_VACIO;
+        climaActual = null;
+        guardarParcela();
+        mostrarLugarActual();
+        listaMunicipio.hidden = true;
+        avisar('Sin ubicación: no voy a poder darte el clima ni el calendario de tu zona hasta que elijas dónde está tu terreno.');
+        refrescarParcela(true);
+        return;
+      }
       municipiosDelEstado = ESTADOS_MUNICIPIOS[selEstado.value] || [];
       inputMunicipio.value = '';
       pintarMunicipios();
