@@ -7399,14 +7399,12 @@ enfocar(inputBuscar);
       e.stopPropagation();
       var art = b.closest('[data-prompt]');
       if (!art) return;
-      irA('#demo');
       setTimeout(function () { preguntar(art.dataset.prompt); }, animar ? 500 : 0);
     });
   });
   $$('.tarjeta[data-prompt]').forEach(function (art) {
     art.addEventListener('click', function (e) {
       if (e.target.closest('button')) return;
-      irA('#demo');
       setTimeout(function () { preguntar(art.dataset.prompt); }, animar ? 500 : 0);
     });
   });
@@ -7426,7 +7424,6 @@ enfocar(inputBuscar);
       var entradaArchivo = $('#archivo-foto');
       if (entradaArchivo) { entradaArchivo.click(); }
       if (!entrada.value.trim()) { entrada.value = 'Esto le está pasando a mi planta:'; }
-      irA('#demo');
     }
     botonFotoPlaga.addEventListener('click', function (e) { e.stopPropagation(); abrirFotoPlaga(); });
     tarjetaPlaga.addEventListener('click', function (e) {
@@ -7668,13 +7665,11 @@ enfocar(inputBuscar);
     $('#accion-paso').addEventListener('click', function () {
       cerrarModal();
       if (p.prompt) {
-        irA('#demo');
         setTimeout(function () { preguntar(p.prompt); }, animar ? 500 : 0);
       } else if (!sesion) {
         mostrarPortada();
       } else {
-        irA('#demo');
-enfocar(entrada);
+        enfocar(entrada);
       }
     });
   }
@@ -9992,7 +9987,6 @@ enfocar($('#entrada-chat'));
        la persona está viendo, no con una frase genérica: así la IA contesta
        sobre ESTA parcela y no sobre el campo en abstracto. */
     $('#btn-preguntar-parcela').addEventListener('click', function () {
-      irA('#demo');
       var p = 'Estoy en ' + lugarActual.nombre + ', Oaxaca, y quiero sembrar ' +
               cultivoActual.nombre.toLowerCase() + '. ';
       if (climaActual) {
