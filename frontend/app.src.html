@@ -609,6 +609,15 @@
     border-color:rgb(var(--verde));
     background:color-mix(in srgb, rgb(var(--verde)) 10%, rgb(var(--barro)));
   }
+  .chip-cultivo[aria-pressed="true"]{
+    border-color:rgb(var(--verde)); color:rgb(var(--verde));
+    background:color-mix(in srgb, rgb(var(--verde)) 16%, rgb(var(--barro)));
+  }
+  .aviso-sin-cultivo{
+    display:flex; align-items:center; gap:.6rem; cursor:pointer;
+    font-size:.88rem; color:rgb(var(--tenue)); margin-top:.9rem;
+  }
+  .aviso-sin-cultivo input{ width:1.05rem; height:1.05rem; accent-color:rgb(var(--verde)); cursor:pointer; }
 
   /* ---------- tarjetas · con profundidad real ----------
      El giro 3D (rotateX/rotateY según la posición del cursor, sección 13 del
@@ -693,6 +702,21 @@
   .campo[aria-invalid="true"]{ border-color:rgb(var(--naranja)); }
   .campo[data-valido="si"]{ border-color:rgba(140,219,43,.55); }
   select.campo{ appearance:none; background-image:linear-gradient(45deg,transparent 50%,rgb(var(--tenue)) 50%),linear-gradient(135deg,rgb(var(--tenue)) 50%,transparent 50%); background-position:calc(100% - 20px) 50%, calc(100% - 15px) 50%; background-size:5px 5px, 5px 5px; background-repeat:no-repeat; }
+  /* Lista de resultados del buscador de municipio: flota debajo del
+     campo de texto en vez de abrir un <select> nativo larguísimo. */
+  .lista-buscador{
+    position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:30;
+    max-height:14rem; overflow-y:auto; margin:0; padding:.3rem;
+    background:rgb(var(--barroalto)); border:1px solid rgb(var(--borde)); border-radius:var(--radio);
+    box-shadow:var(--sombra-alta); list-style:none;
+  }
+  .lista-buscador li{ margin:0; }
+  .lista-buscador button{
+    display:block; width:100%; text-align:left; padding:.6rem .7rem; border-radius:4px;
+    background:none; border:0; color:rgb(var(--texto)); font-size:.92rem; cursor:pointer;
+  }
+  .lista-buscador button:hover, .lista-buscador button:focus{ background:color-mix(in srgb, rgb(var(--cian)) 14%, transparent); outline:none; }
+  .lista-buscador .sin-resultados{ padding:.6rem .7rem; color:rgb(var(--tenue)); font-size:.88rem; }
   /* El hueco del mensaje se reserva SIEMPRE. Si apareciera de golpe, lo de
      abajo se movería y los toques caerían al vacío (ver el comentario del
      blur, más abajo en el JavaScript). */
@@ -782,10 +806,18 @@
      terminal (opacidad de la línea: 4%). */
   .hilo{
     max-height:min(60vh,520px); overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgb(var(--borde)) transparent;
+    /* En el celular, al arrastrar dentro de la plática el gesto se quedaba
+       atrapado en esta caja y la página ya no bajaba. Con esto el
+       desplazamiento sigue de largo hacia el resto de la página cuando la
+       plática llega a su tope. */
+    overscroll-behavior-y:auto; -webkit-overflow-scrolling:touch; touch-action:pan-y;
     background-image:
       linear-gradient(color-mix(in srgb, rgb(var(--cian)) 5%, transparent) 1px, transparent 1px),
       linear-gradient(90deg, color-mix(in srgb, rgb(var(--cian)) 5%, transparent) 1px, transparent 1px);
     background-size:28px 28px;
+  }
+  @media (max-width:640px){
+    .hilo{ max-height:56svh; }
   }
   .hilo::-webkit-scrollbar{ width:6px; }
   .hilo::-webkit-scrollbar-thumb{ background:rgb(var(--borde)); border-radius:3px; }
@@ -905,9 +937,11 @@
   .tarjeta:active{ --ty:-2px; --sc:.995; }
 
   .ico-tema{
-    display:grid; place-items:center; width:40px; height:40px; flex-shrink:0;
+    display:flex; align-items:center; gap:.4rem; flex-shrink:0;
+    padding:0 .7rem; height:40px;
     background:rgb(var(--barro)); border:1px solid rgb(var(--borde)); border-radius:2px;
     color:rgb(var(--tenue)); cursor:pointer; transition:color .25s, border-color .25s, transform .12s;
+    font-size:.85rem; white-space:nowrap;
   }
   .ico-tema:hover{ color:rgb(var(--cian)); border-color:rgb(var(--cian)); }
   .ico-tema:active{ transform:scale(.94); }
@@ -1756,6 +1790,7 @@
       <a href="#herramientas" class="enlace-nav">Herramientas</a>
       <a href="#parcela"      class="enlace-nav">Mi parcela</a>
       <a href="#demo"         class="enlace-nav">Salto de la IA</a>
+      <button type="button" data-abrir="modal-logros" class="enlace-nav" style="background:none;border:0;cursor:pointer;font:inherit">Logros</button>
       <span class="js-racha-chip inline-flex items-center gap-1 text-[0.85rem] px-2.5 py-1 rounded-full shrink-0"
             style="background:rgba(255,152,0,.15); border:1px solid rgba(255,152,0,.35); color:rgb(var(--naranja))"
             title="Días seguidos usando la app" hidden>
@@ -1768,8 +1803,9 @@
         Guía Interactiva
       </button>
       <button type="button" id="btn-tema" class="ico-tema" aria-label="Cambiar entre modo día y noche" title="Cambiar modo día / noche">
-        <svg class="ico-sol" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
-        <svg class="ico-luna" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="ico-sol" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+        <svg class="ico-luna" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <span id="texto-tema">Modo noche</span>
       </button>
       <button type="button" data-portada="si" id="btn-empieza" class="btn-neon !px-5 !py-2.5 !text-[0.9rem]">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
@@ -1805,6 +1841,7 @@
       <a href="#herramientas" class="enlace-nav">Herramientas</a>
       <a href="#parcela"      class="enlace-nav">Mi parcela</a>
       <a href="#demo"         class="enlace-nav">Salto de la IA</a>
+      <button type="button" data-abrir="modal-logros" class="enlace-nav text-left" style="background:none;border:0;cursor:pointer">Logros</button>
       <button type="button" id="btn-tema-movil" class="btn-linea mt-2 w-full justify-center" aria-label="Cambiar entre modo día y noche">
         <svg class="ico-sol" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
         <svg class="ico-luna" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -2490,6 +2527,17 @@
       </button>
     </div>
 
+    <!-- Con qué más trabaja, para que la IA lo sepa aunque el simulador de
+         arriba solo pueda mostrar el clima de un cultivo a la vez. -->
+    <div class="revela mb-8" id="bloque-mis-cultivos">
+      <p class="filtro-rotulo mb-2">¿Con qué más trabajas? Marca todo lo que siembres o cuides — así el asistente no asume que solo tienes uno.</p>
+      <div id="chips-mis-cultivos" class="flex flex-wrap gap-2" role="group" aria-label="Cultivos que trabajas"></div>
+      <label class="aviso-sin-cultivo">
+        <input type="checkbox" id="chk-sin-cultivo">
+        <span>Ahora no tengo nada sembrado, o solo quiero preguntar algo que no es de mi cosecha</span>
+      </label>
+    </div>
+
     <!-- EL VEREDICTO · lo primero y lo más grande de la sección -->
     <div id="veredicto" class="revela veredicto" data-estado="cargando">
       <div class="veredicto__marca" aria-hidden="true"></div>
@@ -2984,12 +3032,12 @@
               <button type="button" id="cerrar-tira-ubicacion" class="btn-suave shrink-0" style="margin:0">Ahora no</button>
             </div>
 
-            <div id="tira-municipio" class="px-5 sm:px-8 py-3.5 border-b border-borde flex flex-wrap items-center gap-3" hidden>
-              <label for="municipio-rapido" class="text-[0.9rem] text-texto">¿Tu municipio?</label>
-              <input type="text" id="municipio-buscar" class="campo flex-1" placeholder="Busca tu municipio…" style="padding-top:.5rem; padding-bottom:.5rem">
-              <select id="municipio-rapido" class="campo flex-1" style="padding-top:.5rem; padding-bottom:.5rem; display:none">
-                <option value="">Elige el tuyo…</option>
-              </select>
+            <div id="tira-municipio" class="px-5 sm:px-8 py-3.5 border-b border-borde flex flex-wrap items-center gap-3" style="position:relative" hidden>
+              <label for="municipio-buscar" class="text-[0.9rem] text-texto shrink-0">¿Tu municipio?</label>
+              <div class="flex-1 min-w-[10rem]" style="position:relative">
+                <input type="text" id="municipio-buscar" class="campo w-full" placeholder="Escribe para buscar tu municipio…" autocomplete="off" style="padding-top:.5rem; padding-bottom:.5rem">
+                <ul id="municipio-resultados" class="lista-buscador" hidden></ul>
+              </div>
               <button type="button" id="cerrar-tira-municipio" class="btn-suave shrink-0" style="margin:0">Ahora no</button>
             </div>
 
@@ -3053,13 +3101,6 @@
         </form>
           </div>
         </div>
-      </div>
-
-      <!-- ===== Tus logros ===== -->
-      <div class="revela panel-medallas mb-8 mt-8">
-        <p class="rotulo mb-3" style="color:rgb(var(--ambar))">Tus logros</p>
-        <div id="mis-medallas" class="flex flex-wrap gap-2.5"></div>
-        <p id="medallas-pie" class="text-tenue text-[0.8rem] mt-3"></p>
       </div>
 
       <!-- ===== herramientas de apoyo: dato rotativo + simulador ===== -->
@@ -3730,7 +3771,7 @@
               <p>✓ <strong>Medidor de agua en la tierra</strong> — saber exacto cuándo regar, no por adivinanza.</p>
               <p>✓ <strong>Historial de clima</strong> — ver lo que llovió en los últimos 30 y 90 días.</p>
               <p>✓ <strong>Balance de agua</strong> — entender si la tierra pierde agua más rápido que lo que llueve.</p>
-            </p>
+            </div>
             <p class="text-tenue leading-relaxed mt-4">
               <strong style="color:rgb(var(--cian))">Todo junto:</strong> IA + datos de tu parcela = decisiones mucho más seguras.
             </p>
@@ -3864,6 +3905,34 @@
   </div>
 </div>
 
+<!-- Tus logros: título del logro + qué hay que hacer para conseguirlo -->
+<div class="modal" id="modal-logros" role="dialog" aria-modal="true" aria-labelledby="titulo-logros" hidden>
+  <div class="modal__fondo" data-cerrar></div>
+  <div class="modal__panel max-w-2xl">
+    <button type="button" class="modal__cerrar" data-cerrar aria-label="Cerrar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="banda-greca" style="--acento:#8CDB2B" aria-hidden="true"></div>
+    <div class="modal__cuerpo">
+      <p class="rotulo mb-4">Tu progreso en la app</p>
+      <div class="flex items-center justify-between gap-3 mb-6 flex-wrap">
+        <h3 id="titulo-logros" class="text-3xl">Logros.</h3>
+        <span class="js-racha-chip inline-flex items-center gap-1.5 text-[0.95rem] px-3 py-1.5 rounded-full" style="background:rgba(255,152,0,.15); border:1px solid rgba(255,152,0,.35); color:rgb(var(--naranja))" hidden>
+          🔥 <span class="js-racha-num">0</span> días seguidos
+        </span>
+      </div>
+      <p class="text-tenue text-[0.9rem] mb-5">Cada tarjeta dice su nombre y qué hacer para conseguirla. Pasa el dedo o el cursor encima para ver el detalle completo.</p>
+      <div id="zona-badges" class="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-3">
+        <!-- Los logros se pintan aquí dinámicamente -->
+      </div>
+      <p id="badges-pie" class="text-tenue text-[0.85rem] mb-5"></p>
+      <button type="button" id="btn-invitar" class="btn-linea !py-2.5 !px-4 !text-[0.9rem]">
+        🤝 Invitar a alguien a la app
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Cambiar mi contraseña -->
 <div class="modal" id="modal-cambiar-clave" role="dialog" aria-modal="true" aria-labelledby="titulo-cambiar-clave" hidden>
   <div class="modal__fondo" data-cerrar></div>
@@ -3874,20 +3943,6 @@
     <div class="banda-greca" style="--acento:#8CDB2B" aria-hidden="true"></div>
     <div class="modal__cuerpo">
       <p class="rotulo mb-4">Mi cuenta</p>
-
-      <div class="flex items-center justify-between gap-3 mb-6 flex-wrap">
-        <h3 class="text-3xl">Tus logros.</h3>
-        <span class="js-racha-chip inline-flex items-center gap-1.5 text-[0.95rem] px-3 py-1.5 rounded-full" style="background:rgba(255,152,0,.15); border:1px solid rgba(255,152,0,.35); color:rgb(var(--naranja))" hidden>
-          🔥 <span class="js-racha-num">0</span> días seguidos
-        </span>
-      </div>
-      <div id="zona-badges" class="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-3">
-        <!-- Los logros se pintan aquí dinámicamente -->
-      </div>
-      <p id="badges-pie" class="text-tenue text-[0.85rem] mb-5"></p>
-      <button type="button" id="btn-invitar" class="btn-linea !py-2.5 !px-4 !text-[0.9rem] mb-12">
-        🤝 Invitar a alguien a la app
-      </button>
 
       <h3 id="titulo-cambiar-clave" class="text-3xl mb-6">Cambiar mi contraseña.</h3>
 
@@ -4003,23 +4058,53 @@
 (function () {
   'use strict';
 
-  /* El navegador, por su cuenta, a veces restaura la posición de scroll
-     de la última visita (o salta a un elemento si la URL trae un hash
-     residual). Eso hace que la app "abra" a la mitad de la página en vez
-     de arriba. Se apaga esa restauración automática y se fuerza el scroll
-     a 0 en cuanto se puede, antes de que el usuario vea nada. */
+  /* ---------------------------------------------------------
+     ABRIR SIEMPRE HASTA ARRIBA
+     ---------------------------------------------------------
+     La app abría a la altura del chat. No era el navegador
+     restaurando la visita anterior: era que al preparar la
+     plática se le daba el foco a la caja de escribir, y el
+     navegador arrastra la página hasta el elemento enfocado.
+
+     Repetir scrollTo(0,0) no alcanzaba, porque cada scroll
+     automático ocurría después del último intento. Aquí va un
+     candado: mientras la persona no toque, teclee o gire la
+     rueda, cualquier desplazamiento que ella no haya pedido se
+     deshace al instante. El primer gesto suyo lo suelta, y si
+     no hace nada se suelta solo a los 1.5 s.
+     --------------------------------------------------------- */
   if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-  window.scrollTo(0, 0);
-  /* Múltiples fallbacks para asegurar que el scroll esté en 0 */
-  requestAnimationFrame(function () { window.scrollTo(0, 0); });
-  setTimeout(function () { window.scrollTo(0, 0); }, 0);
-  setTimeout(function () { window.scrollTo(0, 0); }, 100);
-  setTimeout(function () { window.scrollTo(0, 0); }, 300);
-  window.addEventListener('load', function () {
+
+  /* Un hash viejo en la barra de direcciones (#demo, #parcela…) también
+     salta. El del correo trae access_token y ese sí se respeta. */
+  var hashInicial = window.location.hash || '';
+  if (hashInicial && hashInicial.indexOf('access_token') === -1) {
+    try { history.replaceState(null, '', window.location.pathname + window.location.search); }
+    catch (e) { /* navegador sin history API: no pasa nada */ }
+  }
+
+  var candadoArriba = true;
+  function forzarArriba() {
+    if (!candadoArriba) { return; }
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+  }
+  function soltarCandado() { candadoArriba = false; }
+
+  forzarArriba();
+  window.addEventListener('scroll', forzarArriba, { passive: true });
+  ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(function (ev) {
+    window.addEventListener(ev, soltarCandado, { passive: true, once: true });
   });
+  window.addEventListener('load', forzarArriba);
+  setTimeout(function () { forzarArriba(); soltarCandado(); }, 1500);
+
+  /* Enfocar sin que la página se mueva. Todos los focos de la app pasan
+     por aquí: era el salto al chat lo que rompía el arranque. */
+  function enfocar(el) {
+    if (el && typeof el.focus === 'function') { el.focus({ preventScroll: true }); }
+  }
 
   /* =========================================================
      0. CONFIGURACIÓN
@@ -4064,39 +4149,45 @@
      ESTADOS Y MUNICIPIOS DE MÉXICO
      Estructura de estados con sus municipios principales/todos
      --------------------------------------------------------- */
+  /* Municipios por estado. En los estados chicos van todos; en los
+     grandes (Chiapas, Jalisco, México, Oaxaca, Puebla, Veracruz…) van
+     los más conocidos y poblados — poner los más de 100 o 500 que
+     algunos estados tienen de verdad no ayuda a nadie a buscar el suyo
+     más rápido, así que se prioriza que cada nombre sea real y que la
+     lista cubra bien todo el estado, no solo la capital. */
   var ESTADOS_MUNICIPIOS = {
-    'Aguascalientes': ['Aguascalientes', 'Calvillo', 'Cosío', 'Jesús María', 'San Francisco de los Romo', 'Tepezalá'],
-    'Baja California': ['Tijuana', 'Ensenada', 'Rosarito', 'Tecate', 'Mexicali', 'San Quintín'],
-    'Baja California Sur': ['La Paz', 'Cabo San Lucas', 'San José del Cabo', 'Loreto', 'Comondú'],
-    'Campeche': ['Campeche', 'Carmen', 'Champotón', 'Palizada', 'Escárcega'],
-    'Chiapas': ['Tuxtla Gutiérrez', 'San Cristóbal de Las Casas', 'Tapachula', 'Comitán', 'Ocosingo', 'Palenque'],
-    'Chihuahua': ['Chihuahua', 'Juárez', 'Delicias', 'Parral', 'Hidalgo del Parral', 'Cuauhtémoc'],
-    'Ciudad de México': ['Benito Juárez', 'Cuauhtémoc', 'Gustavo A. Madero', 'Iztapalapa', 'Coyoacán', 'Álvaro Obregón'],
-    'Coahuila': ['Saltillo', 'Torreón', 'Monclova', 'Sabinas', 'Piedras Negras'],
-    'Colima': ['Colima', 'Manzanillo', 'Comala', 'Tecomán'],
-    'Durango': ['Durango', 'Gómez Palacio', 'Lerdo', 'Vicente Guerrero'],
-    'Guanajuato': ['León', 'Guanajuato', 'Irapuato', 'Celaya', 'Salamanca', 'San Miguel de Allende'],
-    'Guerrero': ['Acapulco', 'Chilpancingo', 'Zihuatanejo', 'Taxco', 'Iguala'],
-    'Hidalgo': ['Pachuca', 'Tulancingo', 'Huejutla', 'Actopan', 'Tula'],
-    'Jalisco': ['Guadalajara', 'Zapopan', 'Tonalá', 'Puerto Vallarta', 'Lagos de Moreno', 'Autlán'],
-    'México': ['Toluca', 'Ecatepec', 'Nezahualcóyotl', 'Naucalpan', 'Tlalnepantla', 'Cuautitlán Izcalli'],
-    'Michoacán': ['Morelia', 'Uruapan', 'Lázaro Cárdenas', 'Apatzingán', 'Zamora'],
-    'Morelos': ['Cuernavaca', 'Jiutepec', 'Temixco', 'Cuautla', 'Jojutla'],
-    'Nayarit': ['Tepic', 'Xalisco', 'San Blas', 'Sayulita'],
-    'Nuevo León': ['Monterrey', 'Guadalupe', 'San Nicolás', 'Apodaca', 'Santa Catarina'],
-    'Oaxaca': ['Oaxaca de Juárez', 'Tlacolula de Matamoros', 'Ocotlán de Morelos', 'Etla', 'Guevea de Humboldt', 'Ixtlán de Juárez', 'Miahuatlán de Porfirio Díaz', 'Puerto Escondido', 'Salina Cruz', 'Santo Domingo Xagacia', 'Tututepec de Melchor Ocampo', 'Tuxtepec', 'Pinotepa Nacional', 'Santiago Apostol', 'San Juan Bautista Tuxtepec'],
-    'Puebla': ['Puebla', 'Tehuacán', 'Cholula', 'Atlixco', 'Zacatlán'],
-    'Querétaro': ['Querétaro', 'San Juan del Río', 'Tequisquiapan', 'Jalpan'],
-    'Quintana Roo': ['Cancún', 'Playa del Carmen', 'Tulum', 'Cozumel', 'Chetumal'],
-    'San Luis Potosí': ['San Luis Potosí', 'Ciudad Valles', 'Matehuala', 'Rioverde'],
-    'Sinaloa': ['Culiacán', 'Mazatlán', 'Ahome', 'Guamúchil'],
-    'Sonora': ['Hermosillo', 'Obregón', 'Navojoa', 'San Luis Río Colorado'],
-    'Tabasco': ['Villahermosa', 'Cárdenas', 'Comalcalco', 'Paraíso'],
-    'Tamaulipas': ['Ciudad Victoria', 'Reynosa', 'Nuevo Laredo', 'Matamoros'],
-    'Tlaxcala': ['Tlaxcala', 'Apizaco', 'Huamantla'],
-    'Veracruz': ['Veracruz', 'Xalapa', 'Coatzacoalcos', 'Orizaba', 'Córdoba'],
-    'Yucatán': ['Mérida', 'Progreso', 'Motul', 'Tizimín'],
-    'Zacatecas': ['Zacatecas', 'Fresnillo', 'Jerez', 'Río Grande']
+    'Aguascalientes': ['Aguascalientes', 'Asientos', 'Calvillo', 'Cosío', 'Jesús María', 'Pabellón de Arteaga', 'Rincón de Romos', 'San José de Gracia', 'San Francisco de los Romo', 'Tepezalá', 'El Llano'],
+    'Baja California': ['Ensenada', 'Mexicali', 'Tecate', 'Tijuana', 'Playas de Rosarito', 'San Quintín'],
+    'Baja California Sur': ['La Paz', 'Los Cabos', 'Comondú', 'Loreto', 'Mulegé'],
+    'Campeche': ['Campeche', 'Calakmul', 'Calkiní', 'Candelaria', 'Carmen', 'Champotón', 'Escárcega', 'Hecelchakán', 'Hopelchén', 'Palizada', 'Tenabo', 'Seybaplaya', 'Dzitbalché'],
+    'Chiapas': ['Tuxtla Gutiérrez', 'Tapachula', 'San Cristóbal de las Casas', 'Comitán de Domínguez', 'Chiapa de Corzo', 'Palenque', 'Ocosingo', 'Pichucalco', 'Villaflores', 'Cintalapa', 'Arriaga', 'Tonalá', 'Huixtla', 'Motozintla', 'Las Margaritas', 'Yajalón', 'Simojovel', 'Bochil', 'Venustiano Carranza', 'Berriozábal', 'Suchiapa', 'Ocozocoautla de Espinosa', 'Acapetahua', 'Mapastepec', 'Pijijiapan', 'Cacahoatán', 'Frontera Comalapa', 'La Trinitaria', 'Copainalá', 'Chilón', 'Altamirano', 'Salto de Agua', 'Catazajá', 'La Concordia', 'Tecpatán', 'Jiquipilas', 'Reforma', 'Rayón', 'Escuintla', 'Mazatán'],
+    'Chihuahua': ['Chihuahua', 'Juárez', 'Cuauhtémoc', 'Delicias', 'Hidalgo del Parral', 'Nuevo Casas Grandes', 'Camargo', 'Jiménez', 'Meoqui', 'Aldama', 'Ojinaga', 'Guerrero', 'Bocoyna', 'Guachochi', 'Saucillo', 'Rosales', 'Namiquipa', 'Madera', 'Ascensión', 'Buenaventura', 'Galeana', 'Julimes', 'Praxedis G. Guerrero', 'Santa Bárbara', 'Allende', 'Balleza', 'Batopilas', 'Carichí', 'Casas Grandes', 'Coronado', 'Janos', 'López', 'Matamoros', 'Morelos', 'Riva Palacio', 'Rosario', 'Santa Isabel'],
+    'Ciudad de México': ['Álvaro Obregón', 'Azcapotzalco', 'Benito Juárez', 'Coyoacán', 'Cuajimalpa de Morelos', 'Cuauhtémoc', 'Gustavo A. Madero', 'Iztacalco', 'Iztapalapa', 'La Magdalena Contreras', 'Miguel Hidalgo', 'Milpa Alta', 'Tláhuac', 'Tlalpan', 'Venustiano Carranza', 'Xochimilco'],
+    'Coahuila': ['Saltillo', 'Torreón', 'Monclova', 'Acuña', 'Piedras Negras', 'Sabinas', 'Parras', 'Francisco I. Madero', 'Frontera', 'Matamoros', 'Múzquiz', 'Ramos Arizpe', 'San Pedro', 'Castaños', 'Nava', 'Allende', 'Arteaga', 'Candela', 'Cuatro Ciénegas', 'General Cepeda', 'Guerrero', 'Hidalgo', 'Juárez', 'Morelos', 'Ocampo', 'Progreso', 'Sacramento', 'San Buenaventura', 'San Juan de Sabinas', 'Sierra Mojada', 'Viesca', 'Villa Unión', 'Zaragoza'],
+    'Colima': ['Colima', 'Manzanillo', 'Comala', 'Coquimatlán', 'Cuauhtémoc', 'Ixtlahuacán', 'Armería', 'Minatitlán', 'Tecomán', 'Villa de Álvarez'],
+    'Durango': ['Durango', 'Gómez Palacio', 'Lerdo', 'Vicente Guerrero', 'Canatlán', 'Cuencamé', 'Guadalupe Victoria', 'Nuevo Ideal', 'Pánuco de Coronado', 'Peñón Blanco', 'Poanas', 'Pueblo Nuevo', 'Rodeo', 'San Juan del Río', 'Santiago Papasquiaro', 'Súchil', 'Tamazula', 'Tepehuanes', 'Tlahualilo', 'Topia', 'Mapimí', 'Mezquital', 'Nazas', 'Ocampo', 'El Oro'],
+    'Guanajuato': ['León', 'Guanajuato', 'Irapuato', 'Celaya', 'Salamanca', 'San Miguel de Allende', 'Silao', 'Pénjamo', 'Valle de Santiago', 'Acámbaro', 'Dolores Hidalgo', 'San Francisco del Rincón', 'Purísima del Rincón', 'Moroleón', 'Uriangato', 'Salvatierra', 'Cortazar', 'Apaseo el Grande', 'Apaseo el Alto', 'Comonfort', 'Jaral del Progreso', 'Romita', 'Abasolo', 'Yuriria', 'Villagrán', 'San Luis de la Paz', 'Santa Cruz de Juventino Rosas', 'Cuerámaro', 'Huanímaro', 'Tarimoro'],
+    'Guerrero': ['Acapulco de Juárez', 'Chilpancingo de los Bravo', 'Iguala de la Independencia', 'Zihuatanejo de Azueta', 'Taxco de Alarcón', 'Ometepec', 'Tlapa de Comonfort', 'Chilapa de Álvarez', 'Ayutla de los Libres', 'Coyuca de Benítez', 'Atoyac de Álvarez', 'Tecpan de Galeana', 'Arcelia', 'Teloloapan', 'Petatlán', 'San Marcos', 'Cuajinicuilapa', 'Tixtla de Guerrero', 'Huitzuco de los Figueroa', 'Eduardo Neri', 'Cocula', 'Copala', 'Cutzamala de Pinzón', 'Florencio Villarreal', 'Olinalá', 'Quechultenango', 'San Miguel Totolapan', 'Tetipac', 'Xochistlahuaca', 'Zirándaro'],
+    'Hidalgo': ['Pachuca de Soto', 'Tulancingo de Bravo', 'Huejutla de Reyes', 'Tula de Allende', 'Tizayuca', 'Ixmiquilpan', 'Actopan', 'Mineral de la Reforma', 'Tepeji del Río de Ocampo', 'Zimapán', 'Huichapan', 'Apan', 'Zacualtipán de Ángeles', 'Atotonilco el Grande', 'Metztitlán', 'Progreso de Obregón', 'San Agustín Tlaxiaca', 'Tepeapulco', 'Tlahuelilpan', 'Tlaxcoapan', 'Zapotlán de Juárez', 'Acaxochitlán', 'Agua Blanca de Iturbide', 'Alfajayucan', 'Cardonal', 'Chapantongo', 'Chapulhuacán', 'Huasca de Ocampo', 'Jacala de Ledezma', 'Mixquiahuala de Juárez'],
+    'Jalisco': ['Guadalajara', 'Zapopan', 'Tlaquepaque', 'Tonalá', 'Tlajomulco de Zúñiga', 'Puerto Vallarta', 'El Salto', 'Lagos de Moreno', 'Zapotlán el Grande', 'Ocotlán', 'Tepatitlán de Morelos', 'Chapala', 'Autlán de Navarro', 'Ameca', 'Arandas', 'Tequila', 'Colotlán', 'Zacoalco de Torres', 'San Juan de los Lagos', 'Sayula', 'Atotonilco el Alto', 'El Grullo', 'Encarnación de Díaz', 'Jocotepec', 'La Barca', 'Mascota', 'San Miguel el Alto', 'Tala', 'Tamazula de Gordiano', 'Tecalitlán', 'Tuxpan', 'Unión de Tula', 'Yahualica de González Gallo', 'Zapotlanejo', 'Acatic', 'Acatlán de Juárez', 'Ahualulco de Mercado', 'Atoyac', 'Ayotlán', 'Bolaños', 'Cabo Corrientes', 'Casimiro Castillo'],
+    'México': ['Toluca', 'Ecatepec de Morelos', 'Nezahualcóyotl', 'Naucalpan de Juárez', 'Tlalnepantla de Baz', 'Chimalhuacán', 'Cuautitlán Izcalli', 'Atizapán de Zaragoza', 'Ixtapaluca', 'Nicolás Romero', 'Tultitlán', 'Chalco', 'Coacalco de Berriozábal', 'Huixquilucan', 'Valle de Chalco Solidaridad', 'Tecámac', 'Metepec', 'Cuautitlán', 'Zinacantepec', 'Lerma', 'Texcoco', 'La Paz', 'Tepotzotlán', 'Zumpango', 'Ixtapan de la Sal', 'Xonacatlán', 'Almoloya de Juárez', 'San Mateo Atenco', 'Otzolotepec', 'Ocoyoacac', 'Jilotepec', 'Amecameca', 'Tejupilco', 'Atlacomulco', 'Teoloyucan', 'Coyotepec', 'Huehuetoca', 'Apaxco', 'Hueypoxtla', 'Teotihuacán', 'Acolman'],
+    'Michoacán': ['Morelia', 'Uruapan', 'Zamora', 'Lázaro Cárdenas', 'Apatzingán', 'Zitácuaro', 'La Piedad', 'Los Reyes', 'Sahuayo', 'Hidalgo', 'Pátzcuaro', 'Zacapu', 'Tacámbaro', 'Maravatío', 'Jiquilpan', 'Puruándiro', 'Jacona', 'Ciudad Hidalgo', 'Coalcomán de Vázquez Pallares', 'Coeneo', 'Cotija', 'Cuitzeo', 'Chilchota', 'Churintzio', 'Erongarícuaro', 'Huandacareo', 'Huetamo', 'Indaparapeo', 'Ixtlán', 'Nahuatzen', 'Numarán', 'Ocampo', 'Pajacuarán', 'Paracho', 'Peribán', 'Sixto Verduzco', 'Tancítaro', 'Tanhuato', 'Tarímbaro', 'Tingambato', 'Turicato', 'Tuxpan', 'Tuzantla', 'Venustiano Carranza', 'Vista Hermosa', 'Yurécuaro', 'Zináparo', 'Zinapécuaro'],
+    'Morelos': ['Amacuzac', 'Atlatlahucan', 'Axochiapan', 'Ayala', 'Coatlán del Río', 'Cuautla', 'Cuernavaca', 'Emiliano Zapata', 'Huitzilac', 'Jantetelco', 'Jiutepec', 'Jojutla', 'Jonacatepec de Leandro Valle', 'Mazatepec', 'Miacatlán', 'Ocuituco', 'Puente de Ixtla', 'Temixco', 'Temoac', 'Tepalcingo', 'Tepoztlán', 'Tetecala', 'Tetela del Volcán', 'Tlalnepantla', 'Tlaltizapán de Zapata', 'Tlaquiltenango', 'Tlayacapan', 'Totolapan', 'Xochitepec', 'Yautepec', 'Yecapixtla', 'Zacatepec', 'Zacualpan de Amilpas'],
+    'Nayarit': ['Tepic', 'Acaponeta', 'Ahuacatlán', 'Amatlán de Cañas', 'Bahía de Banderas', 'Compostela', 'Huajicori', 'Ixtlán del Río', 'Jala', 'La Yesca', 'Del Nayar', 'Rosamorada', 'Ruíz', 'San Blas', 'San Pedro Lagunillas', 'Santa María del Oro', 'Santiago Ixcuintla', 'Tecuala', 'Tuxpan', 'Xalisco'],
+    'Nuevo León': ['Monterrey', 'Guadalupe', 'Apodaca', 'General Escobedo', 'San Nicolás de los Garza', 'Santa Catarina', 'San Pedro Garza García', 'Juárez', 'García', 'Santiago', 'Cadereyta Jiménez', 'Montemorelos', 'Linares', 'Sabinas Hidalgo', 'Allende', 'General Zuazua', 'Pesquería', 'Ciénega de Flores', 'Salinas Victoria', 'Hidalgo', 'Abasolo', 'Agualeguas', 'Anáhuac', 'Aramberri', 'Cerralvo', 'China', 'Doctor Arroyo', 'El Carmen', 'Galeana', 'General Terán', 'Los Herreras', 'Los Ramones', 'Marín', 'Mina', 'Rayones', 'Vallecillo', 'Villaldama', 'Zaragoza'],
+    'Oaxaca': ['Oaxaca de Juárez', 'San Juan Bautista Tuxtepec', 'Santa Cruz Xoxocotlán', 'Santa Lucía del Camino', 'Huajuapan de León', 'Loma Bonita', 'Salina Cruz', 'San Pedro Pochutla', 'San Pedro Mixtepec (Puerto Escondido)', 'Santiago Pinotepa Nacional', 'Juchitán de Zaragoza', 'Santo Domingo Tehuantepec', 'Miahuatlán de Porfirio Díaz', 'Heroica Ciudad de Tlaxiaco', 'Zimatlán de Álvarez', 'Ocotlán de Morelos', 'Ejutla de Crespo', 'Villa de Zaachila', 'San Antonio de la Cal', 'Tlacolula de Matamoros', 'San Bartolo Coyotepec', 'Villa de Etla', 'Ixtlán de Juárez', 'Guelatao de Juárez', 'Teotitlán del Valle', 'San Pablo Villa de Mitla', 'San Pedro y San Pablo Teposcolula', 'Asunción Nochixtlán', 'Santiago Juxtlahuaca', 'Putla Villa de Guerrero', 'Santa María Huatulco', 'San Pedro Comitancillo', 'Matías Romero Avendaño', 'Ciudad Ixtepec', 'Unión Hidalgo', 'San Blas Atempa', 'Guevea de Humboldt', 'San Juan Guichicovi', 'Villa Sola de Vega', 'San Francisco Telixtlahuaca', 'Reforma de Pineda', 'Santa María Atzompa', 'San Sebastián Tutla', 'San Agustín Yatareni', 'San Raymundo Jalpan', 'Magdalena Apasco', 'San Juan Cotzocón', 'San Juan Bautista Guelache', 'San Miguel del Puerto', 'Pinotepa de Don Luis'],
+    'Puebla': ['Puebla', 'Tehuacán', 'San Martín Texmelucan', 'Atlixco', 'San Pedro Cholula', 'San Andrés Cholula', 'Amozoc', 'Huauchinango', 'Teziutlán', 'Zacatlán', 'Izúcar de Matamoros', 'Chignahuapan', 'Chalchicomula de Sesma', 'Xicotepec', 'Huejotzingo', 'Tepeaca', 'Tecamachalco', 'Acatlán', 'Zacapoaxtla', 'Cuetzalan del Progreso', 'San José Chiapa', 'Tehuitzingo', 'Acatzingo', 'Tlatlauquitepec', 'Chietla', 'Zaragoza', 'Palmar de Bravo', 'Tepexi de Rodríguez', 'Ajalpan', 'Coronango', 'Cuautlancingo', 'San Salvador el Verde', 'Nealtican', 'Ocoyucan', 'Tecali de Herrera', 'Molcaxac', 'Tochimilco', 'Yehualtepec', 'Vicente Guerrero'],
+    'Querétaro': ['Querétaro', 'Amealco de Bonfil', 'Arroyo Seco', 'Cadereyta de Montes', 'Colón', 'Corregidora', 'Ezequiel Montes', 'Huimilpan', 'Jalpan de Serra', 'Landa de Matamoros', 'El Marqués', 'Pedro Escobedo', 'Peñamiller', 'Pinal de Amoles', 'San Joaquín', 'San Juan del Río', 'Tequisquiapan', 'Tolimán'],
+    'Quintana Roo': ['Benito Juárez (Cancún)', 'Cozumel', 'Felipe Carrillo Puerto', 'Isla Mujeres', 'José María Morelos', 'Lázaro Cárdenas', 'Othón P. Blanco (Chetumal)', 'Solidaridad (Playa del Carmen)', 'Tulum', 'Bacalar', 'Puerto Morelos'],
+    'San Luis Potosí': ['San Luis Potosí', 'Soledad de Graciano Sánchez', 'Ciudad Valles', 'Matehuala', 'Rioverde', 'Tamazunchale', 'Ébano', 'Xilitla', 'Tamuín', 'Ciudad Fernández', 'Cárdenas', 'Cerritos', 'Charcas', 'Salinas', 'Venado', 'Villa de Reyes', 'Santa María del Río', 'Mexquitic de Carmona', 'Ahualulco', 'Aquismón', 'Axtla de Terrazas', 'Cedral', 'Ciudad del Maíz', 'Coxcatlán', 'Guadalcázar', 'Matlapa', 'Moctezuma', 'Real de Catorce', 'San Ciro de Acosta', 'Tamasopo'],
+    'Sinaloa': ['Ahome', 'Angostura', 'Badiraguato', 'Choix', 'Concordia', 'Cosalá', 'Culiacán', 'El Fuerte', 'Elota', 'Escuinapa', 'Guasave', 'Mazatlán', 'Mocorito', 'Navolato', 'Rosario', 'Salvador Alvarado', 'San Ignacio', 'Sinaloa de Leyva'],
+    'Sonora': ['Hermosillo', 'Cajeme (Ciudad Obregón)', 'Nogales', 'San Luis Río Colorado', 'Navojoa', 'Guaymas', 'Agua Prieta', 'Caborca', 'Empalme', 'Etchojoa', 'Huatabampo', 'Cananea', 'Puerto Peñasco', 'Magdalena', 'Nacozari de García', 'Ímuris', 'Benito Juárez', 'Bácum', 'Rosario', 'Álamos', 'San Ignacio Río Muerto', 'Pitiquito', 'Altar', 'Santa Ana', 'Fronteras', 'Moctezuma', 'Ures'],
+    'Tabasco': ['Balancán', 'Cárdenas', 'Centla', 'Centro (Villahermosa)', 'Comalcalco', 'Cunduacán', 'Emiliano Zapata', 'Huimanguillo', 'Jalapa', 'Jalpa de Méndez', 'Jonuta', 'Macuspana', 'Nacajuca', 'Paraíso', 'Tacotalpa', 'Teapa', 'Tenosique'],
+    'Tamaulipas': ['Abasolo', 'Aldama', 'Altamira', 'Antiguo Morelos', 'Burgos', 'Bustamante', 'Camargo', 'Casas', 'Ciudad Madero', 'Cruillas', 'Gómez Farías', 'González', 'Güémez', 'Guerrero', 'Gustavo Díaz Ordaz', 'Hidalgo', 'Jaumave', 'Jiménez', 'Llera', 'Mainero', 'El Mante', 'Matamoros', 'Méndez', 'Mier', 'Miguel Alemán', 'Miquihuana', 'Nuevo Laredo', 'Nuevo Morelos', 'Ocampo', 'Padilla', 'Reynosa', 'Río Bravo', 'San Carlos', 'San Fernando', 'Soto la Marina', 'Tampico', 'Tula', 'Valle Hermoso', 'Victoria', 'Xicoténcatl'],
+    'Tlaxcala': ['Tlaxcala', 'Apizaco', 'Huamantla', 'Chiautempan', 'Zacatelco', 'Contla de Juan Cuamatzi', 'Calpulalpan', 'Xaloztoc', 'Papalotla de Xicohténcatl', 'Tetla de la Solidaridad', 'Ixtacuixtla de Mariano Matamoros', 'Nativitas', 'Yauhquemehcan', 'Panotla', 'Atlangatepec', 'Cuapiaxtla', 'Hueyotlipan', 'Tenancingo', 'Tepeyanco', 'Tlaxco', 'Totolac', 'Xicohtzinco', 'Terrenate', 'Ixtenco'],
+    'Veracruz': ['Veracruz', 'Xalapa', 'Coatzacoalcos', 'Córdoba', 'Orizaba', 'Poza Rica', 'Minatitlán', 'Boca del Río', 'Tuxpan', 'Papantla', 'San Andrés Tuxtla', 'Martínez de la Torre', 'Cosamaloapan', 'Coatepec', 'Pánuco', 'Río Blanco', 'Ixtaczoquitlán', 'Fortín', 'Perote', 'Misantla', 'Tierra Blanca', 'Acayucan', 'Cosoleacaque', 'Las Choapas', 'Agua Dulce', 'Jáltipan', 'Huatusco', 'Zongolica', 'Cerro Azul', 'Álamo Temapache', 'Tantoyuca', 'Ozuluama de Mascareñas', 'Pueblo Viejo', 'Chicontepec', 'Catemaco', 'Santiago Tuxtla', 'Emiliano Zapata', 'Actopan', 'Úrsulo Galván', 'Tlapacoyan'],
+    'Yucatán': ['Mérida', 'Kanasín', 'Valladolid', 'Progreso', 'Tizimín', 'Umán', 'Motul', 'Ticul', 'Tekax', 'Izamal', 'Hunucmá', 'Maxcanú', 'Muna', 'Oxkutzcab', 'Peto', 'Chemax', 'Halachó', 'Espita', 'Río Lagartos', 'Acanceh', 'Celestún', 'Conkal', 'Dzemul', 'Dzidzantún', 'Hocabá', 'Homún', 'Mama', 'Mayapán', 'Panabá'],
+    'Zacatecas': ['Zacatecas', 'Fresnillo', 'Guadalupe', 'Jerez', 'Río Grande', 'Sombrerete', 'Calera', 'Loreto', 'Pinos', 'Nochistlán de Mejía', 'Ojocaliente', 'Tlaltenango de Sánchez Román', 'Jalpa', 'Valparaíso', 'Villanueva', 'Concepción del Oro', 'Juchipila', 'Monte Escobedo', 'Vetagrande', 'Genaro Codina', 'Trancoso', 'Morelos', 'Chalchihuites', 'Mazapil', 'Miguel Auza', 'Sain Alto', 'Villa de Cos', 'Villa García', 'Villa Hidalgo', 'General Pánfilo Natera']
   };
 
   /* ---------------------------------------------------------
@@ -4260,35 +4351,11 @@
 
   /* Pinta la lista completa de logros en cualquier contenedor que exista:
      la vista compacta junto al chat (#mis-medallas) y la vista grande de
-     "Mi cuenta" (#zona-badges). Los ya ganados llevan una palomita verde. */
+     el modal "Logros" (#zona-badges), abierto desde la pestaña Logros
+     de la barra de arriba. Los ya ganados llevan una palomita verde. */
   function pintarLogros() {
     var p = leerProgreso();
     var ganados = p.ganados || [];
-
-    var chico = $('#mis-medallas');
-    if (chico) {
-      chico.innerHTML = '';
-      LOGROS.forEach(function (l) {
-        var tiene = ganados.indexOf(l.id) !== -1;
-        var d = document.createElement('div');
-        d.className = 'medalla';
-        d.dataset.ganada = tiene ? 'si' : 'no';
-        d.title = tiene ? l.desc : 'Por lograr: ' + l.desc;
-        d.innerHTML =
-          '<span class="medalla-ico" aria-hidden="true">' + (tiene
-            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>'
-            : l.nombre.split(' ')[0]) + '</span>' +
-          '<span class="medalla-txt">' + esc(l.nombre.replace(/^\S+\s/, '')) + '</span>';
-        chico.appendChild(d);
-      });
-    }
-    var piePeq = $('#medallas-pie');
-    if (piePeq) {
-      piePeq.textContent = ganados.length === 0
-        ? 'Hazle una pregunta al asistente para abrir tu primer logro.'
-        : (ganados.length === LOGROS.length ? 'Los tienes todos. Bien hecho.'
-                                             : 'Llevas ' + ganados.length + ' de ' + LOGROS.length + ' logros.');
-    }
 
     var grande = $('#zona-badges');
     if (grande) {
@@ -4475,16 +4542,46 @@
   var modalAbierto = null, focoPrevio = null;
   var FOCOS = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
+  /* ---------------------------------------------------------
+     UN SOLO CANDADO PARA EL SCROLL DEL FONDO
+     ---------------------------------------------------------
+     Antes había dos mecanismos peleándose: la portada apagaba
+     el scroll con body.style.overflow y los modales con la
+     clase .sin-scroll. Abrir un modal desde la portada y
+     cerrarlo dejaba el otro candado puesto, y la página se
+     quedaba tiesa: no se podía bajar y solo respondía la barra
+     de arriba, que va fija. Ahora se cuenta cuántas capas hay
+     encima y solo se libera cuando no queda ninguna.
+     --------------------------------------------------------- */
+  var capasEncima = 0;
+  function bloquearFondo() {
+    capasEncima++;
+    document.body.classList.add('sin-scroll');
+  }
+  function liberarFondo() {
+    capasEncima = Math.max(0, capasEncima - 1);
+    if (capasEncima === 0) { sincronizarCandado(); }
+  }
+  /* Red de seguridad: manda lo que de verdad se ve en pantalla, no la
+     cuenta. Si por algún camino quedó descuadrada, esto la corrige. */
+  function sincronizarCandado() {
+    var pt = document.getElementById('portada');
+    var hayPortada = !!(pt && !pt.hidden);
+    var hayModal = !!modalAbierto;
+    capasEncima = (hayPortada ? 1 : 0) + (hayModal ? 1 : 0);
+    document.body.classList.toggle('sin-scroll', capasEncima > 0);
+    document.body.style.overflow = '';
+  }
+
   function mostrarPortada() {
     var pt = document.getElementById('portada');
-    if (pt) { pt.hidden = false; }
-    document.body.style.overflow = 'hidden';
+    if (pt && pt.hidden) { pt.hidden = false; bloquearFondo(); }
     if (!sesion) { verVistaAuth('inicio'); }
   }
   function ocultarPortada() {
     var pt = document.getElementById('portada');
-    if (pt) { pt.hidden = true; }
-    document.body.style.overflow = '';
+    if (pt && !pt.hidden) { pt.hidden = true; liberarFondo(); }
+    sincronizarCandado();
   }
 
   function abrirModal(id) {
@@ -4493,24 +4590,29 @@
     if (id === 'modal-tutorial') { marcarProgreso('vioGuia'); }
     focoPrevio = document.activeElement;
     m.hidden = false;
-    document.body.classList.add('sin-scroll');
     modalAbierto = m;
+    bloquearFondo();
     var f = $$(FOCOS, m).filter(function (el) { return el.offsetParent !== null; });
-    if (f.length) { f[0].focus(); }
+    if (f.length) {enfocar(f[0]); }
   }
   function cerrarModal() {
     if (!modalAbierto) return;
     modalAbierto.hidden = true;
     modalAbierto = null;
-    document.body.classList.remove('sin-scroll');
-    if (focoPrevio && focoPrevio.focus) { focoPrevio.focus(); }
+    liberarFondo();
+    if (focoPrevio && focoPrevio.focus) {enfocar(focoPrevio); }
   }
   document.addEventListener('click', function (e) {
     var abre = e.target.closest('[data-abrir]');
     if (abre) { e.preventDefault(); abrirModal(abre.dataset.abrir); cerrarMenu(); return; }
     var pPt = e.target.closest('[data-portada]');
     if (pPt) { e.preventDefault(); mostrarPortada(); cerrarMenu(); return; }
-    if (e.target.closest('[data-cerrar]')) { e.preventDefault(); cerrarModal(); }
+    if (e.target.closest('[data-cerrar]')) { e.preventDefault(); cerrarModal(); return; }
+    /* Auto-rescate: si no queda nada encima pero el fondo sigue trabado,
+       se destraba solo al primer clic en vez de obligar a recargar. */
+    if (capasEncima === 0 && document.body.classList.contains('sin-scroll')) {
+      sincronizarCandado();
+    }
   });
   document.addEventListener('keydown', function (e) {
     if (!modalAbierto) return;
@@ -4519,8 +4621,8 @@
     var f = $$(FOCOS, modalAbierto).filter(function (el) { return el.offsetParent !== null; });
     if (!f.length) return;
     var primero = f[0], ultimo = f[f.length - 1];
-    if (e.shiftKey && document.activeElement === primero) { e.preventDefault(); ultimo.focus(); }
-    else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
+    if (e.shiftKey && document.activeElement === primero) { e.preventDefault();enfocar(ultimo); }
+    else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault();enfocar(primero); }
   });
 
   /* El tercer argumento es opcional: { etiqueta, accion }. Sirve para
@@ -4776,7 +4878,7 @@
         campo.value = sugerido;
         pista.hidden = true;
         validarCampo(campo, true);
-        campo.focus();
+enfocar(campo);
       });
       pista.textContent = '';
       pista.hidden = false;
@@ -4891,7 +4993,6 @@
     saludoInicial();
     pintarLogros();
     actualizarRacha();
-    irA('#demo');
     avisar('Estás probando sin cuenta. Nada de lo que escribas se guarda.');
   }
 
@@ -5263,14 +5364,14 @@
     }
     function marcarMal() {
       casillas.forEach(function (c) { c.dataset.mal = 'si'; });
-      setTimeout(function () { limpiar(); casillas[0].focus(); }, 700);
+      setTimeout(function () { limpiar();enfocar(casillas[0]); }, 700);
     }
     casillas.forEach(function (casilla, i) {
       casilla.addEventListener('input', function () {
         casilla.value = casilla.value.replace(/[^0-9]/g, '').slice(0, 1);
         if (casilla.value) {
           casilla.dataset.lleno = 'si';
-          if (i < casillas.length - 1) { casillas[i + 1].focus(); }
+          if (i < casillas.length - 1) {enfocar(casillas[i + 1]); }
         } else { casilla.removeAttribute('data-lleno'); }
         casillas.forEach(function (c) { c.removeAttribute('data-mal'); });
         if (casillas.every(function (c) { return c.value; })) { setTimeout(alCompletar, 180); }
@@ -5280,10 +5381,10 @@
           e.preventDefault();
           casillas[i - 1].value = '';
           casillas[i - 1].removeAttribute('data-lleno');
-          casillas[i - 1].focus();
+enfocar(casillas[i - 1]);
         }
-        if (e.key === 'ArrowLeft'  && i > 0) { casillas[i - 1].focus(); }
-        if (e.key === 'ArrowRight' && i < casillas.length - 1) { casillas[i + 1].focus(); }
+        if (e.key === 'ArrowLeft'  && i > 0) {enfocar(casillas[i - 1]); }
+        if (e.key === 'ArrowRight' && i < casillas.length - 1) {enfocar(casillas[i + 1]); }
         if (e.key === 'Enter') { e.preventDefault(); alCompletar(); }
       });
       casilla.addEventListener('paste', function (e) {
@@ -5295,7 +5396,7 @@
           casillas[i + j].value = pegado[j];
           casillas[i + j].dataset.lleno = 'si';
         }
-        casillas[Math.min(i + pegado.length, casillas.length - 1)].focus();
+enfocar(casillas[Math.min(i + pegado.length, casillas.length - 1)]);
         if (casillas.every(function (c) { return c.value; })) { setTimeout(alCompletar, 180); }
       });
     });
@@ -5319,13 +5420,13 @@
     });
   });
   $('#btn-ir-entrar').addEventListener('click', function () {
-    verVistaAuth('entrar'); $('#usuario-entrar').focus();
+    verVistaAuth('entrar');enfocar($('#usuario-entrar'));
   });
   $('#btn-ir-registro').addEventListener('click', function () {
-    verVistaAuth('registro'); $('#reg-correo').focus();
+    verVistaAuth('registro');enfocar($('#reg-correo'));
   });
   $('#btn-registro-ya-tengo').addEventListener('click', function () {
-    verVistaAuth('entrar'); $('#usuario-entrar').focus();
+    verVistaAuth('entrar');enfocar($('#usuario-entrar'));
   });
   $('#btn-invitado').addEventListener('click', entrarDeInvitado);
 
@@ -5345,7 +5446,7 @@
     pintarListaConvs();
     mostrarPortada();
     verVistaAuth('registro');
-    $('#reg-correo').focus();
+enfocar($('#reg-correo'));
   });
 
   /* Dejar a medias el registro (o la recuperación) y volver al inicio.
@@ -5584,7 +5685,7 @@
     codCorreo.limpiar();
     $('#error-codigo').hidden = true;
     verVistaAuth('codigo');
-    setTimeout(function () { if (codCorreo.primera) { codCorreo.primera.focus(); } }, 120);
+    setTimeout(function () { if (codCorreo.primera) {enfocar(codCorreo.primera); } }, 120);
   }
 
   /* A dónde ir una vez que el correo ya quedó comprobado (código escrito, o
@@ -5607,7 +5708,7 @@
       $('#form-nueva-clave').reset();
       pintarRequisitosClave('requisitos-nc-clave', '');
       verVistaAuth('nueva-clave');
-      setTimeout(function () { $('#nc-clave').focus(); }, 120);
+      setTimeout(function () {enfocar($('#nc-clave')); }, 120);
       return false;
     }
     if (yaCompleta && sesion.usuario) {
@@ -5619,7 +5720,7 @@
     $('#pista-usuario').hidden = true;
     pintarRequisitosClave('requisitos-cc-clave', '');
     verVistaAuth('crear-cuenta');
-    setTimeout(function () { $('#cc-usuario').focus(); }, 120);
+    setTimeout(function () {enfocar($('#cc-usuario')); }, 120);
     return false;
   }
 
@@ -5705,7 +5806,7 @@
       .then(function () {
         botonReenviar.disabled = false; girador.hidden = true; texto.textContent = 'Mandar otro';
         codCorreo.limpiar();
-        if (codCorreo.primera) { codCorreo.primera.focus(); }
+        if (codCorreo.primera) {enfocar(codCorreo.primera); }
         avisar('Listo, va otro código en camino.');
       })
       .catch(function (err) {
@@ -5777,7 +5878,7 @@
     verVistaAuth('recuperar');
     $('#correo-recuperar').value = '';
     $('#error-recuperar').hidden = true;
-    $('#correo-recuperar').focus();
+enfocar($('#correo-recuperar'));
   });
 
   function pedirRecuperacion(e) {
@@ -5846,6 +5947,12 @@
   /* ---------------------------------------------------------------
      Ya adentro
      --------------------------------------------------------------- */
+  /* Antes de aquí salía un irA('#demo') que mandaba de un salto a la
+     sección del chat en cuanto se entraba: eso era el "me manda a la
+     mitad de la página" que se venía reportando — no un capricho del
+     navegador, sino la propia app empujando el scroll. Ahora, al
+     entrar, la persona se queda viendo el inicio, como cualquier
+     página normal. */
   function entrarDeLleno() {
     pintarSesion();
     if (!esInvitado()) { marcarProgreso('tieneCuenta'); }
@@ -5854,7 +5961,6 @@
     cargarConvs();
     ocultarPortada();
     pintarTiraGiro();
-    irA('#demo');
     avisar('¡Bienvenida, ' + sesion.usuario + '! Ya estás dentro.');
   }
 
@@ -5902,7 +6008,7 @@
     $('#girador-guardar-clave').hidden = true;
     $('#texto-btn-guardar-clave').textContent = 'Guardar mi contraseña nueva';
     abrirModal('modal-cambiar-clave');
-    setTimeout(function () { $('#ac-clave').focus(); }, 120);
+    setTimeout(function () {enfocar($('#ac-clave')); }, 120);
   }
 
   $('#form-cambiar-clave').addEventListener('submit', function (e) {
@@ -5959,20 +6065,30 @@
   /* ---------------------------------------------------------------
      La tira del giro
      --------------------------------------------------------------- */
+  /* Decide cuál tira mostrar debajo del encabezado del chat, una a la
+     vez: primero estado, luego municipio, y hasta el final el giro del
+     negocio. Antes cada tira se pintaba por su cuenta y "tira-ubicacion"
+     nunca se destapaba: se quedaba oculta desde el HTML para siempre y
+     nadie podía llegar a elegir su estado. */
   function pintarTiraGiro() {
-    var tira = document.getElementById('tira-giro');
-    if (!tira) { return; }
-    tira.hidden = !(sesion && !sesion.giro);
+    var tGiro = document.getElementById('tira-giro');
+    var tUbicacion = document.getElementById('tira-ubicacion');
+    if (!tGiro) { return; }
+    var faltaEstado = sesion && !sesion.estado;
+    var faltaGiro = sesion && !sesion.giro;
+    if (tUbicacion) { tUbicacion.hidden = !faltaEstado; }
+    tGiro.hidden = !(faltaGiro && !faltaEstado);
   }
 
   (function conectarTirasUbicacionGiro() {
     var selEstado = document.getElementById('estado-rapido');
-    var selMunicipio = document.getElementById('municipio-rapido');
     var inputBuscar = document.getElementById('municipio-buscar');
+    var listaResultados = document.getElementById('municipio-resultados');
     var selGiro = document.getElementById('giro-rapido');
     var tiraUbicacion = document.getElementById('tira-ubicacion');
     var tiraMunicipio = document.getElementById('tira-municipio');
     var tiraGiro = document.getElementById('tira-giro');
+    var municipiosEstado = [];
 
     if (!selEstado || !selGiro) { return; }
 
@@ -5992,39 +6108,55 @@
       selGiro.appendChild(o);
     });
 
+    function elegirMunicipio(nombre) {
+      if (sesion) { sesion.municipio = nombre; sesion.estado = selEstado.value; guardarPerfilLocal(); }
+      listaResultados.hidden = true;
+      tiraMunicipio.hidden = true;
+      tiraGiro.hidden = false;
+      avisar('Municipio: ' + nombre);
+    }
+
+    /* Pinta hasta 8 coincidencias como botones; con el campo vacío se ven
+       los primeros del estado, para no obligar a escribir si no hace falta. */
+    function pintarResultadosMunicipio() {
+      var txt = inputBuscar.value.trim().toLowerCase();
+      var coincidencias = municipiosEstado.filter(function (m) {
+        return !txt || m.toLowerCase().indexOf(txt) !== -1;
+      }).slice(0, 8);
+      listaResultados.innerHTML = '';
+      if (!coincidencias.length) {
+        listaResultados.innerHTML = '<li class="sin-resultados">Ninguno coincide. Prueba con otro nombre.</li>';
+      } else {
+        coincidencias.forEach(function (m) {
+          var li = document.createElement('li');
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = m;
+          b.addEventListener('click', function () { elegirMunicipio(m); });
+          li.appendChild(b);
+          listaResultados.appendChild(li);
+        });
+      }
+      listaResultados.hidden = false;
+    }
+
     /* Cambio de estado */
     selEstado.addEventListener('change', function () {
       if (!selEstado.value) { return; }
-      var municipios = ESTADOS_MUNICIPIOS[selEstado.value] || [];
-      selMunicipio.innerHTML = '<option value="">Elige tu municipio…</option>';
+      municipiosEstado = ESTADOS_MUNICIPIOS[selEstado.value] || [];
       inputBuscar.value = '';
-      municipios.forEach(function (m) {
-        var o = document.createElement('option');
-        o.value = m;
-        o.textContent = m;
-        selMunicipio.appendChild(o);
-      });
       tiraUbicacion.hidden = true;
       tiraMunicipio.hidden = false;
-      inputBuscar.focus();
+      pintarResultadosMunicipio();
+enfocar(inputBuscar);
     });
 
-    /* Búsqueda de municipios */
-    inputBuscar.addEventListener('input', function () {
-      var txt = inputBuscar.value.toLowerCase();
-      var opts = selMunicipio.querySelectorAll('option');
-      opts.forEach(function (o) {
-        o.hidden = o.value && !o.textContent.toLowerCase().includes(txt);
-      });
-    });
-
-    /* Cambio de municipio */
-    selMunicipio.addEventListener('change', function () {
-      if (!selMunicipio.value) { return; }
-      if (sesion) { sesion.municipio = selMunicipio.value; sesion.estado = selEstado.value; guardarSesion(); }
-      tiraMunicipio.hidden = true;
-      tiraGiro.hidden = false;
-      avisar('Municipio: ' + selMunicipio.value);
+    /* Búsqueda de municipios: al teclear, y también al tocar el campo
+       (para ver opciones sin tener que escribir nada primero). */
+    inputBuscar.addEventListener('input', pintarResultadosMunicipio);
+    inputBuscar.addEventListener('focus', pintarResultadosMunicipio);
+    document.addEventListener('click', function (e) {
+      if (!tiraMunicipio.hidden && !tiraMunicipio.contains(e.target)) { listaResultados.hidden = true; }
     });
 
     /* Cambio de giro */
@@ -6532,7 +6664,9 @@
       '(artesanos, mezcaleros, cocineras, comerciantes, gente del campo). Hablas con ' + quien + ', cuyo negocio es: ' + giro + '. ' +
       'Español mexicano cálido y sencillo, cero tecnicismos (nunca "prompt", "token", "endpoint"). ' +
       'Entrega siempre material listo para usar (publicación, precio, descripción), no consejos vagos. ' +
-      'La IA acompaña el oficio artesanal, nunca lo reemplaza. Máximo 200 palabras salvo que pidan más.' +
+      'La IA acompaña el oficio artesanal, nunca lo reemplaza. Máximo 200 palabras salvo que pidan más. ' +
+      'Responde SOLO lo que la persona preguntó: si su mensaje no tiene nada que ver con cultivos, clima o cosecha, ' +
+      'contesta ese tema con toda normalidad y no metas la cosecha por tu cuenta.' +
       contextoParcela();
   }
 
@@ -6540,26 +6674,46 @@
      asistente que contesta "siembra cuando empiecen las lluvias" y uno que
      contesta "con los 54 mm que llevas esta semana, ya puedes".
      Solo se manda si la persona ya abrió la sección y llegó el dato: si no,
-     mejor que la IA no sepa nada a que se invente números. */
+     mejor que la IA no sepa nada a que se invente números.
+
+     Si la persona marcó "no tengo nada sembrado" no se manda nada de esto
+     — así una pregunta que no es de la cosecha no sale contestada como si
+     lo fuera, que es justo la queja que más se repetía. Y si marcó varios
+     cultivos en "¿con qué más trabajas?" se listan todos, no solo el que
+     está viendo ahora mismo en el simulador de arriba. */
+  /* Datos crudos (sin instrucciones) para mandarle al servidor: él arma el
+     texto final del prompt en su propia plantilla — ver promptMaestro() en
+     backend/ia-core.js. Aquí solo se preparan los números y nombres. */
+  function datosClimaCultivoParaIA() {
+    if (sinCultivoActivo()) { return { sinCultivo: true, cultivosTexto: '', climaTexto: '' }; }
+    if (!climaActual || !lugarActual) { return { sinCultivo: false, cultivosTexto: '', climaTexto: '' }; }
+    var elegidos = misCultivosElegidos();
+    if (!elegidos.length && cultivoActual) { elegidos = [cultivoActual]; }
+    if (!elegidos.length) { return { sinCultivo: false, cultivosTexto: '', climaTexto: '' }; }
+
+    var climaTexto = 'en ' + lugarActual.nombre + ' (' + lugarActual.region + ', Oaxaca) llovieron ' +
+      climaActual.acumulado7 + ' mm en los últimos 7 días (' + climaActual.acumulado5 + ' mm en los últimos 5); ' +
+      'se esperan ' + climaActual.vienen7 + ' mm en los próximos 7 días';
+    if (climaActual.humedadSuelo !== null) { climaTexto += '; la tierra a 5 cm está ' + palabraHumedad(climaActual.humedadSuelo); }
+    if (climaActual.tempSuelo !== null) { climaTexto += '; la tierra está a ' + Math.round(climaActual.tempSuelo) + '°C'; }
+
+    var cultivosTexto = elegidos.map(function (c) {
+      return c.nombre.toLowerCase() + ' (se siembra ' + listaMeses(c.siembra) + ', se cosecha ' + listaMeses(c.cosecha) + ')';
+    }).join('; ');
+
+    return { sinCultivo: false, cultivosTexto: cultivosTexto, climaTexto: climaTexto };
+  }
+
+  /* Mismo contenido que datosClimaCultivoParaIA(), pero como un párrafo con
+     instrucciones — lo usa el motor local (sin conexión al servidor). */
   function contextoParcela() {
-    if (!climaActual || !lugarActual || !cultivoActual) { return ''; }
-    var t = ' DATOS REALES DEL CLIMA DE HOY, medidos, no inventados, para ' +
-      lugarActual.nombre + ' (' + lugarActual.region + ', Oaxaca), donde esta persona tiene su terreno: ' +
-      'en los últimos 7 días llovieron ' + climaActual.acumulado7 + ' mm (' +
-      climaActual.acumulado5 + ' mm en los últimos 5); para los próximos 7 días se esperan ' +
-      climaActual.vienen7 + ' mm';
-    if (climaActual.humedadSuelo !== null) {
-      t += '; la tierra a 5 cm está ' + palabraHumedad(climaActual.humedadSuelo);
-    }
-    if (climaActual.tempSuelo !== null) {
-      t += '; la tierra está a ' + Math.round(climaActual.tempSuelo) + '°C';
-    }
-    t += '. El cultivo que le interesa es ' + cultivoActual.nombre.toLowerCase() +
-      ', que en Oaxaca se siembra ' + listaMeses(cultivoActual.siembra) +
-      ' y se cosecha ' + listaMeses(cultivoActual.cosecha) + '. ' +
-      'USA ESTOS NÚMEROS cuando la pregunta sea del campo, y cítalos tal cual. ' +
+    var d = datosClimaCultivoParaIA();
+    if (d.sinCultivo || (!d.climaTexto && !d.cultivosTexto)) { return ''; }
+    return ' DATOS REALES DE HOY, medidos, no inventados: ' + d.climaTexto + '. ' +
+      'Cultivos con los que trabaja: ' + d.cultivosTexto + '. ' +
+      'USA ESTOS NÚMEROS solo cuando la pregunta sea del campo, la siembra o el clima, y cítalos tal cual. ' +
+      'Si la pregunta es de otra cosa, ignora por completo este párrafo y no lo menciones. ' +
       'Nunca inventes datos de clima distintos a estos ni te los imagines para otra fecha.';
-    return t;
   }
 
   /* Las últimas vueltas de la plática, para que el asistente entienda
@@ -6608,6 +6762,7 @@
     /* un poco más que el límite del servidor, para que él conteste primero */
     var corte = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, CONFIG.LIMITE_MS * 2 + 2000);
 
+    var datosCampo = datosClimaCultivoParaIA();
     var opc = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -6615,6 +6770,9 @@
         message: consulta,
         username: sesion ? (sesion.usuario || sesion.nombre) : 'invitado',
         businessType: sesion ? sesion.giroTexto : '',
+        sinCultivo: datosCampo.sinCultivo,
+        cultivosTexto: datosCampo.cultivosTexto,
+        climaTexto: datosCampo.climaTexto,
         historial: historialReciente(),
         imagen: fotoEnviada || undefined
       })
@@ -6758,7 +6916,7 @@
   function nuevaConv(silencio) {
     var c = { id: 'v' + Date.now() + Math.floor(Math.random() * 999), titulo: 'Nueva plática', mensajes: [] };
     convs.unshift(c); idConv = c.id; guardarConvs();
-    if (!silencio) { pintarListaConvs(); pintarHilo(); entrada.focus(); }
+    if (!silencio) { pintarListaConvs(); pintarHilo();enfocar(entrada); }
   }
 
   function pintarListaConvs() {
@@ -7516,7 +7674,7 @@
         mostrarPortada();
       } else {
         irA('#demo');
-        entrada.focus();
+enfocar(entrada);
       }
     });
   }
@@ -7672,7 +7830,7 @@
       oyendo = false;
       boton.dataset.oyendo = 'no';
       boton.setAttribute('aria-label', 'Dictar tu mensaje con la voz');
-      entrada.focus();
+enfocar(entrada);
     });
 
     boton.addEventListener('click', function () {
@@ -7846,7 +8004,7 @@
         $('#previa-foto-img').src = uri;
         $('#previa-foto-peso').textContent = Math.round(peso / 1024) + ' KB · se manda junto con tu mensaje';
         previa.hidden = false;
-        entrada.focus();
+enfocar(entrada);
       });
     });
 
@@ -7954,7 +8112,7 @@
       $('#previa-foto-img').src = uri;
       $('#previa-foto-peso').textContent = Math.round(uri.length * 0.75 / 1024) + ' KB · se manda junto con tu mensaje';
       $('#previa-foto').hidden = false;
-      entrada.focus();
+enfocar(entrada);
       marcarProgreso('fotoCapturada');
       detenerCamara();
       modal.remove();
@@ -8029,7 +8187,7 @@
         if (ubicacion) {
           var mensaje = '📍 Mi ubicación: ' + ubicacion.lat.toFixed(5) + ', ' + ubicacion.lon.toFixed(5) + ' (precisión: ' + Math.round(ubicacion.precision) + 'm)';
           $('#entrada-chat').value = mensaje;
-          $('#entrada-chat').focus();
+enfocar($('#entrada-chat'));
         }
       });
     });
@@ -9706,9 +9864,74 @@
       pintarAvance();
     });
   }
+  /* ---------------------------------------------------------
+     CON QUÉ MÁS TRABAJA
+     ---------------------------------------------------------
+     El simulador de arriba solo puede graficar el clima de un cultivo
+     a la vez, pero mucha gente siembra varias cosas. Esto guarda la
+     lista completa aparte, para que la IA sepa de todas y no le
+     conteste asumiendo que solo hay una. Marcar "no tengo nada
+     sembrado" apaga por completo el contexto del campo: así una
+     pregunta que no es de la cosecha no sale contestada como si lo
+     fuera. --------------------------------------------------------- */
+  function claveMisCultivos() { return 'oaxintegra.miscultivos.' + (sesion ? sesion.usuario.toLowerCase() : 'invitado'); }
+  function leerMisCultivos() {
+    try { return JSON.parse(almacen.leer(claveMisCultivos()) || '{}'); }
+    catch (e) { return {}; }
+  }
+  function guardarMisCultivos(d) { almacen.guardar(claveMisCultivos(), JSON.stringify(d)); }
+  function sinCultivoActivo() { return !!leerMisCultivos().sinCultivo; }
+  function misCultivosElegidos() {
+    var d = leerMisCultivos();
+    return (d.lista || []).map(function (id) { return buscarCultivo(id); }).filter(Boolean);
+  }
+
+  function pintarChipsMisCultivos() {
+    var cont = $('#chips-mis-cultivos');
+    var chk = $('#chk-sin-cultivo');
+    if (!cont || !chk) { return; }
+    var datos = leerMisCultivos();
+    var lista = datos.lista || [];
+    chk.checked = !!datos.sinCultivo;
+    cont.innerHTML = '';
+    CULTIVOS.forEach(function (c) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip-cultivo';
+      b.textContent = c.nombre;
+      b.setAttribute('aria-pressed', lista.indexOf(c.id) !== -1 ? 'true' : 'false');
+      b.addEventListener('click', function () {
+        var d = leerMisCultivos();
+        var l = d.lista || [];
+        var i = l.indexOf(c.id);
+        if (i === -1) { l.push(c.id); } else { l.splice(i, 1); }
+        d.lista = l;
+        d.sinCultivo = false;
+        guardarMisCultivos(d);
+        pintarChipsMisCultivos();
+      });
+      cont.appendChild(b);
+    });
+  }
+
+  function conectarMisCultivos() {
+    var chk = $('#chk-sin-cultivo');
+    if (!chk) { return; }
+    pintarChipsMisCultivos();
+    chk.addEventListener('change', function () {
+      var d = leerMisCultivos();
+      d.sinCultivo = chk.checked;
+      if (chk.checked) { d.lista = []; }
+      guardarMisCultivos(d);
+      pintarChipsMisCultivos();
+      avisar(chk.checked ? 'Listo: por ahora no le voy a hablar de cultivos si no me preguntas de eso.' : 'Marca lo que siembres para que te responda con eso en mente.');
+    });
+  }
+
   function arrancarParcela() {
     if (!$('#sel-lugar')) { return; }
     llenarSelectores();
+    conectarMisCultivos();
 
     $('#sel-lugar').addEventListener('change', function () {
       lugarActual = buscarLugar(this.value) || LUGARES[0];
@@ -9836,9 +10059,14 @@
       var b = $(sel);
       if (b) { b.setAttribute('aria-label', etiqueta); }
     });
-    /* el botón del menú del celular lleva el texto a la vista */
-    var txt = $('#texto-tema-movil');
-    if (txt) { txt.textContent = t === 'noche' ? 'Modo día' : 'Modo noche'; }
+    /* antes el botón de arriba era solo un ícono de sol: nadie sabía qué
+       hacía. Ahora los dos, el de la cabecera y el del menú, llevan la
+       palabra a la vista. */
+    var textoBoton = t === 'noche' ? 'Modo día' : 'Modo noche';
+    ['#texto-tema', '#texto-tema-movil'].forEach(function (sel) {
+      var txt = $(sel);
+      if (txt) { txt.textContent = textoBoton; }
+    });
   }
   var temaGuardado = almacen.leer('oaxintegra.tema') || 'dia';
   aplicarTema(temaGuardado);
