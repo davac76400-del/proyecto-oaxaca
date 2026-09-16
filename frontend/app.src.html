@@ -1564,6 +1564,23 @@
   }
 
   /* =====================================================================
+     NOTICIAS DEL CAMPO · lo que se habla esta semana de tu cultivo
+     Es contenido extra, no vital como el clima: si no hay nada que
+     mostrar (sin red, sin resultados), la tarjeta entera se esconde en
+     vez de enseñar una caja vacía o un error.
+     ===================================================================== */
+  .noticias-campo[hidden]{ display:none; }
+  .noticias-campo__lista{ display:flex; flex-direction:column; gap:.9rem; margin-top:.3rem; }
+  .noticias-campo__item{ padding-bottom:.9rem; border-bottom:1px solid rgb(var(--borde)); }
+  .noticias-campo__item:last-child{ border-bottom:0; padding-bottom:0; }
+  .noticias-campo__enlace{
+    font-size:.94rem; line-height:1.4; color:rgb(var(--texto)); font-weight:600;
+    text-decoration:none;
+  }
+  .noticias-campo__enlace:hover{ color:rgb(var(--cian)); text-decoration:underline; }
+  .noticias-campo__meta{ font-size:.76rem; color:rgb(var(--tenue)); margin-top:.3rem; }
+
+  /* =====================================================================
      LA LUNA · la cara iluminada se dibuja con la fase real
      ===================================================================== */
   .luna__cuerpo{ display:flex; gap:1.2rem; align-items:center; margin-top:.4rem; }
@@ -2759,6 +2776,21 @@
           se pone porque mucha gente siembra así, y cada quien sabe si la sigue.
         </p>
       </div>
+    </div>
+
+    <!-- NOTICIAS DEL CAMPO -->
+    <div class="revela tarjeta-dato noticias-campo mt-6" id="noticias-campo" hidden>
+      <div class="tarjeta-dato__cabeza">
+        <div>
+          <h3 class="tarjeta-dato__titulo">Se está hablando de esto</h3>
+          <p class="tarjeta-dato__sub" id="noticias-campo-sub">Noticias recientes de tu cultivo</p>
+        </div>
+      </div>
+      <div class="noticias-campo__lista" id="noticias-campo-lista"></div>
+      <p class="tarjeta-dato__pie">
+        Búsqueda automática en noticias de México. Son notas de prensa, no un consejo de
+        OaxIntegra IA: revisa la fuente antes de decidir algo con dinero de por medio.
+      </p>
     </div>
 
     <!-- EL CALENDARIO DEL CULTIVO -->
@@ -9655,6 +9687,8 @@ enfocar($('#entrada-chat'));
       $('#lluvia-sub').textContent = 'Elige tu ubicación para ver la lluvia';
       $('#grafica-lluvia').innerHTML =
         '<p class="text-tenue text-[0.9rem] py-8 text-center">Elige tu estado y municipio para ver la lluvia.</p>';
+      var cajaNoticias = $('#noticias-campo');
+      if (cajaNoticias) { cajaNoticias.hidden = true; }
       return Promise.resolve();
     }
     $('#lluvia-sub').textContent = 'Milímetros por día en ' + lugarActual.nombre;
@@ -9663,6 +9697,7 @@ enfocar($('#entrada-chat'));
       pintarVeredicto(evaluarSiembra(cultivoActual, climaActual));
       pintarCifrasSuelo(climaActual, cultivoActual);
       repintarDatosDelRango();
+      pintarNoticiasCampo(cultivoActual, lugarActual);
       marcarProgreso('usoMedidorAgua');
       marcarProgreso('usoBalanceAgua');
       return Promise.resolve();
@@ -9681,6 +9716,7 @@ enfocar($('#entrada-chat'));
     historiaActual = null;
     pedirHistoria(lugarActual);
     pintarSatelite(lugarActual);
+    pintarNoticiasCampo(cultivoActual, lugarActual);
     pintarLuna();
     marcarProgreso('usoLunar');
     marcarProgreso('usoHistorialLluvia');
@@ -9988,6 +10024,71 @@ enfocar($('#entrada-chat'));
         'No pude comunicarme con el satélite de la NASA en este momento. ' +
         'Todo lo demás de esta sección sigue funcionando con los datos del clima.';
     });
+  }
+
+  /* ======================================================================
+     NOTICIAS DEL CAMPO
+     ----------------------------------------------------------------------
+     Contenido extra, no un dato medido: es prensa real buscada por cultivo
+     y estado. Como no es vital, si no hay nada que enseñar (sin red, sin
+     resultados, sin ubicación todavía) la tarjeta entera se esconde en
+     vez de dejar un hueco vacío o un error a la vista.
+     ====================================================================== */
+  var pidiendoNoticias = false;
+  function pintarNoticiasCampo(cultivo, lugar) {
+    var caja = $('#noticias-campo');
+    if (!caja || pidiendoNoticias) { return Promise.resolve(); }
+    if (!lugar || lugar.lat === null) { caja.hidden = true; return Promise.resolve(); }
+
+    pidiendoNoticias = true;
+    var nombreCultivo = (cultivo && cultivo.nombre) || '';
+    var nombreRegion   = (lugar && lugar.region) || (lugar && lugar.nombre) || '';
+    var params = new URLSearchParams({ cultivo: nombreCultivo, region: nombreRegion });
+
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var reloj = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, 10000);
+
+    return fetch('/api/noticias?' + params.toString(), ctrl ? { signal: ctrl.signal } : {})
+      .then(function (r) {
+        clearTimeout(reloj);
+        if (!r.ok) { throw new Error('noticias ' + r.status); }
+        return r.json();
+      })
+      .then(function (d) {
+        var noticias = (d && Array.isArray(d.noticias)) ? d.noticias : [];
+        if (!noticias.length) { caja.hidden = true; return; }
+
+        var lista = $('#noticias-campo-lista');
+        lista.innerHTML = '';
+        noticias.forEach(function (n) {
+          var item = document.createElement('div');
+          item.className = 'noticias-campo__item';
+
+          var a = document.createElement('a');
+          a.className = 'noticias-campo__enlace';
+          a.href = n.enlace;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer nofollow';
+          a.textContent = n.titulo;
+          item.appendChild(a);
+
+          var meta = document.createElement('p');
+          meta.className = 'noticias-campo__meta';
+          var fecha = n.fecha ? new Date(n.fecha) : null;
+          var fechaTexto = (fecha && !isNaN(fecha)) ?
+            fecha.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) : '';
+          meta.textContent = [n.fuente, fechaTexto].filter(Boolean).join(' · ');
+          item.appendChild(meta);
+
+          lista.appendChild(item);
+        });
+
+        $('#noticias-campo-sub').textContent = nombreCultivo ?
+          'Noticias recientes de ' + nombreCultivo.toLowerCase() : 'Noticias recientes del campo';
+        caja.hidden = false;
+      })
+      .catch(function () { caja.hidden = true; })
+      .then(function () { pidiendoNoticias = false; });
   }
 
   /* ======================================================================

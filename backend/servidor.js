@@ -50,6 +50,7 @@ const hayEnv = cargarEnv();
 
 /* se carga DESPUÉS del .env, porque lee process.env al arrancar */
 const ia = require('./ia-core.js');
+const { traerNoticiasCampo } = require('./noticias-campo.js');
 
 const PUERTO  = Number(process.env.PORT || 3000);
 const CARPETA = path.join(RAIZ, 'dist');
@@ -149,6 +150,17 @@ const servidor = http.createServer(async (req, res) => {
   /* ---- estado, para saber si el servidor tiene llaves ---- */
   if (url.pathname === '/api/estado') {
     return json(res, 200, ia.estado());
+  }
+
+  /* ---- noticias reales del campo, ligadas a cultivo y estado ---- */
+  if (url.pathname === '/api/noticias') {
+    if (req.method !== 'GET') { return json(res, 405, { noticias: [] }); }
+    try {
+      const noticias = await traerNoticiasCampo(url.searchParams.get('cultivo'), url.searchParams.get('region'));
+      return json(res, 200, { noticias: noticias });
+    } catch (e) {
+      return json(res, 200, { noticias: [] });
+    }
   }
 
   /* ---- la app ---- */
