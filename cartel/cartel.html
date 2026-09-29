@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cartel - Identidad, diversidad y respeto</title>
+
+<style>
+@page { size: 11in 17in; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --rojo:#E63946; --naranja:#F77F00; --amarillo:#FCBF49; --verde:#2A9D8F;
+  --azul:#1D4E89; --morado:#7B2CBF; --rosa:#F15BB5; --oscuro:#14213D; --crema:#FFF8EC;
+}
+html, body { width: 11in; height: 17in; }
+body { font-family: 'Liberation Sans',Arial,sans-serif; background: var(--crema); color: var(--oscuro); position: relative; overflow: hidden; }
+.arcoiris { height: .35in; background: linear-gradient(90deg,var(--rojo) 0 16.66%,var(--naranja) 0 33.33%,var(--amarillo) 0 50%,var(--verde) 0 66.66%,var(--azul) 0 83.33%,var(--morado) 0); }
+.arcoiris.bottom { position:absolute; bottom:0; left:0; right:0; }
+
+/* HEADER */
+header { position: relative; background: var(--oscuro); color:#fff; padding: .45in .6in .5in; height: 4.15in; overflow:hidden; }
+header .blob { position:absolute; border-radius:50%; opacity:.9; }
+.b1{ width:3.2in;height:3.2in;background:var(--rosa);right:-.9in;top:-1.2in;}
+.b2{ width:2.2in;height:2.2in;background:var(--amarillo);right:1.4in;top:2.9in; opacity:.95}
+.b3{ width:1.6in;height:1.6in;background:var(--verde);left:-.6in;bottom:-.7in;}
+.b4{ width:1in;height:1in;background:var(--naranja);right:.5in;bottom:.4in;}
+.tag { display:inline-block; background:var(--amarillo); color:var(--oscuro); font-weight:800; font-size:15pt; letter-spacing:.12em; text-transform:uppercase; padding:.08in .25in; border-radius:99px; position:relative; }
+h1 { font-family:'Liberation Sans',Arial,sans-serif; font-weight:900; font-size:50pt; line-height:1; margin-top:.2in; letter-spacing:-.02em; text-transform:uppercase; position:relative; }
+h1 .c1{color:var(--amarillo);} h1 .c2{color:var(--rosa);} h1 .c3{color:#5FD3C5;}
+.sub { position:relative; margin-top:.2in; font-size:17pt; font-weight:600; max-width:6.6in; line-height:1.25; }
+.sub b { color: var(--amarillo); font-weight:900; }
+
+/* FRASE */
+.frase { background: var(--rojo); color:#fff; text-align:center; padding:.22in .6in; font-family:'Liberation Sans',Arial,sans-serif; font-size:25pt; font-weight:900; line-height:1.1; }
+.frase span { color: var(--amarillo); }
+
+main { padding:.3in .6in 0; }
+.grid { display:grid; grid-template-columns: 1fr 1fr; gap:.2in; }
+.card { border-radius:.22in; padding:.22in .28in; position:relative; }
+.card h2 { font-weight:900; font-size:15pt; text-transform:uppercase; letter-spacing:.03em; margin-bottom:.12in; display:flex; align-items:center; gap:.12in; }
+.card h2 i { font-style:normal; font-size:24pt; }
+.card p, .card li { font-size:11.5pt; line-height:1.35; font-weight:600; }
+.card li { margin-left:.2in; margin-bottom:.06in; }
+.c-def { background: var(--azul); color:#fff; }
+.c-def h2 { color: var(--amarillo); }
+.c-der { background: var(--verde); color:#fff; }
+.c-der h2 { color: #FFF3B0; }
+.c-caso { background:#fff; border:.05in solid var(--morado); }
+.c-caso h2 { color: var(--morado); }
+.c-res { background: var(--amarillo); }
+.c-res h2 { color: var(--rojo); }
+.full { grid-column: 1 / -1; }
+
+/* Acciones */
+.acciones { display:grid; grid-template-columns: repeat(3,1fr); gap:.18in; margin-top:.05in; }
+.ac { background:#fff; border-radius:.16in; padding:.16in .2in; border-top:.09in solid; font-size:11pt; font-weight:700; line-height:1.3; }
+.ac:nth-child(1){border-color:var(--rojo)} .ac:nth-child(2){border-color:var(--naranja)} .ac:nth-child(3){border-color:var(--verde)}
+.ac:nth-child(4){border-color:var(--azul)} .ac:nth-child(5){border-color:var(--morado)} .ac:nth-child(6){border-color:var(--rosa)}
+.ac em { display:block; font-style:normal; font-size:9.5pt; letter-spacing:.1em; text-transform:uppercase; color:#777; margin-bottom:.03in; }
+
+/* Cierre */
+.cierre { margin:.25in .6in 0; background: var(--oscuro); color:#fff; border-radius:.25in; padding:.22in .4in; text-align:center; position:relative; overflow:hidden; }
+.cierre .big { font-family:'Liberation Sans',Arial,sans-serif; font-size:26pt; font-weight:900; line-height:1.1; }
+.cierre .big span:nth-child(1){color:var(--amarillo)} .cierre .big span:nth-child(2){color:var(--rosa)} .cierre .big span:nth-child(3){color:#5FD3C5}
+.cierre p { font-size:11.5pt; font-weight:600; margin-top:.1in; }
+footer { position:absolute; bottom:.55in; left:.6in; right:.6in; display:flex; justify-content:space-between; font-size:11pt; font-weight:700; color:#444; }
+</style>
+</head>
+<body>
+<div class="arcoiris"></div>
+<header>
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div>
+  <span class="tag">Identidad · Diversidad · Respeto</span>
+  <h1><span class="c1">Todas</span> <span class="c2">las</span> <span class="c3">personas</span><br>somos <span class="c1">iguales</span><br>en <span class="c2">dignidad</span></h1>
+  <p class="sub">La <b>discriminación</b> es una forma de <b>violencia</b>. Elegir el respeto es elegir una escuela para todas y todos.</p>
+</header>
+
+<div class="frase">“Diferentes en lo que somos, <span>iguales en derechos</span>”</div>
+
+<main>
+<div class="grid">
+  <section class="card c-def">
+    <h2><i>💬</i> ¿Qué es discriminar?</h2>
+    <p>Es <b>distinguir y dar un trato desigual</b> a una persona o grupo por <b>prejuicios y estereotipos</b>: color de piel, religión, nacionalidad, situación económica, orientación sexual, discapacidad u otras razones.</p>
+    <p style="margin-top:.1in">Puede ser <b>burlas, insultos, exclusión, agresiones físicas o persecución</b>. Aunque a veces no se ve, <b>daña la dignidad</b> y limita los derechos de las personas.</p>
+  </section>
+
+  <section class="card c-der">
+    <h2><i>⚖️</i> Igualdad de derechos</h2>
+    <ul>
+      <li>Toda persona merece <b>trato con respeto</b> y la misma dignidad.</li>
+      <li>Somos <b>diferentes</b> por muchos factores: biológicos, sociales, históricos, educativos y culturales.</li>
+      <li><b>Respetar</b> no es estar de acuerdo con todo; es <b>reconocer el valor</b> que tienen los demás.</li>
+      <li>Nadie debe quedarse <b>sin acceso</b> a la educación, la salud o el empleo por ser quien es.</li>
+    </ul>
+  </section>
+
+  <section class="card c-caso full">
+    <h2><i>📖</i> Caso para reflexionar: Justin Fashanu (Reino Unido)</h2>
+    <p>Futbolista que a los 17 años debutó en el <b>Norwich City</b>. Al ser abierto sobre su <b>orientación sexual</b>, sufrió burlas, rechazo de su equipo y hasta de su propio hermano. Se le acusó sin pruebas y la <b>discriminación</b> marcó su vida.</p>
+    <p style="margin-top:.1in"><b>Lección:</b> las palabras, gestos y silencios pueden lastimar. Un compañero que escucha, defiende y acompaña <b>cambia una historia</b>. Si hubiéramos sido su compañero de equipo: le daríamos <b>apoyo, respeto y un lugar seguro</b> para ser él mismo.</p>
+  </section>
+</div>
+
+<section class="card c-res" style="margin-top:.2in">
+  <h2><i>✊</i> ¿Qué podemos hacer? 6 acciones de respeto</h2>
+  <div class="acciones">
+    <div class="ac"><em>1 · Escucha</em>Escucha sin juzgar y valora otras opiniones.</div>
+    <div class="ac"><em>2 · Cuida tus palabras</em>Sin apodos, burlas ni chistes que lastiman.</div>
+    <div class="ac"><em>3 · Incluye</em>Invita a todas las personas a jugar, estudiar y participar.</div>
+    <div class="ac"><em>4 · No te calles</em>Si ves discriminación, ayuda y avisa a un adulto.</div>
+    <div class="ac"><em>5 · Cuestiona</em>Revisa tus prejuicios y estereotipos.</div>
+    <div class="ac"><em>6 · Empatía</em>Ponte en los zapatos del otro antes de actuar.</div>
+  </div>
+</section>
+</main>
+
+<div class="cierre">
+  <div class="big"><span>Somos diversos.</span> <span>Somos iguales.</span> <span>Somos respeto.</span></div>
+  <p>Aceptar y respetar a otras personas no significa estar de acuerdo con sus ideas, sino reconocer que tienen el mismo valor. ¡Sé parte de la inclusión!</p>
+</div>
+
+<footer>
+  <span>Proyecto: Identidad, diversidad y respeto · Formación Cívica y Ética</span>
+  <span>Equipo: ____________________ Grupo: _______</span>
+</footer>
+<div class="arcoiris bottom"></div>
+</body>
+</html>
