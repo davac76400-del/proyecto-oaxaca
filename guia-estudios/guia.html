@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<title>Mi Libro de Guía de Estudios</title>
+<style>
+@page { size: 297mm 210mm; margin: 0 }
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--c:#1e3a8a}
+body{font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif;color:#1f2937;font-size:9.4pt;line-height:1.32}
+.page{width:297mm;height:209.5mm;position:relative;overflow:hidden;page-break-after:always;background:#fff;padding:9mm 12mm 11mm}
+.page:last-child{page-break-after:auto}
+.t1{--c:#c2410c;--bg:#fff7ed}.t2{--c:#1d4ed8;--bg:#eff6ff}.t3{--c:#047857;--bg:#ecfdf5}.t4{--c:#7e22ce;--bg:#faf5ff}.t5{--c:#be123c;--bg:#fff1f2}
+.hd{display:flex;align-items:center;gap:5mm;background:var(--c);color:#fff;border-radius:3mm;padding:2.5mm 6mm;margin-bottom:4mm}
+.hd svg{width:13mm;height:13mm;flex:none}
+.hd .n{font-size:8pt;letter-spacing:.15em;text-transform:uppercase;opacity:.85}
+.hd h1{font-size:19pt;line-height:1.05}
+.hd .pg{margin-left:auto;font-size:8pt;opacity:.85;text-align:right}
+.cols{column-count:3;column-gap:5mm;height:166mm;column-fill:balance}
+.card{break-inside:avoid;background:var(--bg);border-left:1.6mm solid var(--c);border-radius:2mm;padding:2.2mm 3.2mm;margin-bottom:3.2mm}
+.card h3{color:var(--c);font-size:10.6pt;margin-bottom:1mm}
+.card p{margin-bottom:1mm}
+.card ul{margin:0 0 1mm 4mm}
+.card li{margin-bottom:.4mm}
+.ej{display:block;background:#fff;border:.3mm dashed var(--c);border-radius:1.5mm;padding:1mm 2mm;margin:1mm 0;font-style:italic;font-size:9pt}
+b.k{color:var(--c)}
+table{border-collapse:collapse;width:100%;font-size:8.6pt;margin:1mm 0}
+th{background:var(--c);color:#fff;text-align:left;padding:.8mm 1.6mm}
+td{border:.25mm solid #d1d5db;padding:.7mm 1.6mm;background:#fff;vertical-align:top}
+.ft{position:absolute;left:12mm;right:12mm;bottom:4mm;display:flex;justify-content:space-between;font-size:7.5pt;color:#6b7280;border-top:.3mm solid #e5e7eb;padding-top:1mm}
+.cols{font-size:10.6pt}.card h3{font-size:12pt}.ej{font-size:10pt}table{font-size:9.6pt}.tip{font-size:10pt}.card{margin-bottom:3.6mm;padding:2.8mm 3.6mm}
+.lg .cols{font-size:12pt}.lg .card h3{font-size:13.5pt}.lg .ej{font-size:11.5pt}.lg .card{padding:3.5mm 4.5mm;margin-bottom:5mm}.lg .tip{font-size:11.5pt}.lg .sil span{font-size:12pt}
+.tip{background:#fef9c3;border:.3mm solid #facc15;border-radius:2mm;padding:1.8mm 3mm;margin-bottom:3.2mm;break-inside:avoid;font-size:9pt}
+.tip b{color:#854d0e}
+u.cn{text-decoration:none;border-bottom:.5mm solid var(--c);font-weight:bold;color:var(--c);font-style:normal}
+.sil{display:inline-flex;gap:1mm;margin:1mm 0}
+.sil span{border:.3mm solid #9ca3af;border-radius:1.2mm;padding:.5mm 2mm;background:#fff;font-style:normal}
+.sil span.t{background:var(--c);color:#fff;border-color:var(--c);font-weight:bold}
+/* portada */
+.cover{background:linear-gradient(135deg,#0f172a,#1e3a8a 60%,#4338ca);color:#fff;padding:0;display:flex}
+.cover .l{width:60%;padding:26mm 20mm}
+.cover .tag{letter-spacing:.3em;font-size:10pt;text-transform:uppercase;color:#fbbf24}
+.cover h1{font-size:44pt;line-height:1.02;margin:8mm 0 6mm}
+.cover h1 span{color:#fbbf24}
+.cover .sub{font-size:14pt;opacity:.9;max-width:150mm}
+.cover .by{position:absolute;bottom:20mm;left:20mm;font-size:12pt}
+.cover .by b{display:block;font-size:17pt;color:#fbbf24;margin-top:1mm}
+.cover .r{width:40%;display:flex;align-items:center;justify-content:center}
+.chips{display:flex;flex-wrap:wrap;gap:2mm;margin-top:9mm;max-width:155mm}
+.chips span{border:.4mm solid rgba(255,255,255,.5);border-radius:6mm;padding:1mm 4mm;font-size:9.5pt}
+/* indice */
+.idx{display:grid;grid-template-columns:1fr 1fr;gap:5mm 8mm;margin-top:2mm}
+.idx .it{border-left:1.6mm solid var(--c);background:var(--bg);border-radius:2mm;padding:2.5mm 4mm}
+.idx h3{color:var(--c);font-size:12pt;display:flex;justify-content:space-between}
+.idx ul{list-style:none;margin-top:1mm;columns:2;font-size:9pt}
+.idx li{margin-bottom:.5mm}
+</style></head><body>
+
+<!-- PORTADA -->
+<section class="page cover">
+ <div class="l">
+  <div class="tag">Español · Lengua y comunicación</div>
+  <h1>Mi Libro de<br><span>Guía de Estudios</span></h1>
+  <p class="sub">Consulta rápida con ejemplos para trabajos en clase: figuras retóricas, puntuación, conectores, tipos de palabras y acentuación.</p>
+  <div class="chips"><span>Figuras retóricas</span><span>Signos de puntuación</span><span>Conectores textuales</span><span>Tipos de palabras</span><span>Reglas de acentuación</span></div>
+  <div class="by">Elaborado por<b>David Alfredo Romero Rondón</b></div>
+ </div>
+ <div class="r">
+  <svg width="330" height="300" viewBox="0 0 330 300">
+   <path d="M165 60 C120 35 60 40 25 55 L25 245 C60 230 120 225 165 250 Z" fill="#fff" opacity=".95"/>
+   <path d="M165 60 C210 35 270 40 305 55 L305 245 C270 230 210 225 165 250 Z" fill="#e0e7ff"/>
+   <path d="M165 60 L165 250" stroke="#1e3a8a" stroke-width="3"/>
+   <g stroke="#94a3b8" stroke-width="3"><path d="M45 90h95M45 112h95M45 134h70M45 156h95M45 178h80M190 90h95M190 112h70M190 134h95M190 156h80"/></g>
+   <text x="205" y="215" font-size="52" font-weight="bold" fill="#c2410c">¿!</text>
+   <text x="50" y="222" font-size="40" font-weight="bold" fill="#7e22ce">á é</text>
+   <circle cx="285" cy="45" r="22" fill="#fbbf24"/><text x="274" y="55" font-size="30" font-weight="bold" fill="#0f172a">“”</text>
+  </svg>
+ </div>
+</section>
+
+<!-- INDICE -->
+<section class="page" style="--c:#1e3a8a;--bg:#eef2ff">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M10 14h44M10 28h44M10 42h30M10 56h22"/></svg><div><div class="n">Contenido</div><h1>Índice</h1></div><div class="pg">Guía de Estudios<br>Pág. 2</div></div>
+ <div class="idx">
+  <div class="it t1" style="--c:#c2410c;--bg:#fff7ed"><h3><span>1. Figuras retóricas</span><span>pág. 3</span></h3><ul><li>¿Qué son?</li><li>Metáfora y comparación</li><li>Personificación</li><li>Hipérbole</li><li>Ironía</li><li>Metonimia y sinécdoque</li><li>Antítesis y paradoja</li><li>Eufemismo</li><li>Aliteración y onomatopeya</li><li>Anáfora y epíteto</li><li>Hipérbaton</li><li>Polisíndeton y asíndeton</li><li>Oxímoron y apóstrofe</li><li>Cómo identificarlas</li></ul></div>
+  <div class="it t2" style="--c:#1d4ed8;--bg:#eff6ff"><h3><span>2. Signos de puntuación</span><span>pág. 5</span></h3><ul><li>Punto (3 tipos)</li><li>Coma y sus usos</li><li>Errores con la coma</li><li>Punto y coma</li><li>Dos puntos</li><li>Interrogación y exclamación</li><li>Puntos suspensivos</li><li>Comillas</li><li>Paréntesis</li><li>Raya y guion</li><li>Tabla de repaso</li><li>Errores comunes</li></ul></div>
+  <div class="it t3" style="--c:#047857;--bg:#ecfdf5"><h3><span>3. Conectores textuales</span><span>pág. 7</span></h3><ul><li>¿Qué son?</li><li>Adición</li><li>Contraste</li><li>Causa</li><li>Consecuencia</li><li>Orden</li><li>Ejemplificación</li><li>Reformulación</li><li>Conclusión</li><li>Condición</li><li>Tiempo</li><li>Comparación</li><li>Ejemplo en un párrafo</li></ul></div>
+  <div class="it t4" style="--c:#7e22ce;--bg:#faf5ff"><h3><span>4. Tipos de palabras</span><span>pág. 9</span></h3><ul><li>Palabras variables e invariables</li><li>Sustantivo</li><li>Adjetivo</li><li>Artículo y determinantes</li><li>Pronombre</li><li>Verbo</li><li>Adverbio</li><li>Preposición</li><li>Conjunción</li><li>Interjección</li><li>Cómo analizar una oración</li></ul></div>
+  <div class="it t5" style="--c:#be123c;--bg:#fff1f2;grid-column:1 / span 2"><h3><span>5. Reglas de acentuación (sílaba tónica y átona)</span><span>pág. 11</span></h3><ul style="columns:4"><li>Sílaba tónica y átona</li><li>Cómo separar sílabas</li><li>Agudas</li><li>Graves o llanas</li><li>Esdrújulas</li><li>Sobresdrújulas</li><li>Diptongo, triptongo, hiato</li><li>Monosílabos</li><li>Tilde diacrítica</li><li>Interrogativos y exclamativos</li><li>Adverbios en -mente</li><li>Palabras átonas</li></ul></div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>David Alfredo Romero Rondón</span></div>
+</section>
+
+<!-- ============ 1. FIGURAS RETORICAS ============ -->
+<section class="page t1">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="26" r="14"/><path d="M26 44h12M28 52h8M32 6v-2M10 26H8M56 26h-2M16 10l-2-2M48 10l2-2"/></svg><div><div class="n">Tema 1</div><h1>Figuras retóricas (1/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 3</div></div>
+ <div class="cols">
+  <div class="card"><h3>¿Qué son?</h3><p>Recursos del lenguaje que cambian la forma habitual de decir algo para dar <b class="k">belleza, énfasis o emoción</b>. Se usan sobre todo en poesía, literatura, publicidad y discursos.</p><p>Se dividen en figuras de <b class="k">significado</b> (cambian el sentido), de <b class="k">sonido</b> y de <b class="k">construcción</b> (juegan con el orden o la repetición).</p></div>
+  <div class="card"><h3>Metáfora</h3><p>Identifica una cosa con otra por su parecido, <b class="k">sin</b> usar “como”.</p><span class="ej">“Tus ojos son dos luceros.”</span><span class="ej">“El tiempo es oro.”</span></div>
+  <div class="card"><h3>Comparación o símil</h3><p>Relaciona dos elementos <b class="k">con</b> un nexo: como, cual, parece, semejante a.</p><span class="ej">“Es rápido como un rayo.”</span><span class="ej">“Tiene la piel suave cual seda.”</span></div>
+  <div class="card"><h3>Personificación</h3><p>Da cualidades humanas a animales, objetos o ideas.</p><span class="ej">“La luna sonríe en el cielo.”</span><span class="ej">“El viento susurra secretos.”</span></div>
+  <div class="card"><h3>Hipérbole</h3><p>Exagera de forma intencional una realidad.</p><span class="ej">“Te lo he dicho un millón de veces.”</span><span class="ej">“Estoy muerto de hambre.”</span></div>
+  <div class="card"><h3>Ironía</h3><p>Se dice lo contrario de lo que se piensa; el tono o el contexto lo revelan.</p><span class="ej">“¡Qué buen día!”, dice alguien bajo la tormenta.</span></div>
+  <div class="card"><h3>Metonimia</h3><p>Nombra una cosa con el nombre de otra relacionada (autor-obra, causa-efecto, lugar-contenido).</p><span class="ej">“Leí a Cervantes.” (su obra)</span><span class="ej">“Se tomó un vaso.” (lo que contiene)</span></div>
+  <div class="card"><h3>Sinécdoque</h3><p>La parte por el todo, o el todo por la parte.</p><span class="ej">“Son cien cabezas de ganado.”</span><span class="ej">“Ganarse el pan.” (el sustento)</span></div>
+  <div class="card"><h3>Antítesis</h3><p>Contrapone dos ideas o palabras opuestas.</p><span class="ej">“Es largo el camino y corta la esperanza.”</span><span class="ej">“Hoy ríes, mañana lloras.”</span></div>
+  <div class="card"><h3>Paradoja</h3><p>Unir ideas que parecen contradictorias pero encierran una verdad.</p><span class="ej">“Solo sé que no sé nada.”</span></div>
+  <div class="card"><h3>Eufemismo</h3><p>Suaviza algo desagradable o tabú.</p><span class="ej">“Falleció” en lugar de “murió”.</span><span class="ej">“Adulto mayor” por “viejo”.</span></div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Figuras de significado</span></div>
+</section>
+
+<section class="page t1">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="26" r="14"/><path d="M26 44h12M28 52h8M32 6v-2M10 26H8M56 26h-2M16 10l-2-2M48 10l2-2"/></svg><div><div class="n">Tema 1</div><h1>Figuras retóricas (2/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 4</div></div>
+ <div class="cols">
+  <div class="card"><h3>Aliteración</h3><p>Repetición de sonidos (letras) parecidos para crear musicalidad.</p><span class="ej">“Tres tristes tigres tragaban trigo.”</span><span class="ej">“El ruido con que rueda la ronca tempestad.”</span></div>
+  <div class="card"><h3>Onomatopeya</h3><p>Palabra que imita un sonido real.</p><span class="ej">“Splash”, “guau”, “tic-tac”, “pum”, “miau”.</span><span class="ej">“El reloj hacía tic-tac.”</span></div>
+  <div class="card"><h3>Anáfora</h3><p>Repetir la misma palabra al comienzo de varias frases o versos.</p><span class="ej">“Quiero paz, quiero amor, quiero libertad.”</span></div>
+  <div class="card"><h3>Epíteto</h3><p>Adjetivo que resalta una cualidad propia del sustantivo, sin aportar información nueva.</p><span class="ej">“La blanca nieve.”</span><span class="ej">“El fiero león.”</span></div>
+  <div class="card"><h3>Hipérbaton</h3><p>Altera el orden normal de las palabras en la oración.</p><span class="ej">“Del salón en el ángulo oscuro…” (orden normal: en el ángulo oscuro del salón)</span></div>
+  <div class="card"><h3>Pleonasmo</h3><p>Añade palabras innecesarias para dar fuerza.</p><span class="ej">“Lo vi con mis propios ojos.”</span><span class="ej">“Subir arriba.”</span></div>
+  <div class="card"><h3>Polisíndeton</h3><p>Repite muchas veces la conjunción (y, o, ni) para dar lentitud o abundancia.</p><span class="ej">“Y corrió y saltó y gritó y rió.”</span></div>
+  <div class="card"><h3>Asíndeton</h3><p>Omite las conjunciones y separa con comas para dar rapidez.</p><span class="ej">“Llegué, vi, vencí.”</span></div>
+  <div class="card"><h3>Paralelismo</h3><p>Repite una misma estructura gramatical en frases seguidas.</p><span class="ej">“Ellos pedían pan; nosotros dábamos esperanza.”</span></div>
+  <div class="card"><h3>Oxímoron</h3><p>Une dos palabras de significado contrario en una sola expresión.</p><span class="ej">“Silencio ensordecedor.”</span><span class="ej">“Un instante eterno.”</span></div>
+  <div class="card"><h3>Apóstrofe</h3><p>Dirigirse a alguien o algo (presente, ausente o imaginario) en tono emotivo.</p><span class="ej">“¡Oh, mar, cuéntame tus secretos!”</span></div>
+  <div class="tip"><b>Truco para identificarlas:</b> pregunta primero ¿hay un <i>parecido</i>? (metáfora/símil) ¿hay <i>exageración</i>? (hipérbole) ¿hay <i>opuestos</i>? (antítesis/oxímoron) ¿se <i>repite</i> algo? (anáfora/aliteración) ¿se <i>cambia el orden</i>? (hipérbaton).</div>
+  <div class="card"><h3>Metáfora vs. símil</h3><p>“Tu sonrisa es un sol” → <b class="k">metáfora</b>.<br>“Tu sonrisa es como un sol” → <b class="k">símil</b>.</p></div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Figuras de sonido y construcción</span></div>
+</section>
+
+<!-- ============ 2. PUNTUACION ============ -->
+<section class="page t2">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="#fff"><circle cx="16" cy="46" r="5"/><path d="M12 20q0-10 10-10M16 46q0 8-6 12" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="14" r="5"/><circle cx="46" cy="30" r="5"/><path d="M46 38v6q0 6-6 10" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg><div><div class="n">Tema 2</div><h1>Uso de signos de puntuación (1/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 5</div></div>
+ <div class="cols">
+  <div class="card"><h3>El punto ( . )</h3><p>Indica una pausa larga y cierra una idea.</p><ul><li><b class="k">Punto y seguido:</b> separa oraciones dentro del mismo párrafo.</li><li><b class="k">Punto y aparte:</b> termina un párrafo y se pasa a otro renglón.</li><li><b class="k">Punto final:</b> cierra el texto.</li></ul><p>También va en abreviaturas: <i>Sr., Dra., etc.</i> Después de punto se escribe mayúscula.</p></div>
+  <div class="card"><h3>La coma ( , ) – usos</h3><ul><li><b class="k">Enumeración:</b> <i>Compré pan, leche, huevos y frutas.</i></li><li><b class="k">Vocativo:</b> <i>Juan, ven acá.</i></li><li><b class="k">Aposición (aclaración):</b> <i>Oaxaca, capital del estado, es bella.</i></li><li><b class="k">Antes de conectores:</b> <i>Sin embargo, no fui.</i></li><li><b class="k">Elipsis del verbo:</b> <i>Yo estudio historia; ella, química.</i></li><li><b class="k">Oración subordinada antepuesta:</b> <i>Cuando llegues, avísame.</i></li></ul></div>
+  <div class="card"><h3>Errores con la coma</h3><ul><li>NO separar sujeto y verbo: <i>✗ Mi hermano, come.</i> ✓ <i>Mi hermano come.</i></li><li>No poner coma antes de “y” en enumeración (salvo que cambie el sentido).</li><li>No abusar: una coma no sustituye al punto.</li></ul></div>
+  <div class="card"><h3>El punto y coma ( ; )</h3><p>Pausa mayor que la coma y menor que el punto.</p><ul><li>Separa elementos largos de una lista que ya tienen comas.</li><li>Une ideas relacionadas: <i>Estudié mucho; aprobé.</i></li><li>Antes de <i>pero, aunque, sin embargo</i> en oraciones largas.</li></ul></div>
+  <div class="card"><h3>Los dos puntos ( : )</h3><ul><li>Antes de una <b class="k">enumeración</b>: <i>Traje tres cosas: lápiz, goma y cuaderno.</i></li><li>Antes de una <b class="k">cita textual</b>: <i>Dijo: “Ya voy”.</i></li><li>Después del saludo en cartas: <i>Estimado David:</i></li><li>Para <b class="k">explicar o concluir</b>: <i>Hay un problema: no hay tiempo.</i></li></ul><p>Tras dos puntos va minúscula (salvo saludo o cita).</p></div>
+  <div class="card"><h3>Puntos suspensivos ( … )</h3><p>Siempre son <b class="k">tres</b>.</p><ul><li>Dejan una frase incompleta o en suspenso: <i>No sé si…</i></li><li>Expresan duda o temor.</li><li>Indican que una enumeración continúa: <i>manzanas, peras, uvas…</i></li><li>Entre corchetes […] marcan texto omitido en una cita.</li></ul></div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Punto, coma, punto y coma, dos puntos, suspensivos</span></div>
+</section>
+
+<section class="page t2">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="#fff"><circle cx="16" cy="46" r="5"/><path d="M12 20q0-10 10-10M16 46q0 8-6 12" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="14" r="5"/><circle cx="46" cy="30" r="5"/><path d="M46 38v6q0 6-6 10" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg><div><div class="n">Tema 2</div><h1>Uso de signos de puntuación (2/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 6</div></div>
+ <div class="cols">
+  <div class="card"><h3>Interrogación ( ¿? ) y exclamación ( ¡! )</h3><p>En español se escriben <b class="k">de apertura y de cierre</b>.</p><span class="ej">¿Cómo te llamas? · ¡Qué alegría verte!</span><p>Si la pregunta empieza a mitad de oración, ¿ va donde empieza la pregunta: <i>Si no vienes, ¿qué hacemos?</i></p></div>
+  <div class="card"><h3>Comillas ( “ ” )</h3><ul><li>Citas textuales: <i>Dijo: “Nos vemos”.</i></li><li>Títulos de poemas, artículos, canciones.</li><li>Palabras con sentido irónico o extranjerismos.</li></ul></div>
+  <div class="card"><h3>Paréntesis ( )</h3><p>Encierran aclaraciones, datos o fechas.</p><span class="ej">Benito Juárez (1806-1872) nació en Oaxaca.</span></div>
+  <div class="card"><h3>La raya ( — )</h3><ul><li>Introduce el diálogo en narraciones: <i>—Hola —dijo Ana.</i></li><li>Encierra aclaraciones (como paréntesis): <i>Mi madre —que vive en Oaxaca— llegó.</i></li></ul></div>
+  <div class="card"><h3>El guion ( - )</h3><p>Más corto que la raya.</p><ul><li>Une palabras compuestas: <i>teórico-práctico.</i></li><li>Divide palabras al final del renglón: <i>cons-trucción.</i></li><li>Rangos: <i>1910-1920.</i></li></ul></div>
+  <div class="card"><h3>Tabla de repaso rápido</h3><table><tr><th>Signo</th><th>Pausa</th><th>Idea clave</th></tr><tr><td>,</td><td>corta</td><td>enumerar, aclarar</td></tr><tr><td>;</td><td>media</td><td>ideas relacionadas</td></tr><tr><td>.</td><td>larga</td><td>cerrar idea</td></tr><tr><td>:</td><td>anuncia</td><td>listas, citas</td></tr><tr><td>…</td><td>suspenso</td><td>duda, continuar</td></tr></table></div>
+  <div class="card"><h3>Errores comunes</h3><ul><li>Olvidar el signo de apertura (¿ ¡).</li><li>Poner coma entre sujeto y verbo.</li><li>Usar más de tres puntos suspensivos.</li><li>Escribir minúscula después de punto.</li><li>Escribir “etc…” (basta “etc.”).</li><li>Mezclar raya y guion.</li></ul></div>
+  <div class="tip"><b>Consejo:</b> para saber dónde va una coma, lee en voz alta; si haces una pausa breve natural, probablemente la necesita. Si no, quítala.</div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Interrogación, comillas, paréntesis, raya y guion</span></div>
+</section>
+
+<!-- ============ 3. CONECTORES ============ -->
+<section class="page t3">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><circle cx="12" cy="32" r="7" fill="#fff"/><circle cx="52" cy="14" r="7" fill="#fff"/><circle cx="52" cy="50" r="7" fill="#fff"/><path d="M19 30L45 16M19 34L45 48"/></svg><div><div class="n">Tema 3</div><h1>Conectores textuales (1/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 7</div></div>
+ <div class="cols">
+  <div class="card"><h3>¿Qué son?</h3><p>Palabras o frases que <b class="k">unen ideas</b> dentro de un texto y muestran la relación entre ellas (causa, contraste, orden…). Dan <b class="k">coherencia y fluidez</b>: sin ellos el texto parece una lista de frases sueltas.</p></div>
+  <div class="card"><h3>Adición (suman ideas)</h3><p><b class="k">y, además, asimismo, también, incluso, de igual modo, por otra parte, igualmente</b></p><span class="ej">Estudia inglés; además, practica francés.</span></div>
+  <div class="card"><h3>Contraste u oposición</h3><p><b class="k">pero, sin embargo, no obstante, en cambio, por el contrario, aunque, a pesar de que, sino</b></p><span class="ej">Quería ir; sin embargo, estaba lloviendo.</span><span class="ej">No es rojo, sino naranja.</span></div>
+  <div class="card"><h3>Causa (el porqué)</h3><p><b class="k">porque, ya que, puesto que, debido a, a causa de, dado que, pues</b></p><span class="ej">Falté porque estaba enfermo.</span></div>
+  <div class="card"><h3>Consecuencia (el resultado)</h3><p><b class="k">por lo tanto, por consiguiente, en consecuencia, así que, de modo que, por eso, entonces</b></p><span class="ej">Estudié mucho; por lo tanto, aprobé.</span></div>
+  <div class="card"><h3>Orden o secuencia</h3><p><b class="k">primero, en primer lugar, luego, después, a continuación, por último, finalmente</b></p><span class="ej">Primero lee; después, resume.</span></div>
+  <div class="card"><h3>Ejemplificación</h3><p><b class="k">por ejemplo, es decir, así, como, en particular, tal como</b></p><span class="ej">Hay frutas tropicales, por ejemplo, mango.</span></div>
+  <div class="card"><h3>Reformulación o explicación</h3><p><b class="k">es decir, o sea, esto es, en otras palabras, dicho de otro modo</b></p><span class="ej">Es bilingüe; es decir, habla dos idiomas.</span></div>
+  <div class="card"><h3>Conclusión o cierre</h3><p><b class="k">en conclusión, en resumen, para terminar, en definitiva, en suma, por último</b></p><span class="ej">En resumen, el proyecto fue exitoso.</span></div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Conectores por función</span></div>
+</section>
+
+<section class="page t3">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><circle cx="12" cy="32" r="7" fill="#fff"/><circle cx="52" cy="14" r="7" fill="#fff"/><circle cx="52" cy="50" r="7" fill="#fff"/><path d="M19 30L45 16M19 34L45 48"/></svg><div><div class="n">Tema 3</div><h1>Conectores textuales (2/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 8</div></div>
+ <div class="cols">
+  <div class="card"><h3>Condición</h3><p><b class="k">si, siempre que, con tal de que, a menos que, en caso de que, a condición de que</b></p><span class="ej">Iré a la fiesta si terminas la tarea.</span></div>
+  <div class="card"><h3>Tiempo</h3><p><b class="k">cuando, mientras, mientras tanto, antes de, después de, al mismo tiempo, desde que, luego</b></p><span class="ej">Mientras cocino, escucho música.</span></div>
+  <div class="card"><h3>Comparación / semejanza</h3><p><b class="k">igual que, del mismo modo, así como, al igual que, tal como, de manera similar</b></p><span class="ej">Ana habla con calma, al igual que su madre.</span></div>
+  <div class="card"><h3>Finalidad</h3><p><b class="k">para, a fin de, con el propósito de, con el objetivo de</b></p><span class="ej">Estudio para aprender.</span></div>
+  <div class="card"><h3>Énfasis</h3><p><b class="k">de hecho, sobre todo, en efecto, cabe destacar, lo más importante</b></p><span class="ej">De hecho, fue el mejor de la clase.</span></div>
+  <div class="card"><h3>Concesión</h3><p><b class="k">aunque, a pesar de, si bien, por más que, aun así</b></p><span class="ej">Aunque llovía, salimos.</span></div>
+  <div class="card"><h3>Ejemplo en un párrafo</h3><p><i><u class="cn">En primer lugar</u>, la lectura mejora el vocabulario. <u class="cn">Además</u>, ayuda a escribir mejor, <u class="cn">ya que</u> muestra cómo se usan las palabras. <u class="cn">Sin embargo</u>, muchas personas leen poco; <u class="cn">por lo tanto</u>, conviene crear el hábito. <u class="cn">En conclusión</u>, leer a diario es una de las mejores inversiones.</i></p><p style="font-size:8pt">Subrayados: orden · adición · causa · contraste · consecuencia · conclusión.</p></div>
+  <div class="card"><h3>Tabla resumen por función</h3><table><tr><th>Función</th><th>Ejemplo clave</th></tr><tr><td>Adición</td><td>además</td></tr><tr><td>Contraste</td><td>sin embargo</td></tr><tr><td>Causa</td><td>porque</td></tr><tr><td>Consecuencia</td><td>por lo tanto</td></tr><tr><td>Orden</td><td>primero</td></tr><tr><td>Ejemplo</td><td>por ejemplo</td></tr><tr><td>Reformular</td><td>es decir</td></tr><tr><td>Conclusión</td><td>en resumen</td></tr></table></div>
+  <div class="tip"><b>Cuidado:</b> no repitas siempre el mismo conector. Y recuerda: los conectores que abren la oración llevan <b>coma</b> después (<i>Además, ...</i>; <i>Sin embargo, ...</i>).</div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Más conectores, ejemplo y resumen</span></div>
+</section>
+
+<!-- ============ 4. TIPOS DE PALABRAS ============ -->
+<section class="page t4">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="#fff"><rect x="6" y="8" width="22" height="16" rx="4"/><rect x="34" y="8" width="24" height="16" rx="4" opacity=".6"/><rect x="6" y="30" width="14" height="16" rx="4" opacity=".6"/><rect x="26" y="30" width="32" height="16" rx="4"/><rect x="6" y="52" width="40" height="8" rx="3" opacity=".6"/></svg><div><div class="n">Tema 4</div><h1>Tipos de palabras (1/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 9</div></div>
+ <div class="cols">
+  <div class="card"><h3>Variables e invariables</h3><p><b class="k">Variables</b> (cambian de género, número o tiempo): sustantivo, adjetivo, artículo, pronombre, verbo.</p><p><b class="k">Invariables</b> (no cambian): adverbio, preposición, conjunción, interjección.</p></div>
+  <div class="card"><h3>Sustantivo (nombre)</h3><p>Nombra personas, animales, cosas, lugares o ideas.</p><ul><li><b class="k">Común / propio:</b> ciudad / Oaxaca</li><li><b class="k">Concreto / abstracto:</b> mesa / amor</li><li><b class="k">Individual / colectivo:</b> árbol / bosque</li><li><b class="k">Contable / incontable:</b> libro / agua</li></ul></div>
+  <div class="card"><h3>Adjetivo</h3><p>Acompaña al sustantivo y dice cómo es. Concuerda en género y número.</p><span class="ej">casa <b>grande</b>, niños <b>felices</b>, flor <b>roja</b></span><p>Grados: <i>alto, más alto, altísimo</i>.</p></div>
+  <div class="card"><h3>Artículo y determinantes</h3><ul><li><b class="k">Artículos:</b> el, la, los, las (definidos); un, una, unos, unas (indefinidos).</li><li><b class="k">Demostrativos:</b> este, ese, aquel.</li><li><b class="k">Posesivos:</b> mi, tu, su, nuestro.</li><li><b class="k">Numerales:</b> dos, tercer. <b class="k">Indefinidos:</b> algunos, todos.</li></ul></div>
+  <div class="card"><h3>Pronombre</h3><p>Sustituye al sustantivo para no repetirlo.</p><ul><li><b class="k">Personales:</b> yo, tú, él, nosotros, ellos.</li><li><b class="k">Demostrativos:</b> esto, eso.</li><li><b class="k">Relativos:</b> que, quien, cuyo.</li><li><b class="k">Interrogativos:</b> qué, quién.</li></ul><span class="ej">María llegó. <b>Ella</b> traía el libro.</span></div>
+  <div class="card"><h3>Verbo</h3><p>Expresa acción, estado o proceso. Cambia según persona, número, tiempo y modo.</p><ul><li><b class="k">Terminaciones:</b> -ar, -er, -ir.</li><li><b class="k">Modos:</b> indicativo, subjuntivo, imperativo.</li><li><b class="k">Tiempos:</b> presente, pasado, futuro.</li><li><b class="k">Formas no personales:</b> infinitivo, gerundio, participio.</li></ul><span class="ej">Ellos <b>cantaron</b> ayer. · Yo <b>comeré</b> mañana.</span></div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Palabras variables</span></div>
+</section>
+
+<section class="page t4">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="#fff"><rect x="6" y="8" width="22" height="16" rx="4"/><rect x="34" y="8" width="24" height="16" rx="4" opacity=".6"/><rect x="6" y="30" width="14" height="16" rx="4" opacity=".6"/><rect x="26" y="30" width="32" height="16" rx="4"/><rect x="6" y="52" width="40" height="8" rx="3" opacity=".6"/></svg><div><div class="n">Tema 4</div><h1>Tipos de palabras (2/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 10</div></div>
+ <div class="cols">
+  <div class="card"><h3>Adverbio</h3><p>Modifica a un verbo, adjetivo u otro adverbio.</p><table><tr><th>Tipo</th><th>Ejemplos</th></tr><tr><td>Lugar</td><td>aquí, allá, cerca</td></tr><tr><td>Tiempo</td><td>hoy, ayer, nunca</td></tr><tr><td>Modo</td><td>bien, mal, rápidamente</td></tr><tr><td>Cantidad</td><td>muy, poco, mucho</td></tr><tr><td>Afirmación / negación / duda</td><td>sí, no, quizás</td></tr></table></div>
+  <div class="card"><h3>Preposición</h3><p>Enlaza palabras y marca su relación. Lista completa:</p><p><b class="k">a, ante, bajo, cabe, con, contra, de, desde, durante, en, entre, hacia, hasta, mediante, para, por, según, sin, so, sobre, tras, versus, vía.</b></p><span class="ej">Voy <b>a</b> la escuela <b>con</b> mi amigo.</span></div>
+  <div class="card"><h3>Conjunción</h3><p>Une palabras o frases.</p><ul><li><b class="k">Coordinantes:</b> y, e, ni, o, u, pero, sino.</li><li><b class="k">Subordinantes:</b> que, porque, aunque, si, cuando.</li></ul><span class="ej">Pan <b>y</b> leche. · Estudia <b>o</b> trabaja.</span><p><i>Y→e</i> ante “i”; <i>o→u</i> ante “o”.</p></div>
+  <div class="card"><h3>Interjección</h3><p>Expresa emociones o llama la atención. Suele ir entre signos de exclamación.</p><span class="ej">¡Ay! ¡Vaya! ¡Hola! ¡Bravo! ¡Uf!</span></div>
+  <div class="card"><h3>Cómo analizar una oración</h3><p>Ejemplo: <i>“Los niños felices comen rápidamente.”</i></p><table><tr><td>Los</td><td>artículo</td></tr><tr><td>niños</td><td>sustantivo</td></tr><tr><td>felices</td><td>adjetivo</td></tr><tr><td>comen</td><td>verbo</td></tr><tr><td>rápidamente</td><td>adverbio</td></tr></table></div>
+  <div class="card"><h3>Tabla resumen</h3><table><tr><th>Clase</th><th>Función</th></tr><tr><td>Sustantivo</td><td>nombra</td></tr><tr><td>Adjetivo</td><td>califica</td></tr><tr><td>Verbo</td><td>acción / estado</td></tr><tr><td>Adverbio</td><td>modifica al verbo</td></tr><tr><td>Preposición</td><td>enlaza</td></tr><tr><td>Conjunción</td><td>une</td></tr><tr><td>Interjección</td><td>emoción</td></tr></table></div>
+  <div class="tip"><b>Truco:</b> si una palabra puede ir en plural o cambiar de género, es variable. Si dudas entre adjetivo y adverbio: ¿acompaña a un nombre (adjetivo) o a un verbo (adverbio)?</div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Palabras invariables y análisis</span></div>
+</section>
+
+<!-- ============ 5. ACENTUACION ============ -->
+<section class="page t5 lg">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><rect x="4" y="22" width="16" height="22" rx="3"/><rect x="24" y="22" width="16" height="22" rx="3" fill="#fff"/><rect x="44" y="22" width="16" height="22" rx="3"/><path d="M28 14l6-8" stroke-width="5"/></svg><div><div class="n">Tema 5</div><h1>Reglas de acentuación (1/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 11</div></div>
+ <div class="cols">
+  <div class="card"><h3>Sílaba tónica y átona</h3><p><b class="k">Sílaba tónica:</b> la que se pronuncia con más fuerza. <b class="k">Átonas:</b> las demás.</p><span class="sil"><span>ca</span><span>mi</span><span class="t">ón</span></span> <small>ca-mi-<b>ón</b>… tónica: última</small><br><span class="sil"><span>ma</span><span class="t">ri</span><span>po</span><span>sa</span></span><br><small>tónica: <b>ri</b></small><p>La <b class="k">tilde</b> (´) marca la sílaba tónica cuando la regla lo exige.</p></div>
+  <div class="card"><h3>Cómo separar en sílabas</h3><ul><li>Una consonante entre vocales se une a la siguiente: <i>ca-sa</i>.</li><li>Dos consonantes se separan: <i>cam-po</i> (salvo bl, br, cl, cr, dr, fl, fr, gl, gr, pl, pr, tr: <i>a-bri-go</i>).</li><li>ch, ll, rr no se separan: <i>ca-rro</i>.</li></ul></div>
+  <div class="card"><h3>Palabras agudas</h3><p>Tónica en la <b class="k">última</b> sílaba. Llevan tilde si terminan en <b class="k">n, s o vocal</b>.</p><span class="ej">canción, café, sofá, compás ✓<br>reloj, ciudad, amor ✗ (sin tilde)</span></div>
+  <div class="card"><h3>Graves o llanas</h3><p>Tónica en la <b class="k">penúltima</b>. Llevan tilde si <b class="k">NO</b> terminan en n, s o vocal.</p><span class="ej">árbol, fácil, lápiz, cárcel ✓<br>mesa, joven, libros ✗</span></div>
+  <div class="card"><h3>Esdrújulas</h3><p>Tónica en la <b class="k">antepenúltima</b>. <b class="k">Siempre</b> llevan tilde.</p><span class="ej">teléfono, música, médico, pájaro</span></div>
+  <div class="card"><h3>Sobresdrújulas</h3><p>Tónica antes de la antepenúltima (suelen ser verbos con pronombres). <b class="k">Siempre</b> llevan tilde.</p><span class="ej">cuéntamelo, dígaselo, llévatelo</span></div>
+  <div class="tip"><b>Resumen:</b> agudas → n, s, vocal · graves → todas las demás · esdrújulas y sobresdrújulas → siempre.</div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Clasificación por la sílaba tónica</span></div>
+</section>
+
+<section class="page t5">
+ <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><rect x="4" y="22" width="16" height="22" rx="3"/><rect x="24" y="22" width="16" height="22" rx="3" fill="#fff"/><rect x="44" y="22" width="16" height="22" rx="3"/><path d="M28 14l6-8" stroke-width="5"/></svg><div><div class="n">Tema 5</div><h1>Reglas de acentuación (2/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 12</div></div>
+ <div class="cols">
+  <div class="card"><h3>Diptongo, triptongo e hiato</h3><ul><li><b class="k">Diptongo:</b> dos vocales juntas en una sílaba (abierta a,e,o + cerrada i,u, o dos cerradas): <i>ai-re, cui-da-do</i>.</li><li><b class="k">Triptongo:</b> tres vocales: <i>es-tu-diáis</i>.</li><li><b class="k">Hiato:</b> dos vocales en sílabas separadas: <i>le-ón, pa-ís, dí-a</i>.</li></ul><p>En hiato con vocal cerrada tónica, <b class="k">siempre</b> hay tilde: <i>país, río, baúl</i>.</p></div>
+  <div class="card"><h3>Monosílabos</h3><p>No llevan tilde: <i>fue, dio, vio, fe, pie, sol</i> (excepto diacrítica).</p></div>
+  <div class="card"><h3>Tilde diacrítica</h3><p>Distingue palabras iguales con distinto significado.</p><table><tr><th>Con tilde</th><th>Sin tilde</th></tr><tr><td>tú (pronombre)</td><td>tu (posesivo)</td></tr><tr><td>él (pronombre)</td><td>el (artículo)</td></tr><tr><td>mí (pronombre)</td><td>mi (posesivo)</td></tr><tr><td>té (bebida)</td><td>te (pronombre)</td></tr><tr><td>sé (saber/ser)</td><td>se (pronombre)</td></tr><tr><td>dé (dar)</td><td>de (preposición)</td></tr><tr><td>sí (afirmación)</td><td>si (condición)</td></tr><tr><td>más (cantidad)</td><td>mas (pero)</td></tr><tr><td>aún (todavía)</td><td>aun (incluso)</td></tr></table></div>
+  <div class="card"><h3>Interrogativos y exclamativos</h3><p>Llevan tilde: <b class="k">qué, quién, cuál, cómo, dónde, cuándo, cuánto</b>.</p><span class="ej">¿Dónde vives? · No sé cómo lo hizo.<br>La casa donde vivo. (sin tilde: no pregunta)</span></div>
+  <div class="card"><h3>Adverbios en -mente</h3><p>Conservan la tilde del adjetivo base: <i>fácil → fácilmente</i>; <i>rápido → rápidamente</i>. Si el adjetivo no tiene tilde, el adverbio tampoco: <i>lenta → lentamente</i>.</p></div>
+  <div class="card"><h3>Palabras átonas</h3><p>Se pronuncian sin fuerza: artículos, preposiciones, conjunciones y pronombres átonos (<i>el, de, y, me, se</i>). No llevan tilde.</p></div>
+  <div class="card"><h3>Palabras compuestas y mayúsculas</h3><ul><li>Las mayúsculas <b class="k">sí</b> llevan tilde: <i>África, Ángel</i>.</li><li>Compuestas sin guion: se acentúan según sus reglas: <i>decimoséptimo</i>.</li></ul></div>
+  <div class="tip"><b>Pasos:</b> 1) separa en sílabas · 2) ubica la sílaba tónica · 3) clasifica (aguda, grave, esdrújula) · 4) aplica la regla de la tilde.</div>
+ </div>
+ <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>David Alfredo Romero Rondón · Fin</span></div>
+</section>
+
+</body></html>
