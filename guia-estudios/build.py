@@ -1,4 +1,5 @@
 import re
+from art import PICS,SC
 src=open('contenido.html',encoding='utf-8').read()
 pages=re.findall(r'<section class="page (t\d)[^"]*">(.*?)</section>',src,flags=re.S)
 ICON={
@@ -16,13 +17,30 @@ for k,(t,body) in enumerate(pages):
     title=re.sub(r'\s*\(\d/\d\)','',h1)
     title={'Uso de signos de puntuación':'Uso de signos de puntuación'}.get(title,title)
     cols=re.search(r'<div class="cols">(.*?)\n </div>\n <div class="ft">',body,flags=re.S).group(1)
+    keys=sorted(PICS,key=len,reverse=True)
+    def addpic(m,t=t):
+        name=re.sub(r'<[^>]+>','',m.group(1)).strip()
+        for kk in keys:
+            if ':' in kk[:2]:
+                if kk[0]!=t[1] or not name.startswith(kk[2:]): continue
+            elif kk.startswith(('1:','3:')): continue
+            elif not name.startswith(kk): continue
+            if kk=='Metáfora' and name.startswith('Metáfora vs'): continue
+            return m.group(0)+f'<span class="pic"><svg viewBox="0 0 100 100">{PICS[kk]}</svg></span>'
+        return m.group(0)
+    cols=re.sub(r'<h3>(.*?)</h3>',addpic,cols)
+    sk=f"{t[1]}{'ab'[int(part.group(1))-1]}"
+    sk={'1a':'f1','1b':'f2','2a':'p1','2b':'p2','3a':'c1','3b':'c2','4a':'w1','4b':'w2','5a':'a1','5b':'a2'}[sk]
+    hs=''
+    if t=='t1': hs=f'<figure class="hscene">{SC[sk]}</figure>'
+    else: cols+=f'<figure class="scene">{SC[sk]}</figure>'
     ftr=re.search(r'<span>([^<]*)</span></div>\s*$',body.strip()).group(1)
-    content.append(dict(t=t,title=title,part=part.groups(),cols=cols,ftr=ftr,pg=k+3))
+    content.append(dict(t=t,title=title,part=part.groups(),cols=cols,ftr=ftr,pg=k+3,hs=hs))
 def page_html(c):
     t=c['t'];n=t[1]
     return f'''<section class="page {t}">
 <div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
-<header class="top"><div class="num">0{n}</div><div class="ttl"><span class="kick">{SUB[t]} · parte {c['part'][0]} de {c['part'][1]}</span><h1>{c['title']}</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">{ICON[t]}</svg></div></header>
+<header class="top"><div class="num">0{n}</div><div class="ttl"><span class="kick">{SUB[t]} · parte {c['part'][0]} de {c['part'][1]}</span><h1>{c['title']}</h1></div>{c['hs']}<div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">{ICON[t]}</svg></div></header>
 <div class="wave"></div>
 <div class="cols">{c['cols']}
 </div>
@@ -51,6 +69,16 @@ html=f'''<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Mi li
 <div class="badge"><span class="av">D</span><span class="bt"><small>Elaborado por</small><b>David Alfredo Romero Rondón</b></span></div>
 </div>
 <div class="cr">{tiles}</div>
+<svg class="cart" viewBox="0 0 220 240"><g class="o">
+<ellipse cx="108" cy="222" rx="96" ry="9" style="fill:#3A2E2A;opacity:.15;stroke:none"/>
+<rect x="14" y="178" width="184" height="36" rx="6" fill="#E5826A"/><rect x="198" y="184" width="0" height="0"/><rect x="22" y="194" width="168" height="8" fill="#FBF3E4" style="stroke-width:2"/><path d="M34 178v36M44 178v36" style="stroke-width:2"/>
+<rect x="30" y="144" width="156" height="34" rx="6" fill="#6FA0C8"/><rect x="38" y="158" width="140" height="8" fill="#FBF3E4" style="stroke-width:2"/><path d="M164 144v34M174 144v34" style="stroke-width:2"/>
+<rect x="22" y="110" width="150" height="34" rx="6" fill="#EDB84A"/><rect x="30" y="124" width="134" height="8" fill="#FBF3E4" style="stroke-width:2"/><path d="M42 110v34M52 110v34" style="stroke-width:2"/>
+<path d="M142 110v-18h36v18z" fill="#C97B4A"/><path d="M160 92q-14-18-4-32 12 8 4 32zM160 92q18-12 20-30-16 4-20 30zM160 92q-26 0-34-14 18-4 34 14z" fill="#7FB69A"/>
+<g transform="rotate(-24 54 90)"><rect x="46" y="20" width="16" height="78" fill="#F3C14F"/><polygon points="46,98 62,98 54,116" fill="#F2C6A0"/><polygon points="50,108 58,108 54,116" fill="#3A2E2A"/><rect x="46" y="14" width="16" height="10" fill="#F7B7C3"/></g>
+<circle cx="112" cy="46" r="22" fill="#F8D75F"/><rect x="102" y="66" width="20" height="12" rx="3" fill="#fff"/><path d="M112 12v-8M82 22l-5-5M142 22l5-5M70 46h-8M154 46h8" /><path d="M104 46l6 8 6-14" style="stroke-width:3"/>
+</g>
+<g class="o"><rect x="150" y="6" width="58" height="34" rx="14" fill="#fff"/><path d="M168 40l-6 12 18-12" fill="#fff"/><text x="179" y="31" font-size="24" font-weight="800" text-anchor="middle" fill="#7e22ce" style="font-family:var(--display);stroke:none">¿?</text></g></svg>
 </section>
 <section class="page idx t0">
 <div class="sh s1"></div><div class="sh s2"></div><div class="dots"></div>
