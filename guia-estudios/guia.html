@@ -1,98 +1,274 @@
-<!doctype html>
-<html lang="es"><head><meta charset="utf-8">
-<title>Mi Libro de Guía de Estudios</title>
-<style>
-@page { size: 297mm 210mm; margin: 0 }
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Mi libro de Guía de Estudios</title>
+<style>/* vietnamese */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 400 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/f0.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 400 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/f1.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 400 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/f2.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(fonts/f3.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(fonts/f4.woff2) format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(fonts/f5.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(fonts/f6.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/f3.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/f4.woff2) format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/f5.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/f6.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: italic;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url(fonts/f7.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: italic;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url(fonts/f8.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(fonts/f9.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(fonts/f10.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style><style>@page{size:297mm 210mm;margin:0}
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--c:#1e3a8a}
-body{font-family:"Liberation Sans","DejaVu Sans",Arial,sans-serif;color:#1f2937;font-size:9.4pt;line-height:1.32}
-.page{width:297mm;height:209.5mm;position:relative;overflow:hidden;page-break-after:always;background:#fff;padding:9mm 12mm 11mm}
+:root{--paper:#FBF3E4;--ink:#3A2E2A;--soft:#6B5B53;--card:#FFFDF8;--display:"Bricolage Grotesque","Liberation Sans",sans-serif;--body:"DM Sans","Liberation Sans",sans-serif;--hand:"Caveat","Liberation Serif",cursive}
+body{font-family:var(--body);color:var(--ink);background:var(--paper);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.t0{--a:#D9A58B;--d:#8A4B33;--t:#F6DDCF;--t2:#FBEEE5}
+.t1{--a:#E5826A;--d:#A8432B;--t:#F8D9CC;--t2:#FCEDE6}
+.t2{--a:#6FA0C8;--d:#2F5F8A;--t:#D6E6F2;--t2:#EAF2F9}
+.t3{--a:#7FB69A;--d:#2F6F52;--t:#D5EADD;--t2:#EAF5EE}
+.t4{--a:#A48BC4;--d:#5F4690;--t:#E6DDF3;--t2:#F3EEF9}
+.t5{--a:#EDB84A;--d:#85600B;--t:#FAE6B4;--t2:#FDF3DA}
+.page{width:297mm;height:209.5mm;position:relative;overflow:hidden;page-break-after:always;background:var(--paper);padding:10mm 13mm 0}
 .page:last-child{page-break-after:auto}
-.t1{--c:#c2410c;--bg:#fff7ed}.t2{--c:#1d4ed8;--bg:#eff6ff}.t3{--c:#047857;--bg:#ecfdf5}.t4{--c:#7e22ce;--bg:#faf5ff}.t5{--c:#be123c;--bg:#fff1f2}
-.hd{display:flex;align-items:center;gap:5mm;background:var(--c);color:#fff;border-radius:3mm;padding:2.5mm 6mm;margin-bottom:4mm}
-.hd svg{width:13mm;height:13mm;flex:none}
-.hd .n{font-size:8pt;letter-spacing:.15em;text-transform:uppercase;opacity:.85}
-.hd h1{font-size:19pt;line-height:1.05}
-.hd .pg{margin-left:auto;font-size:8pt;opacity:.85;text-align:right}
-.cols{column-count:3;column-gap:5mm;height:166mm;column-fill:balance}
-.card{break-inside:avoid;background:var(--bg);border-left:1.6mm solid var(--c);border-radius:2mm;padding:2.2mm 3.2mm;margin-bottom:3.2mm}
-.card h3{color:var(--c);font-size:10.6pt;margin-bottom:1mm}
-.card p{margin-bottom:1mm}
-.card ul{margin:0 0 1mm 4mm}
-.card li{margin-bottom:.4mm}
-.ej{display:block;background:#fff;border:.3mm dashed var(--c);border-radius:1.5mm;padding:1mm 2mm;margin:1mm 0;font-style:italic;font-size:9pt}
-b.k{color:var(--c)}
-table{border-collapse:collapse;width:100%;font-size:8.6pt;margin:1mm 0}
-th{background:var(--c);color:#fff;text-align:left;padding:.8mm 1.6mm}
-td{border:.25mm solid #d1d5db;padding:.7mm 1.6mm;background:#fff;vertical-align:top}
-.ft{position:absolute;left:12mm;right:12mm;bottom:4mm;display:flex;justify-content:space-between;font-size:7.5pt;color:#6b7280;border-top:.3mm solid #e5e7eb;padding-top:1mm}
-.cols{font-size:10.6pt}.card h3{font-size:12pt}.ej{font-size:10pt}table{font-size:9.6pt}.tip{font-size:10pt}.card{margin-bottom:3.6mm;padding:2.8mm 3.6mm}
-.lg .cols{font-size:12pt}.lg .card h3{font-size:13.5pt}.lg .ej{font-size:11.5pt}.lg .card{padding:3.5mm 4.5mm;margin-bottom:5mm}.lg .tip{font-size:11.5pt}.lg .sil span{font-size:12pt}
-.tip{background:#fef9c3;border:.3mm solid #facc15;border-radius:2mm;padding:1.8mm 3mm;margin-bottom:3.2mm;break-inside:avoid;font-size:9pt}
-.tip b{color:#854d0e}
-u.cn{text-decoration:none;border-bottom:.5mm solid var(--c);font-weight:bold;color:var(--c);font-style:normal}
-.sil{display:inline-flex;gap:1mm;margin:1mm 0}
-.sil span{border:.3mm solid #9ca3af;border-radius:1.2mm;padding:.5mm 2mm;background:#fff;font-style:normal}
-.sil span.t{background:var(--c);color:#fff;border-color:var(--c);font-weight:bold}
-/* portada */
-.cover{background:linear-gradient(135deg,#0f172a,#1e3a8a 60%,#4338ca);color:#fff;padding:0;display:flex}
-.cover .l{width:60%;padding:26mm 20mm}
-.cover .tag{letter-spacing:.3em;font-size:10pt;text-transform:uppercase;color:#fbbf24}
-.cover h1{font-size:44pt;line-height:1.02;margin:8mm 0 6mm}
-.cover h1 span{color:#fbbf24}
-.cover .sub{font-size:14pt;opacity:.9;max-width:150mm}
-.cover .by{position:absolute;bottom:20mm;left:20mm;font-size:12pt}
-.cover .by b{display:block;font-size:17pt;color:#fbbf24;margin-top:1mm}
-.cover .r{width:40%;display:flex;align-items:center;justify-content:center}
-.chips{display:flex;flex-wrap:wrap;gap:2mm;margin-top:9mm;max-width:155mm}
-.chips span{border:.4mm solid rgba(255,255,255,.5);border-radius:6mm;padding:1mm 4mm;font-size:9.5pt}
-/* indice */
-.idx{display:grid;grid-template-columns:1fr 1fr;gap:5mm 8mm;margin-top:2mm}
-.idx .it{border-left:1.6mm solid var(--c);background:var(--bg);border-radius:2mm;padding:2.5mm 4mm}
-.idx h3{color:var(--c);font-size:12pt;display:flex;justify-content:space-between}
-.idx ul{list-style:none;margin-top:1mm;columns:2;font-size:9pt}
-.idx li{margin-bottom:.5mm}
+.page>*{position:relative;z-index:2}
+.page>.sh,.page>.dots,.page>.sym{position:absolute;z-index:0}
+.page>footer{position:absolute}
+/* decoracion de fondo */
+.sh{border-radius:50%;background:var(--t)}
+.s1{width:95mm;height:95mm;right:-32mm;top:-48mm}
+.s2{width:62mm;height:62mm;left:-24mm;bottom:-28mm;background:var(--t2);border:.6mm solid var(--t)}
+.s3{width:30mm;height:30mm;right:14mm;bottom:-12mm;background:var(--a);opacity:.35}
+.dots{width:30mm;height:20mm;right:20mm;top:50mm;background-image:radial-gradient(var(--a) 0.7mm,transparent 0.8mm);background-size:5mm 5mm;opacity:.5}
+/* encabezado */
+.top{display:flex;align-items:center;gap:6mm;height:22mm}
+.num{flex:none;width:19mm;height:19mm;border-radius:50%;background:var(--a);color:var(--ink);font:800 19pt/19mm var(--display);text-align:center;box-shadow:1.4mm 1.4mm 0 var(--d)}
+.ttl{flex:1}
+.kick{font:700 11.5pt var(--hand);color:var(--d);letter-spacing:.02em;font-size:15pt;display:block;line-height:1}
+.ttl h1{font:800 27pt/1.05 var(--display);letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
+.ico{flex:none;width:17mm;height:17mm;border-radius:6mm;background:var(--t);border:.5mm solid var(--a);color:var(--d);padding:3.2mm;transform:rotate(6deg)}
+.ico svg{width:100%;height:100%}
+.wave{height:3mm;margin:1mm 0 0;background:var(--a);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='12' viewBox='0 0 24 12'><path d='M0 6 Q6 0 12 6 T24 6' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'/></svg>") repeat-x center/auto 100%;opacity:.8}
+/* columnas */
+.cols{column-count:3;column-gap:6mm;height:148mm;column-fill:balance;margin-top:8mm;font-size:10pt;line-height:1.38}
+.card{break-inside:avoid;background:var(--card);border:.45mm solid var(--t);border-radius:4mm;padding:5mm 3.8mm 2.4mm;margin-bottom:5.6mm;box-shadow:0 .8mm 0 var(--t)}
+.card h3{display:table;font:700 1.12em/1.15 var(--display);background:var(--t);color:var(--d);border:.4mm solid var(--a);border-radius:5mm;padding:.9mm 3.4mm;margin:-8.6mm 0 1.6mm -.8mm}
+.card p{margin-bottom:1.4mm}
+.card ul{list-style:none;margin:0 0 1.4mm}
+.card li{position:relative;padding-left:3.8mm;margin-bottom:.9mm}
+.card li::before{content:"";position:absolute;left:.3mm;top:.52em;width:1.9mm;height:1.9mm;border-radius:50%;background:var(--a)}
+b.k,.card b{color:var(--d);font-weight:700}
+.ej{display:block;background:var(--t2);border-radius:2.6mm;padding:1.2mm 3mm 1.2mm 6mm;margin:1.2mm 0;font-style:italic;position:relative;font-size:.95em}
+.ej::before{content:"";position:absolute;left:2.2mm;top:50%;margin-top:-.8mm;width:1.6mm;height:1.6mm;border-radius:50%;background:var(--a)}
+.ej b{font-style:normal}
+u.cn{text-decoration:none;background:var(--t);border-radius:1mm;padding:0 1mm;font-weight:700;color:var(--d);font-style:normal}
+small{font-size:.85em;color:var(--soft)}
+/* tablas */
+table{width:100%;border-collapse:separate;border-spacing:0;margin:1.6mm 0 1mm;font-size:.93em}
+th{background:var(--a);color:var(--ink);text-align:left;padding:1.4mm 3mm;font:700 .95em var(--display)}
+th:first-child{border-radius:2.6mm 0 0 0}th:last-child{border-radius:0 2.6mm 0 0}
+td{padding:1.3mm 3mm;border-bottom:.3mm solid var(--t);vertical-align:top;background:var(--card)}
+tr:nth-child(even) td{background:var(--t2)}
+td:first-child{font-weight:700;color:var(--d)}
+tr:last-child td:first-child{border-radius:0 0 0 2.6mm}tr:last-child td:last-child{border-radius:0 0 2.6mm 0}
+/* nota tipo post-it */
+.tip{break-inside:avoid;background:var(--t);border:.45mm solid var(--a);border-radius:3.5mm;padding:2.4mm 3.6mm;margin-bottom:5.6mm;transform:rotate(-1.2deg);font-size:.97em}
+.tip b{font:700 1.55em/1 var(--hand);color:var(--d);margin-right:1mm}
+/* silabas */
+.sil{display:inline-flex;gap:1.2mm;margin:1.4mm 1.5mm 1.2mm 0}
+.sil span{border:.4mm solid var(--a);border-radius:2.4mm;padding:.5mm 2.6mm;background:var(--card);font-style:normal;font-weight:600}
+.sil span.t{background:var(--a);color:var(--ink);font-weight:800}
+/* pie */
+footer{position:absolute;left:13mm;right:13mm;bottom:5.5mm;display:flex;align-items:center;gap:4mm;font-size:7.8pt;color:var(--soft);z-index:3}
+footer .ft2{margin-left:auto}
+footer .pn{width:7.5mm;height:7.5mm;border-radius:50%;background:var(--a);color:var(--ink);font:800 8.5pt/7.5mm var(--display);text-align:center}
+footer .bk{font-weight:700}
+/* ===== portada ===== */
+.cover{background:var(--paper);padding:0}
+.cover .sh{position:absolute}
+.c1{width:150mm;height:150mm;right:-38mm;top:-52mm;background:#E5826A;border:0}
+.c2{width:80mm;height:80mm;left:-30mm;bottom:-32mm;background:#EDB84A}
+.c3{width:46mm;height:46mm;right:100mm;bottom:12mm;background:#7FB69A;opacity:.9}
+.c4{width:34mm;height:34mm;right:6mm;bottom:8mm;background:#A48BC4}
+.d1{left:118mm;right:auto;top:12mm;width:42mm;height:26mm;--a:#6FA0C8;opacity:.8;background-image:radial-gradient(#6FA0C8 .8mm,transparent .9mm);background-size:5.6mm 5.6mm}
+.d2{left:14mm;top:auto;right:auto;bottom:12mm;width:34mm;height:20mm;background-image:radial-gradient(#3A2E2A .6mm,transparent .7mm);background-size:5mm 5mm;opacity:.35}
+.sym{font:800 52pt var(--display);line-height:1;z-index:1}
+.y1{left:122mm;top:86mm;color:#6FA0C8;transform:rotate(-10deg)}
+.y2{left:128mm;top:150mm;color:#E5826A;font-size:60pt;transform:rotate(8deg)}
+.y3{left:10mm;top:150mm;color:#A48BC4;font-size:46pt;transform:rotate(-6deg);opacity:0}
+.y4{opacity:0}
+.y5{left:150mm;top:8mm;color:#7FB69A;font-size:56pt;transform:rotate(12deg);opacity:0}
+.y6{left:104mm;top:150mm;color:#3A2E2A;font-size:40pt;opacity:0}
+.cl{position:absolute;left:20mm;top:24mm;width:130mm;z-index:3}
+.hand{font:700 22pt var(--hand);color:#A8432B;transform:rotate(-2deg);margin-bottom:2mm}
+.cover h1{font-family:var(--display);color:var(--ink);line-height:.98}
+.cover .mi{display:block;font-size:26pt;font-weight:600;margin-bottom:1mm}
+.cover .gu{display:block;font-size:56pt;font-weight:800;letter-spacing:-.02em}
+.sq{width:100mm;height:8mm;margin:2mm 0 6mm}
+.lead{font-size:12pt;line-height:1.5;max-width:105mm;color:var(--soft)}
+.badge{display:inline-flex;align-items:center;gap:4mm;background:#fff;border:.5mm solid #F0DCC0;border-radius:12mm;padding:2.5mm 8mm 2.5mm 2.5mm;margin-top:11mm;box-shadow:1.2mm 1.2mm 0 #EDB84A}
+.av{width:14mm;height:14mm;border-radius:50%;background:#E5826A;color:#fff;font:800 16pt/14mm var(--display);text-align:center}
+.bt small{display:block;font-size:8.5pt;color:var(--soft)}.bt b{font:700 14pt var(--display);color:var(--ink)}
+.cr{position:absolute;right:16mm;top:17mm;width:112mm;z-index:3;display:flex;flex-direction:column;gap:3.4mm}
+.tile{display:flex;align-items:center;gap:4mm;height:28mm;border-radius:7mm;padding:0 6mm;background:var(--t);border:.6mm solid #fff;box-shadow:1.4mm 1.4mm 0 var(--d)}
+.tile:nth-child(odd){transform:rotate(-2.2deg);margin-right:8mm}.tile:nth-child(even){transform:rotate(1.8deg);margin-left:8mm}
+.tn{font:800 22pt var(--display);color:var(--d);width:14mm}
+.tl{font:700 15pt/1.1 var(--display);color:var(--ink);flex:1}
+.ti{width:16mm;height:16mm;background:var(--a);border-radius:50%;padding:3.2mm;color:var(--ink)}
+.ti svg{width:100%;height:100%}
+/* ===== indice ===== */
+.rows{margin-top:7mm;display:flex;flex-direction:column;gap:3.4mm}
+.row{display:flex;align-items:center;gap:6mm;background:var(--card);border:.45mm solid var(--t);box-shadow:0 .9mm 0 var(--t);border-radius:6mm;padding:2.4mm 6mm 2.4mm 4mm;min-height:24mm}
+.rn{flex:none;width:17mm;height:17mm;border-radius:50%;background:var(--a);font:800 17pt/17mm var(--display);text-align:center;color:var(--ink)}
+.rb{flex:1}
+.rb h3{font:800 14.5pt var(--display);color:var(--d);margin-bottom:1.6mm}
+.chips{display:flex;flex-wrap:wrap;gap:1.2mm 1.6mm}
+.chips span{background:var(--t2);border:.3mm solid var(--t);border-radius:4mm;padding:.2mm 2.6mm;font-size:8.6pt}
+.rp{flex:none;font:800 24pt var(--display);color:var(--d);text-align:center;line-height:1}
+.rp small{display:block;font:600 8pt var(--body);color:var(--soft);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5mm}
 </style></head><body>
-
-<!-- PORTADA -->
 <section class="page cover">
- <div class="l">
-  <div class="tag">Español · Lengua y comunicación</div>
-  <h1>Mi Libro de<br><span>Guía de Estudios</span></h1>
-  <p class="sub">Consulta rápida con ejemplos para trabajos en clase: figuras retóricas, puntuación, conectores, tipos de palabras y acentuación.</p>
-  <div class="chips"><span>Figuras retóricas</span><span>Signos de puntuación</span><span>Conectores textuales</span><span>Tipos de palabras</span><span>Reglas de acentuación</span></div>
-  <div class="by">Elaborado por<b>David Alfredo Romero Rondón</b></div>
- </div>
- <div class="r">
-  <svg width="330" height="300" viewBox="0 0 330 300">
-   <path d="M165 60 C120 35 60 40 25 55 L25 245 C60 230 120 225 165 250 Z" fill="#fff" opacity=".95"/>
-   <path d="M165 60 C210 35 270 40 305 55 L305 245 C270 230 210 225 165 250 Z" fill="#e0e7ff"/>
-   <path d="M165 60 L165 250" stroke="#1e3a8a" stroke-width="3"/>
-   <g stroke="#94a3b8" stroke-width="3"><path d="M45 90h95M45 112h95M45 134h70M45 156h95M45 178h80M190 90h95M190 112h70M190 134h95M190 156h80"/></g>
-   <text x="205" y="215" font-size="52" font-weight="bold" fill="#c2410c">¿!</text>
-   <text x="50" y="222" font-size="40" font-weight="bold" fill="#7e22ce">á é</text>
-   <circle cx="285" cy="45" r="22" fill="#fbbf24"/><text x="274" y="55" font-size="30" font-weight="bold" fill="#0f172a">“”</text>
-  </svg>
- </div>
+<div class="sh c1"></div><div class="sh c2"></div><div class="sh c3"></div><div class="sh c4"></div><div class="dots d1"></div><div class="dots d2"></div>
+<span class="sym y1">¿?</span><span class="sym y2">á</span><span class="sym y3">“ ”</span><span class="sym y4">,</span><span class="sym y5">;</span><span class="sym y6">¡!</span>
+<div class="cl">
+<div class="hand">Lengua y comunicación</div>
+<h1><span class="mi">Mi libro de</span><span class="gu">Guía de<br>Estudios</span></h1>
+<svg class="sq" viewBox="0 0 300 20" preserveAspectRatio="none"><path d="M3 12 Q 20 0 37 12 T 71 12 T 105 12 T 139 12 T 173 12 T 207 12 T 241 12 T 275 12" fill="none" stroke="#E9B44C" stroke-width="5" stroke-linecap="round"/></svg>
+<p class="lead">Mi apoyo para trabajos en clase: figuras retóricas, puntuación, conectores, tipos de palabras y acentuación, con ejemplos para consultar rápido.</p>
+<div class="badge"><span class="av">D</span><span class="bt"><small>Elaborado por</small><b>David Alfredo Romero Rondón</b></span></div>
+</div>
+<div class="cr"><div class="tile t1"><span class="tn">01</span><span class="tl">Figuras retóricas</span><span class="ti"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="26" r="14"/><path d="M26 44h12M28 52h8M32 6V3M10 26H7M57 26h-3M16 10l-2-2M48 10l2-2"/></svg></span></div><div class="tile t2"><span class="tn">02</span><span class="tl">Signos de puntuación</span><span class="ti"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18c0-7 5-10 11-10M20 46c0 8-5 11-9 13"/><circle cx="20" cy="46" r="4" fill="currentColor"/><circle cx="46" cy="16" r="4" fill="currentColor"/><circle cx="46" cy="30" r="4" fill="currentColor"/><path d="M46 38v5c0 6-5 9-9 11"/></svg></span></div><div class="tile t3"><span class="tn">03</span><span class="tl">Conectores textuales</span><span class="ti"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="32" r="7" fill="currentColor"/><circle cx="52" cy="14" r="7" fill="currentColor"/><circle cx="52" cy="50" r="7" fill="currentColor"/><path d="M19 29L45 16M19 35L45 48"/></svg></span></div><div class="tile t4"><span class="tn">04</span><span class="tl">Tipos de palabras</span><span class="ti"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="8" width="24" height="16" rx="5" fill="currentColor"/><rect x="36" y="8" width="22" height="16" rx="5"/><rect x="6" y="30" width="14" height="16" rx="5"/><rect x="26" y="30" width="32" height="16" rx="5" fill="currentColor"/><rect x="6" y="52" width="40" height="7" rx="3"/></svg></span></div><div class="tile t5"><span class="tn">05</span><span class="tl">Reglas de acentuación</span><span class="ti"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="24" width="16" height="22" rx="4"/><rect x="24" y="24" width="16" height="22" rx="4" fill="currentColor"/><rect x="44" y="24" width="16" height="22" rx="4"/><path d="M28 15l7-9" stroke-width="5"/></svg></span></div></div>
 </section>
-
-<!-- INDICE -->
-<section class="page" style="--c:#1e3a8a;--bg:#eef2ff">
- <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M10 14h44M10 28h44M10 42h30M10 56h22"/></svg><div><div class="n">Contenido</div><h1>Índice</h1></div><div class="pg">Guía de Estudios<br>Pág. 2</div></div>
- <div class="idx">
-  <div class="it t1" style="--c:#c2410c;--bg:#fff7ed"><h3><span>1. Figuras retóricas</span><span>pág. 3</span></h3><ul><li>¿Qué son?</li><li>Metáfora y comparación</li><li>Personificación</li><li>Hipérbole</li><li>Ironía</li><li>Metonimia y sinécdoque</li><li>Antítesis y paradoja</li><li>Eufemismo</li><li>Aliteración y onomatopeya</li><li>Anáfora y epíteto</li><li>Hipérbaton</li><li>Polisíndeton y asíndeton</li><li>Oxímoron y apóstrofe</li><li>Cómo identificarlas</li></ul></div>
-  <div class="it t2" style="--c:#1d4ed8;--bg:#eff6ff"><h3><span>2. Signos de puntuación</span><span>pág. 5</span></h3><ul><li>Punto (3 tipos)</li><li>Coma y sus usos</li><li>Errores con la coma</li><li>Punto y coma</li><li>Dos puntos</li><li>Interrogación y exclamación</li><li>Puntos suspensivos</li><li>Comillas</li><li>Paréntesis</li><li>Raya y guion</li><li>Tabla de repaso</li><li>Errores comunes</li></ul></div>
-  <div class="it t3" style="--c:#047857;--bg:#ecfdf5"><h3><span>3. Conectores textuales</span><span>pág. 7</span></h3><ul><li>¿Qué son?</li><li>Adición</li><li>Contraste</li><li>Causa</li><li>Consecuencia</li><li>Orden</li><li>Ejemplificación</li><li>Reformulación</li><li>Conclusión</li><li>Condición</li><li>Tiempo</li><li>Comparación</li><li>Ejemplo en un párrafo</li></ul></div>
-  <div class="it t4" style="--c:#7e22ce;--bg:#faf5ff"><h3><span>4. Tipos de palabras</span><span>pág. 9</span></h3><ul><li>Palabras variables e invariables</li><li>Sustantivo</li><li>Adjetivo</li><li>Artículo y determinantes</li><li>Pronombre</li><li>Verbo</li><li>Adverbio</li><li>Preposición</li><li>Conjunción</li><li>Interjección</li><li>Cómo analizar una oración</li></ul></div>
-  <div class="it t5" style="--c:#be123c;--bg:#fff1f2;grid-column:1 / span 2"><h3><span>5. Reglas de acentuación (sílaba tónica y átona)</span><span>pág. 11</span></h3><ul style="columns:4"><li>Sílaba tónica y átona</li><li>Cómo separar sílabas</li><li>Agudas</li><li>Graves o llanas</li><li>Esdrújulas</li><li>Sobresdrújulas</li><li>Diptongo, triptongo, hiato</li><li>Monosílabos</li><li>Tilde diacrítica</li><li>Interrogativos y exclamativos</li><li>Adverbios en -mente</li><li>Palabras átonas</li></ul></div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>David Alfredo Romero Rondón</span></div>
+<section class="page idx t0">
+<div class="sh s1"></div><div class="sh s2"></div><div class="dots"></div>
+<header class="top"><div class="num">☰</div><div class="ttl"><span class="kick">Contenido</span><h1>Índice</h1></div></header>
+<div class="wave"></div>
+<div class="rows"><div class="row t1"><div class="rn">01</div><div class="rb"><h3>Figuras retóricas</h3><div class="chips"><span>Metáfora y símil</span><span>Personificación</span><span>Hipérbole</span><span>Ironía</span><span>Metonimia</span><span>Sinécdoque</span><span>Antítesis</span><span>Paradoja</span><span>Eufemismo</span><span>Aliteración</span><span>Onomatopeya</span><span>Anáfora</span><span>Epíteto</span><span>Hipérbaton</span><span>Asíndeton</span><span>Oxímoron</span></div></div><div class="rp"><small>pág.</small>3</div></div><div class="row t2"><div class="rn">02</div><div class="rb"><h3>Signos de puntuación</h3><div class="chips"><span>Punto</span><span>Coma y sus errores</span><span>Punto y coma</span><span>Dos puntos</span><span>Suspensivos</span><span>Interrogación y exclamación</span><span>Comillas</span><span>Paréntesis</span><span>Raya y guion</span><span>Errores comunes</span></div></div><div class="rp"><small>pág.</small>5</div></div><div class="row t3"><div class="rn">03</div><div class="rb"><h3>Conectores textuales</h3><div class="chips"><span>Adición</span><span>Contraste</span><span>Causa</span><span>Consecuencia</span><span>Orden</span><span>Ejemplificación</span><span>Reformulación</span><span>Conclusión</span><span>Condición</span><span>Tiempo</span><span>Comparación</span><span>Párrafo de ejemplo</span></div></div><div class="rp"><small>pág.</small>7</div></div><div class="row t4"><div class="rn">04</div><div class="rb"><h3>Tipos de palabras</h3><div class="chips"><span>Sustantivo</span><span>Adjetivo</span><span>Artículo y determinantes</span><span>Pronombre</span><span>Verbo</span><span>Adverbio</span><span>Preposición</span><span>Conjunción</span><span>Interjección</span><span>Análisis de oraciones</span></div></div><div class="rp"><small>pág.</small>9</div></div><div class="row t5"><div class="rn">05</div><div class="rb"><h3>Reglas de acentuación</h3><div class="chips"><span>Sílaba tónica y átona</span><span>Separar sílabas</span><span>Agudas</span><span>Graves</span><span>Esdrújulas</span><span>Sobresdrújulas</span><span>Diptongo y hiato</span><span>Monosílabos</span><span>Tilde diacrítica</span><span>Qué, cómo, dónde</span><span>Adverbios en -mente</span></div></div><div class="rp"><small>pág.</small>11</div></div></div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">David Alfredo Romero Rondón</span><span class="pn">2</span></footer>
 </section>
-
-<!-- ============ 1. FIGURAS RETORICAS ============ -->
 <section class="page t1">
- <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="26" r="14"/><path d="M26 44h12M28 52h8M32 6v-2M10 26H8M56 26h-2M16 10l-2-2M48 10l2-2"/></svg><div><div class="n">Tema 1</div><h1>Figuras retóricas (1/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 3</div></div>
- <div class="cols">
+<div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
+<header class="top"><div class="num">01</div><div class="ttl"><span class="kick">Tema 1 · parte 1 de 2</span><h1>Figuras retóricas</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="26" r="14"/><path d="M26 44h12M28 52h8M32 6V3M10 26H7M57 26h-3M16 10l-2-2M48 10l2-2"/></svg></div></header>
+<div class="wave"></div>
+<div class="cols">
   <div class="card"><h3>¿Qué son?</h3><p>Recursos del lenguaje que cambian la forma habitual de decir algo para dar <b class="k">belleza, énfasis o emoción</b>. Se usan sobre todo en poesía, literatura, publicidad y discursos.</p><p>Se dividen en figuras de <b class="k">significado</b> (cambian el sentido), de <b class="k">sonido</b> y de <b class="k">construcción</b> (juegan con el orden o la repetición).</p></div>
   <div class="card"><h3>Metáfora</h3><p>Identifica una cosa con otra por su parecido, <b class="k">sin</b> usar “como”.</p><span class="ej">“Tus ojos son dos luceros.”</span><span class="ej">“El tiempo es oro.”</span></div>
   <div class="card"><h3>Comparación o símil</h3><p>Relaciona dos elementos <b class="k">con</b> un nexo: como, cual, parece, semejante a.</p><span class="ej">“Es rápido como un rayo.”</span><span class="ej">“Tiene la piel suave cual seda.”</span></div>
@@ -104,13 +280,13 @@ u.cn{text-decoration:none;border-bottom:.5mm solid var(--c);font-weight:bold;col
   <div class="card"><h3>Antítesis</h3><p>Contrapone dos ideas o palabras opuestas.</p><span class="ej">“Es largo el camino y corta la esperanza.”</span><span class="ej">“Hoy ríes, mañana lloras.”</span></div>
   <div class="card"><h3>Paradoja</h3><p>Unir ideas que parecen contradictorias pero encierran una verdad.</p><span class="ej">“Solo sé que no sé nada.”</span></div>
   <div class="card"><h3>Eufemismo</h3><p>Suaviza algo desagradable o tabú.</p><span class="ej">“Falleció” en lugar de “murió”.</span><span class="ej">“Adulto mayor” por “viejo”.</span></div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Figuras de significado</span></div>
-</section>
-
-<section class="page t1">
- <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="26" r="14"/><path d="M26 44h12M28 52h8M32 6v-2M10 26H8M56 26h-2M16 10l-2-2M48 10l2-2"/></svg><div><div class="n">Tema 1</div><h1>Figuras retóricas (2/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 4</div></div>
- <div class="cols">
+</div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">Figuras de significado</span><span class="pn">3</span></footer>
+</section><section class="page t1">
+<div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
+<header class="top"><div class="num">01</div><div class="ttl"><span class="kick">Tema 1 · parte 2 de 2</span><h1>Figuras retóricas</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="26" r="14"/><path d="M26 44h12M28 52h8M32 6V3M10 26H7M57 26h-3M16 10l-2-2M48 10l2-2"/></svg></div></header>
+<div class="wave"></div>
+<div class="cols">
   <div class="card"><h3>Aliteración</h3><p>Repetición de sonidos (letras) parecidos para crear musicalidad.</p><span class="ej">“Tres tristes tigres tragaban trigo.”</span><span class="ej">“El ruido con que rueda la ronca tempestad.”</span></div>
   <div class="card"><h3>Onomatopeya</h3><p>Palabra que imita un sonido real.</p><span class="ej">“Splash”, “guau”, “tic-tac”, “pum”, “miau”.</span><span class="ej">“El reloj hacía tic-tac.”</span></div>
   <div class="card"><h3>Anáfora</h3><p>Repetir la misma palabra al comienzo de varias frases o versos.</p><span class="ej">“Quiero paz, quiero amor, quiero libertad.”</span></div>
@@ -124,43 +300,41 @@ u.cn{text-decoration:none;border-bottom:.5mm solid var(--c);font-weight:bold;col
   <div class="card"><h3>Apóstrofe</h3><p>Dirigirse a alguien o algo (presente, ausente o imaginario) en tono emotivo.</p><span class="ej">“¡Oh, mar, cuéntame tus secretos!”</span></div>
   <div class="tip"><b>Truco para identificarlas:</b> pregunta primero ¿hay un <i>parecido</i>? (metáfora/símil) ¿hay <i>exageración</i>? (hipérbole) ¿hay <i>opuestos</i>? (antítesis/oxímoron) ¿se <i>repite</i> algo? (anáfora/aliteración) ¿se <i>cambia el orden</i>? (hipérbaton).</div>
   <div class="card"><h3>Metáfora vs. símil</h3><p>“Tu sonrisa es un sol” → <b class="k">metáfora</b>.<br>“Tu sonrisa es como un sol” → <b class="k">símil</b>.</p></div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Figuras de sonido y construcción</span></div>
-</section>
-
-<!-- ============ 2. PUNTUACION ============ -->
-<section class="page t2">
- <div class="hd"><svg viewBox="0 0 64 64" fill="#fff"><circle cx="16" cy="46" r="5"/><path d="M12 20q0-10 10-10M16 46q0 8-6 12" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="14" r="5"/><circle cx="46" cy="30" r="5"/><path d="M46 38v6q0 6-6 10" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg><div><div class="n">Tema 2</div><h1>Uso de signos de puntuación (1/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 5</div></div>
- <div class="cols">
+</div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">Figuras de sonido y construcción</span><span class="pn">4</span></footer>
+</section><section class="page t2">
+<div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
+<header class="top"><div class="num">02</div><div class="ttl"><span class="kick">Tema 2 · parte 1 de 2</span><h1>Uso de signos de puntuación</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18c0-7 5-10 11-10M20 46c0 8-5 11-9 13"/><circle cx="20" cy="46" r="4" fill="currentColor"/><circle cx="46" cy="16" r="4" fill="currentColor"/><circle cx="46" cy="30" r="4" fill="currentColor"/><path d="M46 38v5c0 6-5 9-9 11"/></svg></div></header>
+<div class="wave"></div>
+<div class="cols">
   <div class="card"><h3>El punto ( . )</h3><p>Indica una pausa larga y cierra una idea.</p><ul><li><b class="k">Punto y seguido:</b> separa oraciones dentro del mismo párrafo.</li><li><b class="k">Punto y aparte:</b> termina un párrafo y se pasa a otro renglón.</li><li><b class="k">Punto final:</b> cierra el texto.</li></ul><p>También va en abreviaturas: <i>Sr., Dra., etc.</i> Después de punto se escribe mayúscula.</p></div>
   <div class="card"><h3>La coma ( , ) – usos</h3><ul><li><b class="k">Enumeración:</b> <i>Compré pan, leche, huevos y frutas.</i></li><li><b class="k">Vocativo:</b> <i>Juan, ven acá.</i></li><li><b class="k">Aposición (aclaración):</b> <i>Oaxaca, capital del estado, es bella.</i></li><li><b class="k">Antes de conectores:</b> <i>Sin embargo, no fui.</i></li><li><b class="k">Elipsis del verbo:</b> <i>Yo estudio historia; ella, química.</i></li><li><b class="k">Oración subordinada antepuesta:</b> <i>Cuando llegues, avísame.</i></li></ul></div>
   <div class="card"><h3>Errores con la coma</h3><ul><li>NO separar sujeto y verbo: <i>✗ Mi hermano, come.</i> ✓ <i>Mi hermano come.</i></li><li>No poner coma antes de “y” en enumeración (salvo que cambie el sentido).</li><li>No abusar: una coma no sustituye al punto.</li></ul></div>
   <div class="card"><h3>El punto y coma ( ; )</h3><p>Pausa mayor que la coma y menor que el punto.</p><ul><li>Separa elementos largos de una lista que ya tienen comas.</li><li>Une ideas relacionadas: <i>Estudié mucho; aprobé.</i></li><li>Antes de <i>pero, aunque, sin embargo</i> en oraciones largas.</li></ul></div>
   <div class="card"><h3>Los dos puntos ( : )</h3><ul><li>Antes de una <b class="k">enumeración</b>: <i>Traje tres cosas: lápiz, goma y cuaderno.</i></li><li>Antes de una <b class="k">cita textual</b>: <i>Dijo: “Ya voy”.</i></li><li>Después del saludo en cartas: <i>Estimado David:</i></li><li>Para <b class="k">explicar o concluir</b>: <i>Hay un problema: no hay tiempo.</i></li></ul><p>Tras dos puntos va minúscula (salvo saludo o cita).</p></div>
   <div class="card"><h3>Puntos suspensivos ( … )</h3><p>Siempre son <b class="k">tres</b>.</p><ul><li>Dejan una frase incompleta o en suspenso: <i>No sé si…</i></li><li>Expresan duda o temor.</li><li>Indican que una enumeración continúa: <i>manzanas, peras, uvas…</i></li><li>Entre corchetes […] marcan texto omitido en una cita.</li></ul></div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Punto, coma, punto y coma, dos puntos, suspensivos</span></div>
-</section>
-
-<section class="page t2">
- <div class="hd"><svg viewBox="0 0 64 64" fill="#fff"><circle cx="16" cy="46" r="5"/><path d="M12 20q0-10 10-10M16 46q0 8-6 12" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="14" r="5"/><circle cx="46" cy="30" r="5"/><path d="M46 38v6q0 6-6 10" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg><div><div class="n">Tema 2</div><h1>Uso de signos de puntuación (2/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 6</div></div>
- <div class="cols">
+</div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">Punto, coma, punto y coma, dos puntos, suspensivos</span><span class="pn">5</span></footer>
+</section><section class="page t2">
+<div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
+<header class="top"><div class="num">02</div><div class="ttl"><span class="kick">Tema 2 · parte 2 de 2</span><h1>Uso de signos de puntuación</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18c0-7 5-10 11-10M20 46c0 8-5 11-9 13"/><circle cx="20" cy="46" r="4" fill="currentColor"/><circle cx="46" cy="16" r="4" fill="currentColor"/><circle cx="46" cy="30" r="4" fill="currentColor"/><path d="M46 38v5c0 6-5 9-9 11"/></svg></div></header>
+<div class="wave"></div>
+<div class="cols">
   <div class="card"><h3>Interrogación ( ¿? ) y exclamación ( ¡! )</h3><p>En español se escriben <b class="k">de apertura y de cierre</b>.</p><span class="ej">¿Cómo te llamas? · ¡Qué alegría verte!</span><p>Si la pregunta empieza a mitad de oración, ¿ va donde empieza la pregunta: <i>Si no vienes, ¿qué hacemos?</i></p></div>
   <div class="card"><h3>Comillas ( “ ” )</h3><ul><li>Citas textuales: <i>Dijo: “Nos vemos”.</i></li><li>Títulos de poemas, artículos, canciones.</li><li>Palabras con sentido irónico o extranjerismos.</li></ul></div>
   <div class="card"><h3>Paréntesis ( )</h3><p>Encierran aclaraciones, datos o fechas.</p><span class="ej">Benito Juárez (1806-1872) nació en Oaxaca.</span></div>
-  <div class="card"><h3>La raya ( — )</h3><ul><li>Introduce el diálogo en narraciones: <i>—Hola —dijo Ana.</i></li><li>Encierra aclaraciones (como paréntesis): <i>Mi madre —que vive en Oaxaca— llegó.</i></li></ul></div>
+  <div class="card"><h3>La raya ( — )</h3><ul><li>Introduce el diálogo en narraciones: <i style="white-space:nowrap">—Hola —dijo Ana.</i></li><li>Encierra aclaraciones (como paréntesis): <i>Mi madre —que vive en Oaxaca— llegó.</i></li></ul></div>
   <div class="card"><h3>El guion ( - )</h3><p>Más corto que la raya.</p><ul><li>Une palabras compuestas: <i>teórico-práctico.</i></li><li>Divide palabras al final del renglón: <i>cons-trucción.</i></li><li>Rangos: <i>1910-1920.</i></li></ul></div>
   <div class="card"><h3>Tabla de repaso rápido</h3><table><tr><th>Signo</th><th>Pausa</th><th>Idea clave</th></tr><tr><td>,</td><td>corta</td><td>enumerar, aclarar</td></tr><tr><td>;</td><td>media</td><td>ideas relacionadas</td></tr><tr><td>.</td><td>larga</td><td>cerrar idea</td></tr><tr><td>:</td><td>anuncia</td><td>listas, citas</td></tr><tr><td>…</td><td>suspenso</td><td>duda, continuar</td></tr></table></div>
   <div class="card"><h3>Errores comunes</h3><ul><li>Olvidar el signo de apertura (¿ ¡).</li><li>Poner coma entre sujeto y verbo.</li><li>Usar más de tres puntos suspensivos.</li><li>Escribir minúscula después de punto.</li><li>Escribir “etc…” (basta “etc.”).</li><li>Mezclar raya y guion.</li></ul></div>
   <div class="tip"><b>Consejo:</b> para saber dónde va una coma, lee en voz alta; si haces una pausa breve natural, probablemente la necesita. Si no, quítala.</div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Interrogación, comillas, paréntesis, raya y guion</span></div>
-</section>
-
-<!-- ============ 3. CONECTORES ============ -->
-<section class="page t3">
- <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><circle cx="12" cy="32" r="7" fill="#fff"/><circle cx="52" cy="14" r="7" fill="#fff"/><circle cx="52" cy="50" r="7" fill="#fff"/><path d="M19 30L45 16M19 34L45 48"/></svg><div><div class="n">Tema 3</div><h1>Conectores textuales (1/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 7</div></div>
- <div class="cols">
+</div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">Interrogación, comillas, paréntesis, raya y guion</span><span class="pn">6</span></footer>
+</section><section class="page t3">
+<div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
+<header class="top"><div class="num">03</div><div class="ttl"><span class="kick">Tema 3 · parte 1 de 2</span><h1>Conectores textuales</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="32" r="7" fill="currentColor"/><circle cx="52" cy="14" r="7" fill="currentColor"/><circle cx="52" cy="50" r="7" fill="currentColor"/><path d="M19 29L45 16M19 35L45 48"/></svg></div></header>
+<div class="wave"></div>
+<div class="cols">
   <div class="card"><h3>¿Qué son?</h3><p>Palabras o frases que <b class="k">unen ideas</b> dentro de un texto y muestran la relación entre ellas (causa, contraste, orden…). Dan <b class="k">coherencia y fluidez</b>: sin ellos el texto parece una lista de frases sueltas.</p></div>
   <div class="card"><h3>Adición (suman ideas)</h3><p><b class="k">y, además, asimismo, también, incluso, de igual modo, por otra parte, igualmente</b></p><span class="ej">Estudia inglés; además, practica francés.</span></div>
   <div class="card"><h3>Contraste u oposición</h3><p><b class="k">pero, sin embargo, no obstante, en cambio, por el contrario, aunque, a pesar de que, sino</b></p><span class="ej">Quería ir; sin embargo, estaba lloviendo.</span><span class="ej">No es rojo, sino naranja.</span></div>
@@ -170,13 +344,13 @@ u.cn{text-decoration:none;border-bottom:.5mm solid var(--c);font-weight:bold;col
   <div class="card"><h3>Ejemplificación</h3><p><b class="k">por ejemplo, es decir, así, como, en particular, tal como</b></p><span class="ej">Hay frutas tropicales, por ejemplo, mango.</span></div>
   <div class="card"><h3>Reformulación o explicación</h3><p><b class="k">es decir, o sea, esto es, en otras palabras, dicho de otro modo</b></p><span class="ej">Es bilingüe; es decir, habla dos idiomas.</span></div>
   <div class="card"><h3>Conclusión o cierre</h3><p><b class="k">en conclusión, en resumen, para terminar, en definitiva, en suma, por último</b></p><span class="ej">En resumen, el proyecto fue exitoso.</span></div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Conectores por función</span></div>
-</section>
-
-<section class="page t3">
- <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><circle cx="12" cy="32" r="7" fill="#fff"/><circle cx="52" cy="14" r="7" fill="#fff"/><circle cx="52" cy="50" r="7" fill="#fff"/><path d="M19 30L45 16M19 34L45 48"/></svg><div><div class="n">Tema 3</div><h1>Conectores textuales (2/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 8</div></div>
- <div class="cols">
+</div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">Conectores por función</span><span class="pn">7</span></footer>
+</section><section class="page t3">
+<div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
+<header class="top"><div class="num">03</div><div class="ttl"><span class="kick">Tema 3 · parte 2 de 2</span><h1>Conectores textuales</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="32" r="7" fill="currentColor"/><circle cx="52" cy="14" r="7" fill="currentColor"/><circle cx="52" cy="50" r="7" fill="currentColor"/><path d="M19 29L45 16M19 35L45 48"/></svg></div></header>
+<div class="wave"></div>
+<div class="cols">
   <div class="card"><h3>Condición</h3><p><b class="k">si, siempre que, con tal de que, a menos que, en caso de que, a condición de que</b></p><span class="ej">Iré a la fiesta si terminas la tarea.</span></div>
   <div class="card"><h3>Tiempo</h3><p><b class="k">cuando, mientras, mientras tanto, antes de, después de, al mismo tiempo, desde que, luego</b></p><span class="ej">Mientras cocino, escucho música.</span></div>
   <div class="card"><h3>Comparación / semejanza</h3><p><b class="k">igual que, del mismo modo, así como, al igual que, tal como, de manera similar</b></p><span class="ej">Ana habla con calma, al igual que su madre.</span></div>
@@ -186,27 +360,26 @@ u.cn{text-decoration:none;border-bottom:.5mm solid var(--c);font-weight:bold;col
   <div class="card"><h3>Ejemplo en un párrafo</h3><p><i><u class="cn">En primer lugar</u>, la lectura mejora el vocabulario. <u class="cn">Además</u>, ayuda a escribir mejor, <u class="cn">ya que</u> muestra cómo se usan las palabras. <u class="cn">Sin embargo</u>, muchas personas leen poco; <u class="cn">por lo tanto</u>, conviene crear el hábito. <u class="cn">En conclusión</u>, leer a diario es una de las mejores inversiones.</i></p><p style="font-size:8pt">Subrayados: orden · adición · causa · contraste · consecuencia · conclusión.</p></div>
   <div class="card"><h3>Tabla resumen por función</h3><table><tr><th>Función</th><th>Ejemplo clave</th></tr><tr><td>Adición</td><td>además</td></tr><tr><td>Contraste</td><td>sin embargo</td></tr><tr><td>Causa</td><td>porque</td></tr><tr><td>Consecuencia</td><td>por lo tanto</td></tr><tr><td>Orden</td><td>primero</td></tr><tr><td>Ejemplo</td><td>por ejemplo</td></tr><tr><td>Reformular</td><td>es decir</td></tr><tr><td>Conclusión</td><td>en resumen</td></tr></table></div>
   <div class="tip"><b>Cuidado:</b> no repitas siempre el mismo conector. Y recuerda: los conectores que abren la oración llevan <b>coma</b> después (<i>Además, ...</i>; <i>Sin embargo, ...</i>).</div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Más conectores, ejemplo y resumen</span></div>
-</section>
-
-<!-- ============ 4. TIPOS DE PALABRAS ============ -->
-<section class="page t4">
- <div class="hd"><svg viewBox="0 0 64 64" fill="#fff"><rect x="6" y="8" width="22" height="16" rx="4"/><rect x="34" y="8" width="24" height="16" rx="4" opacity=".6"/><rect x="6" y="30" width="14" height="16" rx="4" opacity=".6"/><rect x="26" y="30" width="32" height="16" rx="4"/><rect x="6" y="52" width="40" height="8" rx="3" opacity=".6"/></svg><div><div class="n">Tema 4</div><h1>Tipos de palabras (1/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 9</div></div>
- <div class="cols">
+</div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">Más conectores, ejemplo y resumen</span><span class="pn">8</span></footer>
+</section><section class="page t4">
+<div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
+<header class="top"><div class="num">04</div><div class="ttl"><span class="kick">Tema 4 · parte 1 de 2</span><h1>Tipos de palabras</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="8" width="24" height="16" rx="5" fill="currentColor"/><rect x="36" y="8" width="22" height="16" rx="5"/><rect x="6" y="30" width="14" height="16" rx="5"/><rect x="26" y="30" width="32" height="16" rx="5" fill="currentColor"/><rect x="6" y="52" width="40" height="7" rx="3"/></svg></div></header>
+<div class="wave"></div>
+<div class="cols">
   <div class="card"><h3>Variables e invariables</h3><p><b class="k">Variables</b> (cambian de género, número o tiempo): sustantivo, adjetivo, artículo, pronombre, verbo.</p><p><b class="k">Invariables</b> (no cambian): adverbio, preposición, conjunción, interjección.</p></div>
   <div class="card"><h3>Sustantivo (nombre)</h3><p>Nombra personas, animales, cosas, lugares o ideas.</p><ul><li><b class="k">Común / propio:</b> ciudad / Oaxaca</li><li><b class="k">Concreto / abstracto:</b> mesa / amor</li><li><b class="k">Individual / colectivo:</b> árbol / bosque</li><li><b class="k">Contable / incontable:</b> libro / agua</li></ul></div>
   <div class="card"><h3>Adjetivo</h3><p>Acompaña al sustantivo y dice cómo es. Concuerda en género y número.</p><span class="ej">casa <b>grande</b>, niños <b>felices</b>, flor <b>roja</b></span><p>Grados: <i>alto, más alto, altísimo</i>.</p></div>
   <div class="card"><h3>Artículo y determinantes</h3><ul><li><b class="k">Artículos:</b> el, la, los, las (definidos); un, una, unos, unas (indefinidos).</li><li><b class="k">Demostrativos:</b> este, ese, aquel.</li><li><b class="k">Posesivos:</b> mi, tu, su, nuestro.</li><li><b class="k">Numerales:</b> dos, tercer. <b class="k">Indefinidos:</b> algunos, todos.</li></ul></div>
   <div class="card"><h3>Pronombre</h3><p>Sustituye al sustantivo para no repetirlo.</p><ul><li><b class="k">Personales:</b> yo, tú, él, nosotros, ellos.</li><li><b class="k">Demostrativos:</b> esto, eso.</li><li><b class="k">Relativos:</b> que, quien, cuyo.</li><li><b class="k">Interrogativos:</b> qué, quién.</li></ul><span class="ej">María llegó. <b>Ella</b> traía el libro.</span></div>
   <div class="card"><h3>Verbo</h3><p>Expresa acción, estado o proceso. Cambia según persona, número, tiempo y modo.</p><ul><li><b class="k">Terminaciones:</b> -ar, -er, -ir.</li><li><b class="k">Modos:</b> indicativo, subjuntivo, imperativo.</li><li><b class="k">Tiempos:</b> presente, pasado, futuro.</li><li><b class="k">Formas no personales:</b> infinitivo, gerundio, participio.</li></ul><span class="ej">Ellos <b>cantaron</b> ayer. · Yo <b>comeré</b> mañana.</span></div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Palabras variables</span></div>
-</section>
-
-<section class="page t4">
- <div class="hd"><svg viewBox="0 0 64 64" fill="#fff"><rect x="6" y="8" width="22" height="16" rx="4"/><rect x="34" y="8" width="24" height="16" rx="4" opacity=".6"/><rect x="6" y="30" width="14" height="16" rx="4" opacity=".6"/><rect x="26" y="30" width="32" height="16" rx="4"/><rect x="6" y="52" width="40" height="8" rx="3" opacity=".6"/></svg><div><div class="n">Tema 4</div><h1>Tipos de palabras (2/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 10</div></div>
- <div class="cols">
+</div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">Palabras variables</span><span class="pn">9</span></footer>
+</section><section class="page t4">
+<div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
+<header class="top"><div class="num">04</div><div class="ttl"><span class="kick">Tema 4 · parte 2 de 2</span><h1>Tipos de palabras</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="8" width="24" height="16" rx="5" fill="currentColor"/><rect x="36" y="8" width="22" height="16" rx="5"/><rect x="6" y="30" width="14" height="16" rx="5"/><rect x="26" y="30" width="32" height="16" rx="5" fill="currentColor"/><rect x="6" y="52" width="40" height="7" rx="3"/></svg></div></header>
+<div class="wave"></div>
+<div class="cols">
   <div class="card"><h3>Adverbio</h3><p>Modifica a un verbo, adjetivo u otro adverbio.</p><table><tr><th>Tipo</th><th>Ejemplos</th></tr><tr><td>Lugar</td><td>aquí, allá, cerca</td></tr><tr><td>Tiempo</td><td>hoy, ayer, nunca</td></tr><tr><td>Modo</td><td>bien, mal, rápidamente</td></tr><tr><td>Cantidad</td><td>muy, poco, mucho</td></tr><tr><td>Afirmación / negación / duda</td><td>sí, no, quizás</td></tr></table></div>
   <div class="card"><h3>Preposición</h3><p>Enlaza palabras y marca su relación. Lista completa:</p><p><b class="k">a, ante, bajo, cabe, con, contra, de, desde, durante, en, entre, hacia, hasta, mediante, para, por, según, sin, so, sobre, tras, versus, vía.</b></p><span class="ej">Voy <b>a</b> la escuela <b>con</b> mi amigo.</span></div>
   <div class="card"><h3>Conjunción</h3><p>Une palabras o frases.</p><ul><li><b class="k">Coordinantes:</b> y, e, ni, o, u, pero, sino.</li><li><b class="k">Subordinantes:</b> que, porque, aunque, si, cuando.</li></ul><span class="ej">Pan <b>y</b> leche. · Estudia <b>o</b> trabaja.</span><p><i>Y→e</i> ante “i”; <i>o→u</i> ante “o”.</p></div>
@@ -214,14 +387,13 @@ u.cn{text-decoration:none;border-bottom:.5mm solid var(--c);font-weight:bold;col
   <div class="card"><h3>Cómo analizar una oración</h3><p>Ejemplo: <i>“Los niños felices comen rápidamente.”</i></p><table><tr><td>Los</td><td>artículo</td></tr><tr><td>niños</td><td>sustantivo</td></tr><tr><td>felices</td><td>adjetivo</td></tr><tr><td>comen</td><td>verbo</td></tr><tr><td>rápidamente</td><td>adverbio</td></tr></table></div>
   <div class="card"><h3>Tabla resumen</h3><table><tr><th>Clase</th><th>Función</th></tr><tr><td>Sustantivo</td><td>nombra</td></tr><tr><td>Adjetivo</td><td>califica</td></tr><tr><td>Verbo</td><td>acción / estado</td></tr><tr><td>Adverbio</td><td>modifica al verbo</td></tr><tr><td>Preposición</td><td>enlaza</td></tr><tr><td>Conjunción</td><td>une</td></tr><tr><td>Interjección</td><td>emoción</td></tr></table></div>
   <div class="tip"><b>Truco:</b> si una palabra puede ir en plural o cambiar de género, es variable. Si dudas entre adjetivo y adverbio: ¿acompaña a un nombre (adjetivo) o a un verbo (adverbio)?</div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Palabras invariables y análisis</span></div>
-</section>
-
-<!-- ============ 5. ACENTUACION ============ -->
-<section class="page t5 lg">
- <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><rect x="4" y="22" width="16" height="22" rx="3"/><rect x="24" y="22" width="16" height="22" rx="3" fill="#fff"/><rect x="44" y="22" width="16" height="22" rx="3"/><path d="M28 14l6-8" stroke-width="5"/></svg><div><div class="n">Tema 5</div><h1>Reglas de acentuación (1/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 11</div></div>
- <div class="cols">
+</div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">Palabras invariables y análisis</span><span class="pn">10</span></footer>
+</section><section class="page t5">
+<div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
+<header class="top"><div class="num">05</div><div class="ttl"><span class="kick">Tema 5 · parte 1 de 2</span><h1>Reglas de acentuación</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="24" width="16" height="22" rx="4"/><rect x="24" y="24" width="16" height="22" rx="4" fill="currentColor"/><rect x="44" y="24" width="16" height="22" rx="4"/><path d="M28 15l7-9" stroke-width="5"/></svg></div></header>
+<div class="wave"></div>
+<div class="cols">
   <div class="card"><h3>Sílaba tónica y átona</h3><p><b class="k">Sílaba tónica:</b> la que se pronuncia con más fuerza. <b class="k">Átonas:</b> las demás.</p><span class="sil"><span>ca</span><span>mi</span><span class="t">ón</span></span> <small>ca-mi-<b>ón</b>… tónica: última</small><br><span class="sil"><span>ma</span><span class="t">ri</span><span>po</span><span>sa</span></span><br><small>tónica: <b>ri</b></small><p>La <b class="k">tilde</b> (´) marca la sílaba tónica cuando la regla lo exige.</p></div>
   <div class="card"><h3>Cómo separar en sílabas</h3><ul><li>Una consonante entre vocales se une a la siguiente: <i>ca-sa</i>.</li><li>Dos consonantes se separan: <i>cam-po</i> (salvo bl, br, cl, cr, dr, fl, fr, gl, gr, pl, pr, tr: <i>a-bri-go</i>).</li><li>ch, ll, rr no se separan: <i>ca-rro</i>.</li></ul></div>
   <div class="card"><h3>Palabras agudas</h3><p>Tónica en la <b class="k">última</b> sílaba. Llevan tilde si terminan en <b class="k">n, s o vocal</b>.</p><span class="ej">canción, café, sofá, compás ✓<br>reloj, ciudad, amor ✗ (sin tilde)</span></div>
@@ -229,13 +401,13 @@ u.cn{text-decoration:none;border-bottom:.5mm solid var(--c);font-weight:bold;col
   <div class="card"><h3>Esdrújulas</h3><p>Tónica en la <b class="k">antepenúltima</b>. <b class="k">Siempre</b> llevan tilde.</p><span class="ej">teléfono, música, médico, pájaro</span></div>
   <div class="card"><h3>Sobresdrújulas</h3><p>Tónica antes de la antepenúltima (suelen ser verbos con pronombres). <b class="k">Siempre</b> llevan tilde.</p><span class="ej">cuéntamelo, dígaselo, llévatelo</span></div>
   <div class="tip"><b>Resumen:</b> agudas → n, s, vocal · graves → todas las demás · esdrújulas y sobresdrújulas → siempre.</div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>Clasificación por la sílaba tónica</span></div>
-</section>
-
-<section class="page t5">
- <div class="hd"><svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><rect x="4" y="22" width="16" height="22" rx="3"/><rect x="24" y="22" width="16" height="22" rx="3" fill="#fff"/><rect x="44" y="22" width="16" height="22" rx="3"/><path d="M28 14l6-8" stroke-width="5"/></svg><div><div class="n">Tema 5</div><h1>Reglas de acentuación (2/2)</h1></div><div class="pg">Guía de Estudios<br>Pág. 12</div></div>
- <div class="cols">
+</div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">Clasificación por la sílaba tónica</span><span class="pn">11</span></footer>
+</section><section class="page t5">
+<div class="sh s1"></div><div class="sh s2"></div><div class="sh s3"></div><div class="dots"></div>
+<header class="top"><div class="num">05</div><div class="ttl"><span class="kick">Tema 5 · parte 2 de 2</span><h1>Reglas de acentuación</h1></div><div class="ico"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="24" width="16" height="22" rx="4"/><rect x="24" y="24" width="16" height="22" rx="4" fill="currentColor"/><rect x="44" y="24" width="16" height="22" rx="4"/><path d="M28 15l7-9" stroke-width="5"/></svg></div></header>
+<div class="wave"></div>
+<div class="cols">
   <div class="card"><h3>Diptongo, triptongo e hiato</h3><ul><li><b class="k">Diptongo:</b> dos vocales juntas en una sílaba (abierta a,e,o + cerrada i,u, o dos cerradas): <i>ai-re, cui-da-do</i>.</li><li><b class="k">Triptongo:</b> tres vocales: <i>es-tu-diáis</i>.</li><li><b class="k">Hiato:</b> dos vocales en sílabas separadas: <i>le-ón, pa-ís, dí-a</i>.</li></ul><p>En hiato con vocal cerrada tónica, <b class="k">siempre</b> hay tilde: <i>país, río, baúl</i>.</p></div>
   <div class="card"><h3>Monosílabos</h3><p>No llevan tilde: <i>fue, dio, vio, fe, pie, sol</i> (excepto diacrítica).</p></div>
   <div class="card"><h3>Tilde diacrítica</h3><p>Distingue palabras iguales con distinto significado.</p><table><tr><th>Con tilde</th><th>Sin tilde</th></tr><tr><td>tú (pronombre)</td><td>tu (posesivo)</td></tr><tr><td>él (pronombre)</td><td>el (artículo)</td></tr><tr><td>mí (pronombre)</td><td>mi (posesivo)</td></tr><tr><td>té (bebida)</td><td>te (pronombre)</td></tr><tr><td>sé (saber/ser)</td><td>se (pronombre)</td></tr><tr><td>dé (dar)</td><td>de (preposición)</td></tr><tr><td>sí (afirmación)</td><td>si (condición)</td></tr><tr><td>más (cantidad)</td><td>mas (pero)</td></tr><tr><td>aún (todavía)</td><td>aun (incluso)</td></tr></table></div>
@@ -244,8 +416,9 @@ u.cn{text-decoration:none;border-bottom:.5mm solid var(--c);font-weight:bold;col
   <div class="card"><h3>Palabras átonas</h3><p>Se pronuncian sin fuerza: artículos, preposiciones, conjunciones y pronombres átonos (<i>el, de, y, me, se</i>). No llevan tilde.</p></div>
   <div class="card"><h3>Palabras compuestas y mayúsculas</h3><ul><li>Las mayúsculas <b class="k">sí</b> llevan tilde: <i>África, Ángel</i>.</li><li>Compuestas sin guion: se acentúan según sus reglas: <i>decimoséptimo</i>.</li></ul></div>
   <div class="tip"><b>Pasos:</b> 1) separa en sílabas · 2) ubica la sílaba tónica · 3) clasifica (aguda, grave, esdrújula) · 4) aplica la regla de la tilde.</div>
- </div>
- <div class="ft"><span>Mi Libro de Guía de Estudios</span><span>David Alfredo Romero Rondón · Fin</span></div>
+</div>
+<footer><span class="bk">Mi libro de Guía de Estudios</span><span class="ft2">David Alfredo Romero Rondón · Fin</span><span class="pn">12</span></footer>
 </section>
-
-</body></html>
+<script>
+document.fonts.ready.then(()=>{document.querySelectorAll('.cols').forEach(c=>{let fs=8.4,best=8.4;for(;fs<=13.2;fs+=.2){c.style.fontSize=fs+'pt';if(c.scrollWidth>c.clientWidth+1)break;best=fs}c.style.fontSize=best+'pt';c.dataset.fs=best.toFixed(1)});document.body.dataset.ready='1'});
+</script></body></html>
