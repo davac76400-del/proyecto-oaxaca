@@ -269,6 +269,9 @@ const TAGS: [string, string][] = [
 
 const DEMO = ['Tengo sed', 'Me duele', 'Tengo frío', 'Llama a mi familia'];
 
+const RATES: [string, number][] = [['Lenta', 0.8], ['Normal', 1], ['Rápida', 1.25]];
+const PAIN = ['Sin dolor', 'Muy leve', 'Leve', 'Molesto', 'Molesto', 'Moderado', 'Moderado', 'Fuerte', 'Muy fuerte', 'Intenso', 'El peor dolor'];
+
 const PREP: [string, string, string][] = [
   ['Grabamos', 'camera', 'De *1 a 5 ejemplos* de la palabra, con la cámara.'],
   ['Convertimos', 'cpu', 'Cada ejemplo se vuelve *números* con la forma de los labios.'],
@@ -586,6 +589,12 @@ function template() {
         <div class="a-tabs" role="tablist" aria-label="Categorías de palabras">${catTabs}</div>
         <div class="a-panel a-panel--words" id="a-cat-panel" role="tabpanel" aria-labelledby="a-cat-${cats[0]}" data-cat-panel></div>
         <p class="a-note">Todavía no están todas listas. Cuando una esté lista, aparece en la guía.</p>
+        <h3 class="a-h3">Escala de dolor</h3>
+        <p class="a-body">${rich('Toca un número del 0 al 10 y se dice *en voz alta*: así se puede decir *cuánto duele*, sin explicar.')}</p>
+        <div class="a-pain" role="group" aria-label="Escala de dolor del 0 al 10">${Array.from({ length: 11 }, (_, n) => `<button class="a-pn" type="button" data-pain="${n}" style="--k:${n / 10}" aria-pressed="false">${n}</button>`).join('')}</div>
+        <p class="a-pain__out" data-pain-out aria-live="polite">Elige un número.</p>
+        <h3 class="a-h3">Velocidad de la voz</h3>
+        <div class="a-tabs" role="group" aria-label="Velocidad de la voz">${RATES.map(([t], i) => `<button class="a-tab a-tab--sm" type="button" data-rate="${i}" aria-pressed="${i === 1}">${icon('volume', 16)}<span>${t}</span></button>`).join('')}</div>
         <h3 class="a-h3">Cómo preparamos cada palabra</h3>
         <ol class="a-prep">${prep}</ol>
       </div>
@@ -839,6 +848,23 @@ export function ayudaView(root: HTMLElement) {
   offs.push(on(el, 'click', '[data-step-next]', () => setStep((stepIdx + 1) % STEPS.length)));
   offs.push(on(el, 'click', '[data-step-prev]', () => setStep((stepIdx - 1 + STEPS.length) % STEPS.length)));
 
+  /* Velocidad de la voz (solo en esta página) */
+  let rate = 1;
+  const say = (t: string) => speakText(t, { ...state.settings, rate: rate * state.settings.rate });
+  offs.push(
+    on(el, 'click', '[data-rate]', (_, b) => {
+      rate = RATES[Number(b.dataset.rate)][1];
+      el.querySelectorAll<HTMLElement>('[data-rate]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      void say('Así suena mi voz.');
+    }),
+    on(el, 'click', '[data-pain]', (_, b) => {
+      const n = Number(b.dataset.pain);
+      el.querySelectorAll<HTMLElement>('[data-pain]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      el.querySelector<HTMLElement>('[data-pain-out]')!.innerHTML = `${icon('volume', 18)} <b>${n}</b> de 10: ${PAIN[n]}`;
+      void say(`Mi dolor es ${n} de 10. ${PAIN[n]}.`);
+    }),
+  );
+
   /* Palabras: se escuchan al tocarlas */
   const cats = Array.from(new Set(DEFAULT_PHRASES.map((p) => p.category)));
   const catPanel = el.querySelector<HTMLElement>('[data-cat-panel]')!;
@@ -854,7 +880,7 @@ export function ayudaView(root: HTMLElement) {
   offs.push(
     on(el, 'click', '[data-say]', (_, b) => {
       b.classList.add('is-saying');
-      void speakText(b.dataset.say!, state.settings).finally(() => b.classList.remove('is-saying'));
+      void say(b.dataset.say!).finally(() => b.classList.remove('is-saying'));
     }),
   );
 
@@ -946,7 +972,7 @@ export function ayudaView(root: HTMLElement) {
     live.innerHTML = `${icon('check', 16, 2.6)} Listo`;
     said.hidden = false;
     said.innerHTML = `${icon('volume', 20)} Dice: <b>«${DEMO[pick]}»</b>`;
-    void speakText(DEMO[pick], state.settings);
+    void say(DEMO[pick]);
   };
 
   /* ---------- Índice y saltos ---------- */
