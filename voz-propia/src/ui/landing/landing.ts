@@ -104,7 +104,6 @@ function template() {
           </div>
           <div class="l-hero__right l-in" style="--d:.45s">
             <p>Lee el movimiento de tus labios y lo dice en voz alta. Para quien perdió la voz, en su propio teléfono.</p>
-            <button class="l-btn l-btn--hero" type="button" data-ayuda>Cómo funciona y cómo te ayuda ${icon('arrow-right', 17)}</button>
             <p class="l-credit">© 2026 · Proyecto para SOLACYT Infomatrix</p>
             <p class="l-cue">${icon('arrow-down', 14)} Desliza</p>
           </div>
@@ -188,9 +187,9 @@ function template() {
           <div class="l-head">
             <p class="l-eye" data-reveal>Empecemos</p>
             <h2 data-reveal style="--d:.08s">¿Quién va a usar Voz Propia?</h2>
-            <p data-reveal style="--d:.16s">Entra y conoce cómo trabajamos, paso a paso.</p>
+            <p data-reveal style="--d:.16s">Elige tu modo. Se puede cambiar después.</p>
           </div>
-          <div class="l-role-grid l-role-grid--one">
+          <div class="l-role-grid">
             <button class="l-role l-role--user" type="button" data-role="usuario" data-reveal>
               <span class="l-role__balls" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
               <span class="l-role__tag">${icon('user', 15)} Usuario</span>
@@ -198,6 +197,14 @@ function template() {
               <span class="l-role__desc">Para quien va a hablar. Conoce cómo trabajamos y con qué palabras contamos.</span>
               <span class="l-role__list"><span>${icon('check', 16, 2.6)} Cómo trabajamos, paso a paso</span><span>${icon('check', 16, 2.6)} Las palabras con las que contamos</span><span>${icon('check', 16, 2.6)} Nada que configurar</span></span>
               <span class="l-role__cta"><span>Entrar como usuario</span>${orbChevron()}</span>
+            </button>
+            <button class="l-role l-role--pro" type="button" data-ayuda data-reveal style="--d:.12s">
+              <span class="l-role__grid" aria-hidden="true"></span>
+              <span class="l-role__tag">${icon('sparkles', 15)} Conoce el proyecto</span>
+              <span class="l-role__title">Cómo funciona y cómo te ayuda</span>
+              <span class="l-role__desc">Datos reales, a quién ayuda y cómo lee tus labios.</span>
+              <span class="l-role__list"><span>${icon('check', 16, 2.6)} Datos de México y el mundo</span><span>${icon('check', 16, 2.6)} A quién ayuda y cómo</span><span>${icon('check', 16, 2.6)} Pruébalo con un ejemplo</span></span>
+              <span class="l-role__cta"><span>Ver cómo ayuda</span>${orbChevron()}</span>
             </button>
           </div>
           <p class="l-soon" data-reveal>${icon('lock', 15)} Muy pronto: inicia sesión o crea tu cuenta para guardar tu perfil.</p>
