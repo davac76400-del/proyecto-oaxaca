@@ -8,6 +8,7 @@ import './ui/styles/views.css';
 import { startRouter } from './app/router';
 import { loadSettings, state } from './app/state';
 import { engine } from './core/engine';
+import { db } from './core/storage/db';
 import { tracker } from './core/vision/face-tracker';
 import { enableTilt } from './ui/components/tilt';
 import { orb } from './ui/components/orb';
@@ -67,7 +68,7 @@ function watchInstall() {
 }
 
 function registerServiceWorker() {
-  if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+  if (!import.meta.env.PROD || !('serviceWorker' in navigator) || window.top !== window.self) return;
   navigator.serviceWorker
     .register('./sw.js')
     .then((reg) => {
@@ -109,6 +110,9 @@ async function boot() {
     ajustes: ajustesView,
   });
   document.documentElement.classList.add('is-ready');
+  if (!(await db.persistent())) {
+    toast('Este navegador no deja guardar datos aquí. Tus frases se borrarán al cerrar la página.', { tone: 'warn', ms: 8000 });
+  }
   if (!state.settings.onboarded) await showOnboarding();
   // Precarga del lector de labios en segundo plano: la cámara abre al instante después.
   const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 1500));
