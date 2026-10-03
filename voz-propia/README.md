@@ -17,10 +17,13 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 ## Dos modos
 
-La primera vez se abre el **inicio**; ahí se elige «Soy usuario» o se abre la tarjeta «Cómo funciona la aplicación» (no está en el menú, solo en esa tarjeta).
+La primera vez se abre el **inicio**; ahí se elige «Soy usuario» o se abre la tarjeta «Cómo funciona y cómo te ayuda» (no está en el menú, solo en esa tarjeta y en el bloque «Por qué importa»).
 
-- **Usuario / Cómo funciona:** una guía de scroll largo (unas 20 pantallas) con **una sola escena 3D ligera** (Three.js): una nube de ~500 puntos que se vuelve cara, forma de labios, galaxia de comparación, ondas de voz y globo mientras se baja. Tocar la pantalla la hace vibrar y el cursor la inclina. Al final están **«Contamos con estas palabras»** (solo las que ya tienen ejemplos; hoy, ninguna) e **«Iniciar a utilizar»** (aún bloqueado). Arriba a la derecha, el botón **«Regresar al inicio»** se llena de agua mientras se mantiene presionado 2 segundos y salpica al terminar.
+- **Cómo funciona y cómo te ayuda** (`#/ayuda`): página con **datos reales y sus fuentes** (INEGI Censo 2020, GLOBOCAN 2022, estudios de traqueostomía y de terapia intensiva), a quién ayuda (pestañas), los cuatro pasos con una **demostración interactiva**, «Antes y con Voz Propia» y la lista de fuentes. Detrás, un campo de ~2,600 puntos (Three.js) que forma labios, cada cifra, un corazón y una onda de voz; los puntos **siguen al mouse o al dedo** y salen disparados al soltar el clic.
+- **Usuario:** una guía de scroll largo (unas 20 pantallas) con **una sola escena 3D ligera** (Three.js): una nube de ~500 puntos que se vuelve cara, forma de labios, galaxia de comparación, ondas de voz y globo mientras se baja. Tocar la pantalla la hace vibrar y el cursor la inclina. Al final están **«Contamos con estas palabras»** (solo las que ya tienen ejemplos; hoy, ninguna) e **«Iniciar a utilizar»** (aún bloqueado). Arriba a la derecha, el botón **«Regresar al inicio»** se llena de agua mientras se mantiene presionado 2 segundos y salpica al terminar.
 - **Programador:** panel oscuro con Panel, Entrenar, Probar, Tablero y Ajustes. No aparece en el menú: se entra con la dirección `#/programador`. Las palabras que agrega (con ejemplos) aparecen en la guía del usuario en el mismo dispositivo.
+
+En la guía hay **límite de velocidad**: con rueda o teclado avanza una pantalla por gesto, y en pantallas táctiles el navegador se detiene en cada pantalla (`scroll-snap-stop`); así ningún texto se pasa de largo. El final (palabras y consejos) se recorre libre.
 
 La guía usa scroll nativo, sin librerías de animación: solo `transform` y `opacity`, un único lienzo, resolución adaptable si el equipo va lento y pausa cuando el lienzo no se ve. Paleta: negro, azul cobalto, verde y blanco. El inicio ya no tiene selector de colores: las esferas son siempre azul cobalto. La app se actualiza sola cuando se publica una versión nueva. No hay opciones de «letra más grande» ni «más contraste»: el diseño ya mantiene tamaños y contraste legibles.
 
@@ -34,7 +37,7 @@ Una página con scroll cinematográfico (`src/ui/landing/`):
 2. **Campo de esferas** (Three.js, `MeshPhysicalMaterial` de vidrio y mate) con física propia: choques, piso que rebota y el cursor que las aparta. Con el scroll flotan, caen al suelo, se ordenan en forma de **labios** y despegan hacia la cámara.
 3. Los colores cambian por capítulo: cobalto → lima → rosa labio → amarillo → noche con menta.
 4. «Mantén presionado y escucha cómo hablan»: los labios de esferas se abren y cierran mientras la app dice una frase.
-5. Cómo funciona, cifras reales del sistema y la elección de modo.
+5. Cómo funciona, el bloque «Por qué importa» con un dato real, cifras del sistema y la elección de modo.
 
 La física usa paso fijo de 1/60 s (igual en pantallas de 30, 60 o 120 Hz). La escena se carga aparte: el modo usuario no descarga Three.js.
 Con «reducir movimiento» activado en el sistema no hay scroll suave ni animaciones de entrada.

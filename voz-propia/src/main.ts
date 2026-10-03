@@ -6,6 +6,7 @@ import './ui/styles/base.css';
 import './ui/styles/components.css';
 import './ui/styles/views.css';
 import './ui/styles/guia.css';
+import './ui/styles/ayuda.css';
 
 import { go, hashRoute, startRouter, type Route, type View } from './app/router';
 import { loadSettings, state, updateSettings } from './app/state';
@@ -19,6 +20,7 @@ import { bindWaterBack, waterBackHTML } from './ui/components/water-back';
 import { toast } from './ui/components/toast';
 import { icon } from './ui/icons';
 import { ajustesView } from './ui/views/ajustes';
+import { ayudaView } from './ui/views/ayuda';
 import { entrenarView } from './ui/views/entrenar';
 import { guiaView } from './ui/views/guia';
 import { hablarView } from './ui/views/hablar';
@@ -36,7 +38,7 @@ interface Mode {
 const MODES: Record<Role, Mode> = {
   usuario: {
     home: 'guia',
-    views: { guia: guiaView },
+    views: { guia: guiaView, ayuda: ayudaView },
     nav: [],
   },
   programador: {
@@ -139,9 +141,9 @@ function mountApp(role: Role) {
 
 /* ---------- Qué se muestra: el inicio o la app en su modo ---------- */
 
-async function chooseRole(role: Role) {
+async function chooseRole(role: Role, page?: Route) {
   await updateSettings({ role });
-  history.replaceState(null, '', `#/${MODES[role].home}`);
+  history.replaceState(null, '', `#/${page ?? MODES[role].home}`);
   await route();
 }
 
@@ -164,7 +166,7 @@ async function route() {
   if (kind === 'inicio') {
     const { mountLanding } = await import('./ui/landing/landing');
     if (token !== routing) return;
-    mounted = { kind, unmount: mountLanding(app, { jumpToRoles: h === 'inicio/elegir', onChoose: (r) => void chooseRole(r) }) };
+    mounted = { kind, unmount: mountLanding(app, { jumpToRoles: h === 'inicio/elegir', onChoose: (r, page) => void chooseRole(r, page) }) };
   } else {
     mounted = { kind, unmount: mountApp(kind) };
   }

@@ -26,6 +26,13 @@
 
 .guia .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
+/* ---------- Límite de velocidad: el scroll se detiene en cada pantalla ---------- */
+
+/* En pantallas táctiles lo hace el navegador; con rueda y teclado lo hace guia.ts. */
+@media (pointer: coarse) { html.snap-guide { scroll-snap-type: y mandatory; } }
+.g-stop { position: absolute; left: 0; width: 1px; height: 1px; scroll-snap-align: start; scroll-snap-stop: always; pointer-events: none; }
+.g-end { scroll-snap-align: start; }
+
 /* ---------- Escena fija ---------- */
 
 .g-stage {

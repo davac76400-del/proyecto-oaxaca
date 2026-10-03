@@ -38,9 +38,14 @@ const CHAPTERS: { name: string; h: number }[] = [
   { name: 'Promesas', h: 2.4 },
 ];
 
+/** Paradas del scroll: una por pantalla, así nadie pasa de largo un texto aunque deslice rápido. */
+const stops = (h: number) =>
+  Array.from({ length: Math.ceil(h - 0.05) }, (_, k) => `<i class="g-stop" style="top:${k * 100}svh" aria-hidden="true"></i>`).join('');
+
 function chapter(i: number, text: 'l' | 'r' | 'c', kicker: string, title: string, body: string, extra = '') {
   return `
     <section class="g-ch" data-ch="${i}" data-text="${text}" style="--h:${CHAPTERS[i].h * 100}svh" aria-labelledby="g-t${i}">
+      ${stops(CHAPTERS[i].h)}
       <div class="g-ch__stick">
         <div class="g-copy">
           <p class="g-over" style="--i:0">[ ${kicker} ]</p>
@@ -75,6 +80,7 @@ function template() {
     <nav class="g-rail" aria-label="Capítulos de la guía">${rail}</nav>
 
     <section class="g-ch g-ch--hero" data-ch="0" data-text="l" style="--h:${CHAPTERS[0].h * 100}svh" aria-labelledby="g-t0">
+      ${stops(CHAPTERS[0].h)}
       <div class="g-ch__stick">
         <div class="g-copy">
           <p class="g-over" style="--i:0">[ Así funciona ]</p>
@@ -135,6 +141,7 @@ export function guiaView(root: HTMLElement) {
   const shapeItems = Array.from(el.querySelectorAll<HTMLElement>('[data-shape]'));
   const still = reducedMotion();
   if (still) el.classList.add('is-static');
+  document.documentElement.classList.add('snap-guide');
 
   const ac = new AbortController();
   const { signal } = ac;
@@ -161,6 +168,7 @@ export function guiaView(root: HTMLElement) {
   /* ---------- Scroll: un solo escucha, medidas guardadas (nada se mide mientras se baja) ---------- */
 
   let tops: number[] = [];
+  let stopYs: number[] = [];
   let endTop = 0;
   let raf = 0;
   let active = -1;
@@ -169,6 +177,7 @@ export function guiaView(root: HTMLElement) {
     tops = chapters.map((c) => c.getBoundingClientRect().top + scrollY);
     const end = el.querySelector<HTMLElement>('.g-end')!;
     endTop = end.getBoundingClientRect().top + scrollY;
+    stopYs = [...Array.from(el.querySelectorAll('.g-stop'), (s) => Math.round(s.getBoundingClientRect().top + scrollY)), Math.round(endTop)];
     update();
   }
 
@@ -197,6 +206,66 @@ export function guiaView(root: HTMLElement) {
   ro.observe(el);
   addEventListener('load', measure, { signal });
   requestAnimationFrame(measure);
+
+  /* ---------- Límite de velocidad con rueda y teclado: una pantalla por gesto ---------- */
+
+  let paging = 0;
+  let lockUntil = 0;
+  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+  const pageTo = (to: number) => {
+    cancelAnimationFrame(paging);
+    const from = scrollY;
+    if (still) {
+      scrollTo(0, to);
+      lockUntil = performance.now() + 250;
+      return;
+    }
+    const t0 = performance.now();
+    const dur = 760;
+    lockUntil = t0 + dur + 260;
+    const step = (now: number) => {
+      const k = Math.min(1, (now - t0) / dur);
+      scrollTo(0, from + (to - from) * ease(k));
+      paging = k < 1 ? requestAnimationFrame(step) : 0;
+    };
+    paging = requestAnimationFrame(step);
+  };
+  const nextStop = (dir: number) => {
+    const y = scrollY;
+    if (dir > 0) return stopYs.find((s) => s > y + 4);
+    for (let i = stopYs.length - 1; i >= 0; i--) if (stopYs[i] < y - 4) return stopYs[i];
+    return 0;
+  };
+  // Dentro del final (palabras, consejos) el scroll vuelve a ser libre.
+  const inFreeEnd = (dir: number) => scrollY > endTop + 4 || (scrollY >= endTop - 4 && dir > 0);
+  const page = (dir: number) => {
+    if (performance.now() < lockUntil) return;
+    const to = nextStop(dir);
+    if (to !== undefined) pageTo(to);
+  };
+  addEventListener(
+    'wheel',
+    (e) => {
+      if (e.ctrlKey || !stopYs.length) return;
+      const dir = Math.sign(e.deltaY);
+      if (!dir || inFreeEnd(dir)) return;
+      e.preventDefault();
+      if (Math.abs(e.deltaY) > 2) page(dir);
+    },
+    { passive: false, signal },
+  );
+  addEventListener(
+    'keydown',
+    (e) => {
+      const keys: Record<string, number> = { ArrowDown: 1, PageDown: 1, ' ': e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 };
+      const dir = keys[e.key];
+      if (!dir || e.altKey || e.ctrlKey || e.metaKey || inFreeEnd(dir)) return;
+      if ((e.target as Element).closest('button, input, select, textarea, a')) return;
+      e.preventDefault();
+      page(dir);
+    },
+    { signal },
+  );
 
   /* ---------- Aparición de textos: solo clases, sin medir ni animar con JavaScript ---------- */
 
@@ -266,19 +335,21 @@ export function guiaView(root: HTMLElement) {
     }),
     on(el, 'click', '[data-go]', (_, b) => {
       const c = chapters[Number(b.dataset.go)];
-      if (c) scrollTo({ top: c.getBoundingClientRect().top + scrollY, behavior: still ? 'auto' : 'smooth' });
+      if (c) pageTo(Math.round(c.getBoundingClientRect().top + scrollY));
     }),
     engine.onChange(renderWords),
   ];
 
   return () => {
     disposed = true;
+    document.documentElement.classList.remove('snap-guide');
     ac.abort();
     offs.forEach((off) => off());
     io.disconnect();
     ioOnce.disconnect();
     ro.disconnect();
     cancelAnimationFrame(raf);
+    cancelAnimationFrame(paging);
     scene?.dispose();
   };
 }

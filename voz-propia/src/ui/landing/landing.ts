@@ -13,7 +13,7 @@ import type { FieldControl, GravityField, Pointer } from './scene';
 
 interface Options {
   jumpToRoles: boolean;
-  onChoose: (role: Role) => void;
+  onChoose: (role: Role, page?: 'ayuda') => void;
 }
 
 const BALL_COLOR = '#2F69FF';
@@ -148,19 +148,14 @@ function template() {
             ${feature('shield-check', 'Tus datos, tuyos', 'No se graba ni se envía video. Solo números con la forma de tus labios.', 4)}
             ${feature('layout-grid', 'Respuestas rápidas', 'Sí, no, escala de dolor y frases por tema, a un toque y sin cámara.', 5)}
           </div>
-          <div class="l-show">
-            <div class="l-show__copy">
-              <p class="l-eye" data-reveal>En tiempo real</p>
-              <h2 data-reveal style="--d:.09s">Míralo leer mientras hablas</h2>
-              <p data-reveal style="--d:.18s">Cada movimiento se compara con las palabras preparadas en el momento. Si duda, te muestra tres opciones para que elijas.</p>
-              <a class="l-btn" href="#entrar" data-scroll="entrar" data-reveal style="--d:.27s">Elegir cómo entrar ${icon('arrow-right', 17)}</a>
-            </div>
-            <div class="l-dash" data-reveal style="--d:.16s" aria-label="Ejemplo de lectura en vivo">
-              <div class="l-dash__top"><span>Leyendo labios</span><span class="l-dash__live"><i></i>En vivo</span></div>
-              <div class="l-dash__bars" aria-hidden="true">${[62, 88, 47, 95, 71, 80, 58].map((h, i) => `<i style="--h:${h}%;--i:${i}"></i>`).join('')}</div>
-              <div class="l-dash__rows">
-                ${[['Tengo sed', 92], ['Tengo frío', 5], ['Me duele', 3]].map(([t, w]) => `<div class="l-dash__row"><span>${t}</span><div class="l-dash__track"><i style="--w:${w}%"></i></div><b>${w}%</b></div>`).join('')}
-              </div>
+          <div class="l-big" data-reveal>
+            <i class="l-big__glow" aria-hidden="true"></i>
+            <p class="l-eye">Por qué importa</p>
+            <h2 class="l-big__title"><b data-count-to="945">945</b> mil personas<br>en México casi no pueden hablar.<span class="l-script l-script--big" aria-hidden="true">y tienen mucho que decir</span></h2>
+            <p class="l-big__p">Tienen mucha dificultad para hablar o comunicarse, o no pueden hacerlo. Para quienes todavía mueven los labios, Voz Propia puede ser su voz.</p>
+            <div class="l-big__row">
+              <button class="l-btn" type="button" data-ayuda>Ver cómo funciona y cómo ayuda ${icon('arrow-right', 17)}</button>
+              <span class="l-big__src">Fuente: INEGI, Censo 2020</span>
             </div>
           </div>
           <div class="l-stats">
@@ -187,13 +182,13 @@ function template() {
               <span class="l-role__list"><span>${icon('check', 16, 2.6)} Cómo trabajamos, paso a paso</span><span>${icon('check', 16, 2.6)} Las palabras con las que contamos</span><span>${icon('check', 16, 2.6)} Nada que configurar</span></span>
               <span class="l-role__cta"><span>Entrar como usuario</span>${orbChevron()}</span>
             </button>
-            <button class="l-role l-role--pro" type="button" data-guide data-reveal style="--d:.12s">
+            <button class="l-role l-role--pro" type="button" data-ayuda data-reveal style="--d:.12s">
               <span class="l-role__grid" aria-hidden="true"></span>
-              <span class="l-role__tag">${icon('sparkles', 15)} Guía</span>
-              <span class="l-role__title">Cómo funciona la aplicación</span>
-              <span class="l-role__desc">Repasa cómo trabajamos, antes de entrar.</span>
-              <span class="l-role__list"><span>${icon('check', 16, 2.6)} Mira tus labios</span><span>${icon('check', 16, 2.6)} Reconoce tus palabras</span><span>${icon('check', 16, 2.6)} Habla por ti, sin internet</span></span>
-              <span class="l-role__cta"><span>Ver cómo funciona</span>${orbChevron()}</span>
+              <span class="l-role__tag">${icon('sparkles', 15)} Conoce el proyecto</span>
+              <span class="l-role__title">Cómo funciona y cómo te ayuda</span>
+              <span class="l-role__desc">Datos reales, a quién ayuda y cómo lee tus labios.</span>
+              <span class="l-role__list"><span>${icon('check', 16, 2.6)} Datos de México y el mundo</span><span>${icon('check', 16, 2.6)} A quién ayuda y cómo</span><span>${icon('check', 16, 2.6)} Pruébalo con un ejemplo</span></span>
+              <span class="l-role__cta"><span>Ver cómo ayuda</span>${orbChevron()}</span>
             </button>
           </div>
           <p class="l-soon" data-reveal>${icon('lock', 15)} Muy pronto: inicia sesión o crea tu cuenta para guardar tu perfil.</p>
@@ -487,11 +482,11 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     entry.showModal();
   };
 
-  const enter = async () => {
+  const enter = async (page?: 'ayuda') => {
     entry.close();
     root.classList.add('is-leaving');
     await sleep(motionOk ? 420 : 0);
-    opts.onChoose(chosen);
+    opts.onChoose(chosen, page);
   };
 
   root.addEventListener(
@@ -506,9 +501,9 @@ export function mountLanding(app: HTMLElement, opts: Options) {
       }
       const role = t.closest<HTMLElement>('[data-role]');
       if (role) return openEntry(role.dataset.role as Role);
-      if (t.closest('[data-guide]')) {
+      if (t.closest('[data-ayuda]')) {
         chosen = 'usuario';
-        return void enter();
+        return void enter('ayuda');
       }
       if (t.closest('[data-enter]')) return void enter();
       if (t.closest('[data-close-entry]') || t === entry) entry.close();

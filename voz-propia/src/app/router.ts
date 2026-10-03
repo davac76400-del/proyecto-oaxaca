@@ -1,6 +1,6 @@
 import { $$ } from '../ui/dom';
 
-export type Route = 'guia' | 'panel' | 'hablar' | 'tablero' | 'entrenar' | 'ajustes';
+export type Route = 'guia' | 'ayuda' | 'panel' | 'hablar' | 'tablero' | 'entrenar' | 'ajustes';
 export type View = (el: HTMLElement) => (() => void) | void;
 
 export const hashRoute = () => location.hash.replace(/^#\/?/, '');
