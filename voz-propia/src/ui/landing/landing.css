@@ -127,10 +127,10 @@
 
 .l-poster__over {
   margin: 0 0 1.2vh;
-  font: 600 clamp(10px, 1vw, 13px) / 1 var(--l-mono);
-  letter-spacing: 0.32em;
+  font: 700 clamp(13px, 1.3vw, 17px) / 1.2 var(--l-mono);
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: rgb(14 42 197 / 0.62);
+  color: #0e2ac5;
   opacity: 0;
 }
 
@@ -257,7 +257,7 @@
 
 .l-loader__status {
   margin: 0;
-  font: 500 10px/1 var(--l-mono);
+  font: 500 12px/1 var(--l-mono);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: #5b6aa8;
@@ -283,7 +283,7 @@
 
 .l-loader__count {
   margin: 0;
-  font: 700 11px/1 var(--l-mono);
+  font: 700 12.5px/1 var(--l-mono);
   letter-spacing: 0.1em;
   color: var(--l-blue);
   font-variant-numeric: tabular-nums;
@@ -501,7 +501,7 @@
 .l-label,
 .l-eyebrow {
   margin: 0;
-  font: 500 11px/1.2 var(--l-mono);
+  font: 500 12.5px/1.2 var(--l-mono);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: rgb(14 42 197 / 0.85);
@@ -692,7 +692,7 @@
 
 .l-credit {
   margin-top: 20px !important;
-  font: 500 10px/1.4 var(--l-mono);
+  font: 500 12px/1.4 var(--l-mono);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--l-ink-2);
@@ -703,7 +703,7 @@
   align-items: center;
   gap: 8px;
   margin-top: 16px !important;
-  font: 500 10px/1 var(--l-mono);
+  font: 500 12px/1 var(--l-mono);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--l-ink-2);
@@ -855,7 +855,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font: 500 10px/1 var(--l-mono);
+  font: 500 12px/1 var(--l-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--l-muted);
@@ -899,7 +899,7 @@
   min-height: 38px;
   padding: 0 18px;
   border-radius: 999px;
-  font: 700 11px/1 var(--l-mono);
+  font: 700 12.5px/1 var(--l-mono);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1004,7 +1004,7 @@
 .l-hold__text {
   display: flex;
   flex-direction: column;
-  font: 500 10px/1.5 var(--l-mono);
+  font: 500 12px/1.5 var(--l-mono);
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -1528,7 +1528,7 @@
   min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
-  font: 600 11px/1 var(--l-mono);
+  font: 600 12.5px/1 var(--l-mono);
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -1684,7 +1684,7 @@
 
 .l-entry__kicker {
   margin: 0 0 8px;
-  font: 500 11px/1 var(--l-mono, monospace);
+  font: 500 12.5px/1 var(--l-mono, monospace);
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--l-blue);
@@ -1738,7 +1738,7 @@
 }
 
 .l-entry__opt em {
-  font: 600 10px/1 var(--l-mono, monospace);
+  font: 600 12px/1 var(--l-mono, monospace);
   font-style: normal;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1896,14 +1896,14 @@
 .l-footer__eye,
 .l-footer__h {
   margin: 0 0 22px;
-  font: 500 11px/1 var(--l-mono);
+  font: 500 12.5px/1 var(--l-mono);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: rgb(255 255 255 / 0.55);
 }
 
 .l-footer__h {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .l-footer__title {
@@ -2023,7 +2023,7 @@
 }
 
 .l-footer__bar span {
-  font: 400 11px/1.5 var(--l-mono);
+  font: 400 12.5px/1.5 var(--l-mono);
   color: rgb(255 255 255 / 0.55);
 }
 
@@ -2116,7 +2116,7 @@
   align-items: center;
   gap: 8px;
   margin: 8px 0 0;
-  font: 700 10px/1 var(--l-mono);
+  font: 700 12px/1 var(--l-mono);
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
@@ -2163,7 +2163,7 @@
 }
 
 .l-swatch small {
-  font-size: 11px;
+  font-size: 12.5px;
   opacity: 0.75;
 }
 

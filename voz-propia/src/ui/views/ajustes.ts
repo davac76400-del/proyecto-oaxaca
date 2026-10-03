@@ -139,19 +139,13 @@ export function ajustesView(root: HTMLElement) {
           </article>
 
           <article class="panel">
-            <h2>${icon('eye', 20)} Ver mejor</h2>
-            <label class="switch"><input type="checkbox" data-toggle="largeText" ${s.largeText ? 'checked' : ''}><span class="switch__ui"></span><span>Letra más grande</span></label>
-            <label class="switch"><input type="checkbox" data-toggle="highContrast" ${s.highContrast ? 'checked' : ''}><span class="switch__ui"></span><span>Más contraste</span></label>
-          </article>
-
-          <article class="panel">
             <h2>${icon('user', 20)} Modo</h2>
-            <p class="muted">Estás en <b>modo programador</b>. El modo usuario solo muestra Hablar y el Tablero: no puede entrenar ni cambiar la voz.</p>
+            <p class="muted">Estás en <b>modo programador</b>. El modo usuario solo muestra la guía: no puede entrenar ni cambiar la voz.</p>
             <div class="row">
               <button class="btn btn--primary" type="button" data-as-user>${icon('eye', 18)}<span>Ver como usuario</span></button>
               <button class="btn btn--soft" type="button" data-intro>${icon('house', 18)}<span>Volver al inicio</span></button>
             </div>
-            <p class="field__help">Para volver aquí desde el modo usuario: botón de opciones › mantener presionado «Cambiar de modo».</p>
+            <p class="field__help">Para volver aquí desde el modo usuario: regresa al inicio (mantén presionado el botón de arriba) y abre la dirección #/programador.</p>
           </article>
 
           <article class="panel">

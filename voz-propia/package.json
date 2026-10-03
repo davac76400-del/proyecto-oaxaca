@@ -1,6 +1,6 @@
 {
   "name": "voz-propia",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "description": "Voz Propia: lectura de labios personal, sin internet, para quien perdió la voz.",
@@ -18,7 +18,6 @@
     "@fontsource/anton": "5.3.0",
     "@fontsource/sacramento": "5.3.0",
     "@mediapipe/tasks-vision": "1.0.1",
-    "gsap": "3.15.0",
     "lucide": "1.50.0",
     "onnxruntime-web": "1.30.0",
     "three": "0.186.1"

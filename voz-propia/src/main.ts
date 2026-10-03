@@ -7,7 +7,7 @@ import './ui/styles/components.css';
 import './ui/styles/views.css';
 import './ui/styles/guia.css';
 
-import { hashRoute, startRouter, type Route, type View } from './app/router';
+import { go, hashRoute, startRouter, type Route, type View } from './app/router';
 import { loadSettings, state, updateSettings } from './app/state';
 import { engine } from './core/engine';
 import { db } from './core/storage/db';
@@ -15,6 +15,7 @@ import type { Role } from './core/types';
 import { tracker } from './core/vision/face-tracker';
 import { brandMark } from './ui/brand';
 import { enableTilt } from './ui/components/tilt';
+import { bindWaterBack, waterBackHTML } from './ui/components/water-back';
 import { toast } from './ui/components/toast';
 import { icon } from './ui/icons';
 import { ajustesView } from './ui/views/ajustes';
@@ -23,7 +24,6 @@ import { guiaView } from './ui/views/guia';
 import { hablarView } from './ui/views/hablar';
 import { panelView } from './ui/views/panel';
 import { tableroView } from './ui/views/tablero';
-import { openUserMenu } from './ui/views/user-menu';
 
 type Kind = Role | 'inicio';
 
@@ -52,7 +52,7 @@ const MODES: Record<Role, Mode> = {
   },
 };
 
-const THEME_COLOR: Record<Kind, string> = { inicio: '#ECEFFF', usuario: '#FFF4E3', programador: '#04060F' };
+const THEME_COLOR: Record<Kind, string> = { inicio: '#ECEFFF', usuario: '#05080A', programador: '#04060F' };
 
 const app = document.getElementById('app')!;
 let mounted: { kind: Kind; unmount: () => void } | null = null;
@@ -90,7 +90,7 @@ function shell(role: Role) {
         ${
           pro
             ? `<a class="btn btn--ghost btn--sm" href="#/inicio" title="Volver al inicio">${icon('house', 16)}<span class="hide-sm">Inicio</span></a>`
-            : `<a class="btn btn--sm btn--back" href="#/inicio/elegir">${icon('arrow-left', 17, 2.4)}<span>Regresar al inicio</span></a><button class="icon-btn icon-btn--glass" type="button" data-menu aria-label="Opciones">${icon('sliders', 20)}</button>`
+            : waterBackHTML()
         }
       </div>
     </header>
@@ -111,7 +111,6 @@ function mountApp(role: Role) {
     'click',
     async (e) => {
       const t = e.target as Element;
-      if (t.closest('[data-menu]')) openUserMenu();
       if (t.closest('[data-install]')) {
         app.querySelectorAll<HTMLElement>('[data-install]').forEach((b) => (b.hidden = true));
         await installPrompt?.prompt();
@@ -121,6 +120,8 @@ function mountApp(role: Role) {
     { signal: ac.signal },
   );
 
+  const unbindBack = role === 'usuario' ? bindWaterBack(app.querySelector<HTMLElement>('[data-water-back]')!, () => go('inicio/elegir')) : () => {};
+
   const stopRouter = startRouter(app.querySelector<HTMLElement>('#view')!, MODES[role].views, MODES[role].home);
 
   // Precarga del lector de labios en segundo plano: la cámara abre al instante después.
@@ -129,6 +130,7 @@ function mountApp(role: Role) {
 
   return () => {
     ac.abort();
+    unbindBack();
     stopRouter();
     tracker.stop();
     app.innerHTML = '';

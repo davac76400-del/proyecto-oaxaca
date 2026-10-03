@@ -96,7 +96,6 @@ function template(color: string) {
       <nav class="l-nav" aria-label="Secciones del inicio">
         <a href="#historia" data-scroll="historia">Historia</a>
         <a href="#labios" data-scroll="labios">Labios</a>
-        <a href="#como-funciona" data-scroll="como-funciona">Cómo funciona</a>
         <a href="#entrar" data-scroll="entrar">Entrar</a>
       </nav>
       <div class="l-header__right">
@@ -131,8 +130,7 @@ function template(color: string) {
           </div>
           <div class="l-grid__side l-cards" data-reveal style="--d:.25s">
             ${card('01', 'Visión', '478 puntos', 'De tu cara, leídos hasta 30 veces por segundo')}
-            ${card('02', 'Aprende', '1 a 5 ejemplos', 'Bastan para enseñarle una frase nueva')}
-            ${card('03', 'Privacidad', '0 videos', 'Nada sale de tu teléfono, ni una imagen')}
+            ${card('02', 'Privacidad', '0 videos', 'Nada sale de tu teléfono, ni una imagen')}
           </div>
         </div>
         <span class="l-sticker l-sticker--a" aria-hidden="true">Sin internet ✦</span>
@@ -169,11 +167,11 @@ function template(color: string) {
           <div class="l-head">
             <p class="l-eye" data-reveal>Así funciona</p>
             <h2 data-reveal style="--d:.08s">Una voz que vive en tu teléfono</h2>
-            <p data-reveal style="--d:.16s">Sin servidores ni esperas. Voz Propia mira tus labios, los compara con tus propios ejemplos y habla en milisegundos.</p>
+            <p data-reveal style="--d:.16s">Sin servidores ni esperas. Voz Propia mira tus labios, los compara con las palabras que preparamos y habla en milisegundos.</p>
           </div>
           <div class="l-features">
             ${feature('scan-face', 'Mira tus labios', 'Sigue 478 puntos de tu cara y se queda con los 40 de la boca, aunque te muevas o te alejes.', 0)}
-            ${feature('sparkles', 'Aprende contigo', 'Con 1 a 5 ejemplos por frase. Cada vez que eliges la opción correcta, aprende un poco más.', 1)}
+            ${feature('sparkles', 'Palabras preparadas', 'Nuestro equipo prepara cada palabra con cuidado, para que se reconozca bien desde el primer día.', 1)}
             ${feature('volume', 'Habla por ti', 'Con la voz del teléfono o con un audio grabado por tu familia para cada frase.', 2)}
             ${feature('wifi-off', 'Funciona en modo avión', 'Todo corre dentro del teléfono. Ideal para un cuarto de hospital sin señal.', 3)}
             ${feature('shield-check', 'Tus datos, tuyos', 'No se graba ni se envía video. Solo números con la forma de tus labios.', 4)}
@@ -183,7 +181,7 @@ function template(color: string) {
             <div class="l-show__copy">
               <p class="l-eye" data-reveal>En tiempo real</p>
               <h2 data-reveal style="--d:.09s">Míralo leer mientras hablas</h2>
-              <p data-reveal style="--d:.18s">Cada movimiento se compara con tus ejemplos en el momento. Si duda, te muestra tres opciones para que elijas, y de tu elección aprende.</p>
+              <p data-reveal style="--d:.18s">Cada movimiento se compara con las palabras preparadas en el momento. Si duda, te muestra tres opciones para que elijas.</p>
               <a class="l-btn" href="#entrar" data-scroll="entrar" data-reveal style="--d:.27s">Elegir cómo entrar ${icon('arrow-right', 17)}</a>
             </div>
             <div class="l-dash" data-reveal style="--d:.16s" aria-label="Ejemplo de lectura en vivo">
@@ -218,12 +216,12 @@ function template(color: string) {
               <span class="l-role__list"><span>${icon('check', 16, 2.6)} Cómo trabajamos, paso a paso</span><span>${icon('check', 16, 2.6)} Las palabras con las que contamos</span><span>${icon('check', 16, 2.6)} Nada que configurar</span></span>
               <span class="l-role__cta"><span>Entrar como usuario</span>${orbChevron()}</span>
             </button>
-            <button class="l-role l-role--pro" type="button" data-scroll="como-funciona" data-reveal style="--d:.12s">
+            <button class="l-role l-role--pro" type="button" data-guide data-reveal style="--d:.12s">
               <span class="l-role__grid" aria-hidden="true"></span>
               <span class="l-role__tag">${icon('sparkles', 15)} Guía</span>
               <span class="l-role__title">Cómo funciona la aplicación</span>
               <span class="l-role__desc">Repasa cómo trabajamos, antes de entrar.</span>
-              <span class="l-role__list"><span>${icon('check', 16, 2.6)} Mira tus labios</span><span>${icon('check', 16, 2.6)} Aprende contigo</span><span>${icon('check', 16, 2.6)} Habla por ti, sin internet</span></span>
+              <span class="l-role__list"><span>${icon('check', 16, 2.6)} Mira tus labios</span><span>${icon('check', 16, 2.6)} Reconoce tus palabras</span><span>${icon('check', 16, 2.6)} Habla por ti, sin internet</span></span>
               <span class="l-role__cta"><span>Ver cómo funciona</span>${orbChevron()}</span>
             </button>
           </div>
@@ -244,13 +242,13 @@ function template(color: string) {
         </div>
         <div class="l-footer__cols">
           <div data-reveal><p class="l-footer__h">Voz Propia</p><ul>
-            ${[['historia', 'Historia'], ['labios', 'Labios'], ['como-funciona', 'Cómo funciona'], ['entrar', 'Entrar']].map(([id, t]) => `<li><a href="#${id}" data-scroll="${id}">${t}${icon('arrow-up-right', 13)}</a></li>`).join('')}
+            ${[['historia', 'Historia'], ['labios', 'Labios'], ['entrar', 'Entrar']].map(([id, t]) => `<li><a href="#${id}" data-scroll="${id}">${t}${icon('arrow-up-right', 13)}</a></li>`).join('')}
           </ul></div>
           <div data-reveal style="--d:.08s"><p class="l-footer__h">Hecha para</p><ul>
             <li><span>Traqueostomía</span></li><li><span>Laringectomía</span></li><li><span>Terapia intensiva</span></li><li><span>Su familia</span></li>
           </ul></div>
           <div data-reveal style="--d:.16s"><p class="l-footer__h">Promesas</p><ul>
-            <li><span>Sin internet</span></li><li><span>Sin video guardado</span></li><li><span>Aprende de ti</span></li><li><span>Tu voz, tu decisión</span></li>
+            <li><span>Sin internet</span></li><li><span>Sin video guardado</span></li><li><span>Palabras preparadas</span></li><li><span>Tu voz, tu decisión</span></li>
           </ul></div>
         </div>
       </div>
@@ -590,6 +588,10 @@ export function mountLanding(app: HTMLElement, opts: Options) {
       if (sw) return setColor(sw.dataset.color!);
       const role = t.closest<HTMLElement>('[data-role]');
       if (role) return openEntry(role.dataset.role as Role);
+      if (t.closest('[data-guide]')) {
+        chosen = 'usuario';
+        return void enter();
+      }
       if (t.closest('[data-enter]')) return void enter();
       if (t.closest('[data-close-entry]') || t === entry) entry.close();
     },

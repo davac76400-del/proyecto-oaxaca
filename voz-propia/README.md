@@ -17,10 +17,12 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 ## Dos modos
 
-La primera vez se abre el **inicio**; ahí se elige «Soy usuario» o se repasa «Cómo funciona la aplicación».
+La primera vez se abre el **inicio**; ahí se elige «Soy usuario» o se abre la tarjeta «Cómo funciona la aplicación» (no está en el menú, solo en esa tarjeta).
 
-- **Usuario:** una sola página de scroll cinematográfico (GSAP + ScrollTrigger): letras 3D, tarjeta que se expande, pasos que avanzan de lado y **«Contamos con estas palabras»**, que lista el vocabulario de la app (tocar una palabra la dice). Un botón claro «Regresar al inicio» siempre visible.
-- **Programador:** panel oscuro con Panel, Entrenar, Probar, Tablero y Ajustes. No aparece en el menú: se entra con la dirección `#/programador`. Las palabras que agrega se reflejan en la guía del usuario en el mismo dispositivo.
+- **Usuario / Cómo funciona:** una guía de scroll largo (unas 20 pantallas) con **una sola escena 3D ligera** (Three.js): una nube de ~500 puntos que se vuelve cara, forma de labios, galaxia de comparación, ondas de voz y globo mientras se baja. Tocar la pantalla la hace vibrar y el cursor la inclina. Al final están **«Contamos con estas palabras»** (solo las que ya tienen ejemplos; hoy, ninguna) e **«Iniciar a utilizar»** (aún bloqueado). Arriba a la derecha, el botón **«Regresar al inicio»** se llena de agua mientras se mantiene presionado 2 segundos y salpica al terminar.
+- **Programador:** panel oscuro con Panel, Entrenar, Probar, Tablero y Ajustes. No aparece en el menú: se entra con la dirección `#/programador`. Las palabras que agrega (con ejemplos) aparecen en la guía del usuario en el mismo dispositivo.
+
+La guía usa scroll nativo, sin librerías de animación: solo `transform` y `opacity`, un único lienzo, resolución adaptable si el equipo va lento y pausa cuando el lienzo no se ve. Paleta: negro, azul cobalto, verde y blanco. No hay opciones de «letra más grande» ni «más contraste»: el diseño ya mantiene tamaños y contraste legibles.
 
 Sincronizar entre dispositivos en tiempo real necesita un servidor (por ejemplo Supabase); hoy todo se guarda en el dispositivo.
 
@@ -68,7 +70,7 @@ src/
   data/       frases de hospital iniciales
   ui/
     landing/  inicio 3D (escena Three.js, página y estilos; se carga aparte)
-    views/    Panel, Hablar, Tablero, Entrenar, Ajustes y opciones del usuario
+    views/    Guía (con su escena 3D), Panel, Hablar, Tablero, Entrenar y Ajustes
     styles/   tokens de los dos temas, base, componentes y vistas
   sw.template.js   service worker (la lista de precarga se genera en cada build)
 ```

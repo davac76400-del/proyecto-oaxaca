@@ -10,20 +10,12 @@ export const state = {
   history: [] as string[],
 };
 
-function applyToDocument(s: Settings) {
-  const root = document.documentElement;
-  root.classList.toggle('t-large', s.largeText);
-  root.classList.toggle('t-contrast', s.highContrast);
-}
-
 export async function loadSettings() {
   state.settings = await db.settings();
-  applyToDocument(state.settings);
 }
 
 export async function updateSettings(patch: Partial<Settings>) {
   state.settings = { ...state.settings, ...patch };
-  applyToDocument(state.settings);
   await db.putSettings(state.settings);
   for (const fn of listeners) fn(state.settings);
 }

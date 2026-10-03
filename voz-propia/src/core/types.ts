@@ -55,8 +55,6 @@ export interface Settings {
   /** Cuando el usuario corrige una lectura, esa toma se guarda como ejemplo nuevo. */
   learnFromUse: boolean;
   cameraId: string | null;
-  largeText: boolean;
-  highContrast: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -68,6 +66,4 @@ export const DEFAULT_SETTINGS: Settings = {
   maxCaptureMs: 4000,
   learnFromUse: true,
   cameraId: null,
-  largeText: false,
-  highContrast: false,
 };
