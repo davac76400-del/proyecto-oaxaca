@@ -267,6 +267,32 @@
 .g-rail button:hover span, .g-rail button:focus-visible span { opacity: 1; transform: none; }
 .guia.is-end .g-rail { opacity: 0; pointer-events: none; }
 
+.g-skip {
+  position: fixed;
+  top: 82px;
+  right: 14px;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 28px);
+  min-height: 44px;
+  padding: 0 18px 0 14px;
+  border: 1.5px solid rgb(255 255 255 / 0.4);
+  border-radius: 999px;
+  background: rgb(5 8 10 / 0.78);
+  color: #fff;
+  font: 700 0.95rem/1.1 var(--font-display);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: opacity 0.3s, border-color 0.2s, background 0.2s, transform 0.2s var(--ease-out);
+}
+.g-skip .ic { flex: none; color: var(--green); }
+.g-skip:active { transform: scale(0.97); }
+@media (hover: hover) { .g-skip:hover { border-color: var(--green); background: rgb(5 8 10 / 0.92); } }
+.guia.is-end .g-skip { opacity: 0; pointer-events: none; }
+@media (max-width: 520px) { .g-skip { font-size: 0.88rem; padding: 0 14px 0 12px; } }
+
 /* ---------- Final: palabras e «iniciar a utilizar» ---------- */
 
 .g-end {
@@ -463,20 +489,26 @@
 .water-back__wave--b { top: -16px; fill: #3df2a0; opacity: 0.9; animation-duration: 2.3s; animation-direction: reverse; }
 @keyframes wb-wave { to { transform: translate3d(-50%, 0, 0); } }
 
-.splash { position: fixed; inset: 0; z-index: 300; overflow: hidden; }
-.splash__disc {
+.splash { position: fixed; inset: 0; z-index: 300; overflow: hidden; pointer-events: all; }
+.splash__disc,
+.splash__ring {
   position: absolute;
   box-sizing: border-box;
-  border: 12px solid #3df2a0;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, #5d80ff 0%, #2f69ff 45%, #0e2ac5 100%);
   transform: translate(-50%, -50%) scale(0);
   will-change: transform;
 }
+.splash__disc--green { background: #3df2a0; }
+.splash__disc--white { background: #f4f7fa; }
+.splash__disc--blue { background: radial-gradient(circle at 50% 50%, #5d80ff 0%, #2f69ff 50%, #0e2ac5 100%); }
+.splash__disc--ink { background: #05080a; }
+.splash__ring { border: 3px solid #fff; opacity: 0; will-change: transform, opacity; }
+.splash__ring--0 { border-color: #3df2a0; }
+.splash__ring--1 { border-color: #ffffff; }
+.splash__ring--2 { border-color: #9db7ff; }
 .splash__drop {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff, #9db7ff 40%, #2f69ff);
   transform: translate(-50%, -50%) scale(0);
   will-change: transform, opacity;
 }

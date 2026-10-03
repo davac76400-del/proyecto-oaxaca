@@ -23,6 +23,10 @@ La primera vez se abre el **inicio**; ahí se elige «Soy usuario» o se abre la
 - **Usuario:** una guía de scroll largo (unas 20 pantallas) con **una sola escena 3D ligera** (Three.js): una nube de ~500 puntos que se vuelve cara, forma de labios, galaxia de comparación, ondas de voz y globo mientras se baja. Tocar la pantalla la hace vibrar y el cursor la inclina. Al final están **«Contamos con estas palabras»** (solo las que ya tienen ejemplos; hoy, ninguna) e **«Iniciar a utilizar»** (aún bloqueado). Arriba a la derecha, el botón **«Regresar al inicio»** se llena de agua mientras se mantiene presionado 2 segundos y salpica al terminar.
 - **Programador:** panel oscuro con Panel, Entrenar, Probar, Tablero y Ajustes. No aparece en el menú: se entra con la dirección `#/programador`. Las palabras que agrega (con ejemplos) aparecen en la guía del usuario en el mismo dispositivo.
 
+Siempre se abre en el **inicio**, con un cargador: una esfera de cristal que se llena de agua con el porcentaje, y al llegar a 100 % se abren las cortinas (mínimo ~2.6 s). Solo el modo programador conserva su dirección (`#/panel`, etc.). «Regresar al inicio» (mantener 2 s) salpica con ondas verde, blanca, azul y negra.
+
+Las palabras las prepara el equipo (modo programador › Entrenar); la persona usuaria no crea palabras. En la guía, el botón **«Pasar directamente a la aplicación»** salta al final.
+
 En la guía hay **límite de velocidad**: con rueda o teclado avanza una pantalla por gesto, y en pantallas táctiles el navegador se detiene en cada pantalla (`scroll-snap-stop`); así ningún texto se pasa de largo. El final (palabras y consejos) se recorre libre.
 
 La guía usa scroll nativo, sin librerías de animación: solo `transform` y `opacity`, un único lienzo, resolución adaptable si el equipo va lento y pausa cuando el lienzo no se ve. Paleta: negro, azul cobalto, verde y blanco. El inicio ya no tiene selector de colores: las esferas son siempre azul cobalto. La app se actualiza sola cuando se publica una versión nueva. No hay opciones de «letra más grande» ni «más contraste»: el diseño ya mantiene tamaños y contraste legibles.

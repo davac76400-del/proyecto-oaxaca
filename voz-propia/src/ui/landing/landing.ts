@@ -57,10 +57,29 @@ function template() {
     </div>
 
     <div class="l-loader" data-loader role="status" aria-live="polite">
-      <span class="l-loader__orb" aria-hidden="true"></span>
-      <p class="l-loader__status" data-loader-status>Calibrando lectura de labios</p>
-      <div class="l-loader__bar" aria-hidden="true"><i data-loader-bar></i></div>
-      <p class="l-loader__count" data-loader-count>000%</p>
+      <i class="l-loader__curtain l-loader__curtain--t" aria-hidden="true"></i>
+      <i class="l-loader__curtain l-loader__curtain--b" aria-hidden="true"></i>
+      <div class="l-loader__core">
+        <p class="l-loader__brand" aria-hidden="true">${brandMark()}<span>Voz Propia</span></p>
+        <div class="l-loader__stage" aria-hidden="true">
+          <i class="l-loader__ring l-loader__ring--1"></i>
+          <i class="l-loader__ring l-loader__ring--2"></i>
+          <i class="l-loader__burst"></i>
+          <div class="l-loader__orbit">
+            <i style="--a:0deg;--s:12px;--c:#3df2a0"></i><i style="--a:60deg;--s:7px;--c:#f4f7fa"></i><i style="--a:120deg;--s:10px;--c:#5d80ff"></i>
+            <i style="--a:180deg;--s:12px;--c:#3df2a0"></i><i style="--a:240deg;--s:7px;--c:#f4f7fa"></i><i style="--a:300deg;--s:10px;--c:#5d80ff"></i>
+          </div>
+          <div class="l-loader__orb" data-loader-orb>
+            <div class="l-loader__water">
+              <svg class="l-loader__wave l-loader__wave--b" viewBox="0 0 240 16" preserveAspectRatio="none"><path d="M0 8 Q30 0 60 8 T120 8 T180 8 T240 8 V16 H0Z"/></svg>
+              <svg class="l-loader__wave" viewBox="0 0 240 16" preserveAspectRatio="none"><path d="M0 8 Q30 16 60 8 T120 8 T180 8 T240 8 V16 H0Z"/></svg>
+              <span class="l-loader__body"></span>
+            </div>
+            <span class="l-loader__num"><b data-loader-count>0</b><small>%</small></span>
+          </div>
+        </div>
+        <p class="l-loader__status" data-loader-status>Calibrando lectura de labios</p>
+      </div>
     </div>
 
     <header class="l-header">
@@ -113,7 +132,7 @@ function template() {
           <h2 class="l-h2" data-reveal style="--d:.1s">Del silencio,<br>una forma.<span class="l-script l-script--form" aria-hidden="true">tus labios</span></h2>
         </div>
         <div class="l-wrap l-form__bottom">
-          <p class="l-p l-p--glass" data-reveal style="--d:.15s">Del caos, cada esfera encuentra su lugar: unos labios. Así aprende Voz Propia, con la forma de tu boca y no la de nadie más. Pasa el cursor por encima y mira cómo se desordena y vuelve.</p>
+          <p class="l-p l-p--glass" data-reveal style="--d:.15s">Del caos, cada esfera encuentra su lugar: unos labios. Así lee Voz Propia, con la forma de tu boca y no la de nadie más. Pasa el cursor por encima y mira cómo se desordena y vuelve.</p>
           <button class="l-hold" type="button" data-talk data-reveal style="--d:.28s">
             <span class="hold">${holdRing()}<span class="hold__core">${icon('volume', 18)}</span></span>
             <span class="l-hold__text">Mantén presionado<b>y escucha cómo hablan</b></span>
@@ -143,7 +162,7 @@ function template() {
           <div class="l-features">
             ${feature('scan-face', 'Mira tus labios', 'Sigue 478 puntos de tu cara y se queda con los 40 de la boca, aunque te muevas o te alejes.', 0)}
             ${feature('sparkles', 'Palabras preparadas', 'Nuestro equipo prepara cada palabra con cuidado, para que se reconozca bien desde el primer día.', 1)}
-            ${feature('volume', 'Habla por ti', 'Con la voz del teléfono o con un audio grabado por tu familia para cada frase.', 2)}
+            ${feature('volume', 'Habla por ti', 'Con la voz del teléfono, la que tu familia elija para ti.', 2)}
             ${feature('wifi-off', 'Funciona en modo avión', 'Todo corre dentro del teléfono. Ideal para un cuarto de hospital sin señal.', 3)}
             ${feature('shield-check', 'Tus datos, tuyos', 'No se graba ni se envía video. Solo números con la forma de tus labios.', 4)}
             ${feature('layout-grid', 'Respuestas rápidas', 'Sí, no, escala de dolor y frases por tema, a un toque y sin cámara.', 5)}
@@ -237,7 +256,7 @@ function template() {
         </button>
         <button class="l-entry__opt" type="button" disabled>
           <span class="l-entry__ic">${icon('log-in', 20)}</span>
-          <span><b>Iniciar sesión</b><small>Para tener tus frases en varios dispositivos.</small></span>
+          <span><b>Iniciar sesión</b><small>Para tener tu perfil en varios dispositivos.</small></span>
           <em>Pronto</em>
         </button>
         <button class="l-entry__opt" type="button" disabled>
@@ -286,14 +305,19 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   };
   void buildScene();
 
-  /* ---------- Loader: avanza solo hasta 92% y termina cuando la escena ya pintó ---------- */
+  /* ---------- Cargador: la esfera se llena de agua; al llegar a 100 % se abren las cortinas ---------- */
 
-  const bar = root.querySelector<HTMLElement>('[data-loader-bar]')!;
+  const orb = root.querySelector<HTMLElement>('[data-loader-orb]')!;
   const count = root.querySelector<HTMLElement>('[data-loader-count]')!;
   const status = root.querySelector<HTMLElement>('[data-loader-status]')!;
+  const PHASES = ['Calibrando lectura de labios', 'Ubicando 478 puntos de tu cara', 'Preparando las esferas', 'Afinando tu voz'];
+  const MIN_MS = 2600;
+  const t0 = performance.now();
   let value = 0;
-  let last = performance.now();
+  let phase = -1;
+  let last = t0;
   let loaderRaf = 0;
+  const wait: number[] = [];
 
   const reveal = () => {
     control.started = true;
@@ -302,28 +326,35 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   };
 
   const finishLoader = () => {
-    setTimeout(() => {
-      loader.classList.add('is-leaving');
-      setTimeout(() => {
-        loader.hidden = true;
-        reveal();
-      }, 520);
-    }, 140);
+    loader.classList.add('is-full');
+    status.textContent = 'Lista para escucharte';
+    wait.push(
+      window.setTimeout(() => {
+        loader.classList.add('is-leaving');
+        wait.push(window.setTimeout(reveal, 380));
+        wait.push(window.setTimeout(() => (loader.hidden = true), 1300));
+      }, 700),
+    );
   };
 
   const loaderTick = (now: number) => {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
-    if (sceneReady) {
-      value += (100 - value) * 6 * dt;
-      if (value >= 99.4) value = 100;
-    } else {
-      value += (92 - value) * 1.7 * dt;
+    const elapsed = now - t0;
+    // El avance es parejo (mínimo ~2.6 s) para que se vea la animación, y espera a la escena si tarda más.
+    const t = Math.min(1, elapsed / MIN_MS);
+    const cap = 100 * (0.5 - Math.cos(Math.PI * t) / 2);
+    const goal = Math.min(sceneReady ? 100 : 92, cap);
+    value += (goal - value) * Math.min(1, 6 * dt);
+    if (sceneReady && elapsed >= MIN_MS && value > 99.4) value = 100;
+    orb.style.setProperty('--p', (value / 100).toFixed(4));
+    count.textContent = String(value >= 100 ? 100 : Math.min(99, Math.floor(value)));
+    const ph = Math.min(PHASES.length - 1, Math.floor(value / 25));
+    if (ph !== phase && value < 100) {
+      phase = ph;
+      status.textContent = PHASES[ph];
     }
-    bar.style.width = `${value}%`;
-    count.textContent = `${String(Math.floor(value)).padStart(3, '0')}%`;
-    if (value >= 100) status.textContent = 'Lista para escucharte';
-    if (value >= 99.9 && sceneReady) return finishLoader();
+    if (value >= 100) return finishLoader();
     loaderRaf = requestAnimationFrame(loaderTick);
   };
 
@@ -517,6 +548,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     io.disconnect();
     offHold();
     cancelAnimationFrame(loaderRaf);
+    wait.forEach(clearTimeout);
     cancelAnimationFrame(scrollRaf);
     field?.dispose();
     if (entry.open) entry.close();

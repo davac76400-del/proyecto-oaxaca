@@ -23,52 +23,99 @@ export const waterBackHTML = () => `
     </span>
   </button>`;
 
+const WAVES = ['splash__disc--green', 'splash__disc--white', 'splash__disc--blue', 'splash__disc--ink'];
+const DROP_COLORS = ['#3DF2A0', '#F4F7FA', '#5D80FF', '#2F69FF', '#9DB7FF'];
+
+/** Ondas de agua que salen del botón y cubren la pantalla: verde, blanco, azul y negro, con gotas de colores. */
 function splash(from: HTMLElement, done: () => void) {
   if (reducedMotion()) return done();
   const r = from.getBoundingClientRect();
   const cx = r.left + r.width / 2;
   const cy = r.top + r.height / 2;
-  const reach = Math.hypot(Math.max(cx, innerWidth - cx), Math.max(cy, innerHeight - cy)) + 40;
+  const reach = Math.hypot(Math.max(cx, innerWidth - cx), Math.max(cy, innerHeight - cy)) + 60;
+  const BASE = 400;
+  const end = (reach * 2) / BASE;
 
   const veil = document.createElement('div');
   veil.className = 'splash';
   veil.setAttribute('aria-hidden', 'true');
-  const disc = document.createElement('i');
-  disc.className = 'splash__disc';
-  Object.assign(disc.style, { left: `${cx}px`, top: `${cy}px`, width: `${reach * 2}px`, height: `${reach * 2}px` });
-  veil.append(disc);
+  const at = { left: `${cx}px`, top: `${cy}px` };
 
-  const drops: Animation[] = [];
-  for (let i = 0; i < 16; i++) {
+  const place = (el: HTMLElement, size: number) => {
+    Object.assign(el.style, at, { width: `${size}px`, height: `${size}px` });
+    veil.append(el);
+  };
+
+  // Ondas: cada color llega un poco después y cubre al anterior.
+  const discs = WAVES.map((cls) => {
+    const d = document.createElement('i');
+    d.className = `splash__disc ${cls}`;
+    place(d, BASE);
+    return d;
+  });
+
+  // Anillos de choque, finos y luminosos, que van por delante de las ondas.
+  const rings = [0, 1, 2].map((n) => {
+    const d = document.createElement('i');
+    d.className = `splash__ring splash__ring--${n}`;
+    place(d, BASE);
+    return d;
+  });
+
+  const drops: HTMLElement[] = [];
+  for (let i = 0; i < 30; i++) {
     const d = document.createElement('i');
     d.className = 'splash__drop';
-    const size = 8 + Math.random() * 16;
-    Object.assign(d.style, { left: `${cx}px`, top: `${cy}px`, width: `${size}px`, height: `${size}px` });
-    veil.append(d);
-    const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.7;
-    const dist = 90 + Math.random() * 190;
-    const x = Math.cos(a) * dist;
-    const y = Math.sin(a) * dist;
-    drops.push(
-      d.animate(
-        [
-          { transform: 'translate(-50%,-50%) scale(0.4)', opacity: 1 },
-          { transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y - 40}px)) scale(1)`, opacity: 1, offset: 0.45 },
-          { transform: `translate(calc(-50% + ${x * 1.15}px), calc(-50% + ${y + 120}px)) scale(0.7)`, opacity: 0 },
-        ],
-        { duration: 760, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'forwards' },
-      ),
-    );
+    const size = 6 + Math.random() * (i < 6 ? 26 : 14);
+    const c = DROP_COLORS[i % DROP_COLORS.length];
+    d.style.background = `radial-gradient(circle at 35% 30%, #fff 0, ${c} 45%, ${c})`;
+    place(d, size);
+    drops.push(d);
   }
   document.body.append(veil);
 
-  const grow = disc.animate(
-    [{ transform: 'translate(-50%,-50%) scale(0)' }, { transform: 'translate(-50%,-50%) scale(1)' }],
-    { duration: 620, delay: 80, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'both' },
+  from.animate([{ transform: 'scale(0.97)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 360, easing: 'cubic-bezier(.2,.8,.3,1)' });
+
+  const ease = 'cubic-bezier(.65,0,.2,1)';
+  const grows = discs.map((d, i) =>
+    d.animate([{ transform: 'translate(-50%,-50%) scale(0)' }, { transform: `translate(-50%,-50%) scale(${end})` }], {
+      duration: 640 + i * 40,
+      delay: i * 85,
+      easing: ease,
+      fill: 'both',
+    }),
   );
-  void grow.finished.then(() => {
+
+  rings.forEach((d, i) => {
+    d.animate(
+      [
+        { transform: 'translate(-50%,-50%) scale(0.05)', opacity: 0.95 },
+        { transform: `translate(-50%,-50%) scale(${end * 1.06})`, opacity: 0.9, offset: 0.82 },
+        { transform: `translate(-50%,-50%) scale(${end * 1.1})`, opacity: 0 },
+      ],
+      { duration: 820 + i * 60, delay: i * 70, easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'both' },
+    );
+  });
+
+  drops.forEach((d, i) => {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.9;
+    const dist = 80 + Math.random() * 260;
+    const x = Math.cos(a) * dist;
+    const y = Math.sin(a) * dist;
+    const dur = 760 + Math.random() * 560;
+    d.animate(
+      [
+        { transform: 'translate(-50%,-50%) scale(0.3)', opacity: 1 },
+        { transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y - 50}px)) scale(1)`, opacity: 1, offset: 0.42 },
+        { transform: `translate(calc(-50% + ${x * 1.2}px), calc(-50% + ${y + 170}px)) scale(0.6)`, opacity: 0 },
+      ],
+      { duration: dur, delay: 40 + (i % 6) * 30, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'both' },
+    );
+  });
+
+  void grows[grows.length - 1].finished.then(() => {
     done();
-    const out = veil.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 520, delay: 160, easing: 'ease-out', fill: 'forwards' });
+    const out = veil.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 560, delay: 140, easing: 'ease-out', fill: 'forwards' });
     void out.finished.then(() => veil.remove());
   });
 }

@@ -54,6 +54,8 @@ const MODES: Record<Role, Mode> = {
   },
 };
 
+const PRO_ROUTES = new Set(['panel', 'entrenar', 'hablar', 'tablero', 'ajustes', 'programador']);
+
 const THEME_COLOR: Record<Kind, string> = { inicio: '#ECEFFF', usuario: '#05080A', programador: '#04060F' };
 
 const app = document.getElementById('app')!;
@@ -202,6 +204,9 @@ async function boot() {
   await loadSettings();
   await engine.load();
   addEventListener('hashchange', () => void route());
+  // Siempre se abre en el inicio (con su cargador); solo el modo programador conserva su dirección.
+  const first = hashRoute().split('/')[0];
+  if (first !== 'inicio' && !PRO_ROUTES.has(first)) history.replaceState(null, '', '#/inicio');
   await route();
   document.documentElement.classList.add('is-ready');
   if (!(await db.persistent())) {

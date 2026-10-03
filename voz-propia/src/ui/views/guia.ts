@@ -78,6 +78,7 @@ function template() {
   <div class="guia" data-guia>
     <div class="g-stage" aria-hidden="true"><canvas></canvas></div>
     <nav class="g-rail" aria-label="Capítulos de la guía">${rail}</nav>
+    <button class="g-skip" type="button" data-skip>${icon('arrow-down', 18, 2.4)}<span>Pasar directamente a la aplicación</span></button>
 
     <section class="g-ch g-ch--hero" data-ch="0" data-text="l" style="--h:${CHAPTERS[0].h * 100}svh" aria-labelledby="g-t0">
       ${stops(CHAPTERS[0].h)}
@@ -212,6 +213,7 @@ export function guiaView(root: HTMLElement) {
   let paging = 0;
   let lockUntil = 0;
   const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+  const snap = (on: boolean) => document.documentElement.classList.toggle('snap-guide', on && !disposed);
   const pageTo = (to: number) => {
     cancelAnimationFrame(paging);
     const from = scrollY;
@@ -221,12 +223,18 @@ export function guiaView(root: HTMLElement) {
       return;
     }
     const t0 = performance.now();
-    const dur = 760;
-    lockUntil = t0 + dur + 260;
+    // Una pantalla tarda ~0.6 s; un salto largo (ir al final) dura más, hasta 1.9 s.
+    const dur = Math.min(1900, 520 + (Math.abs(to - from) / Math.max(1, innerHeight)) * 70);
+    lockUntil = t0 + dur + 180;
+    snap(false);
     const step = (now: number) => {
       const k = Math.min(1, (now - t0) / dur);
       scrollTo(0, from + (to - from) * ease(k));
-      paging = k < 1 ? requestAnimationFrame(step) : 0;
+      if (k < 1) paging = requestAnimationFrame(step);
+      else {
+        paging = 0;
+        snap(true);
+      }
     };
     paging = requestAnimationFrame(step);
   };
@@ -333,6 +341,7 @@ export function guiaView(root: HTMLElement) {
       if (!was) b.setAttribute('aria-pressed', 'true');
       scene?.setChosen(was ? -1 : i);
     }),
+    on(el, 'click', '[data-skip]', () => pageTo(Math.round(endTop))),
     on(el, 'click', '[data-go]', (_, b) => {
       const c = chapters[Number(b.dataset.go)];
       if (c) pageTo(Math.round(c.getBoundingClientRect().top + scrollY));
