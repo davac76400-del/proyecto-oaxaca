@@ -175,21 +175,17 @@ function registerServiceWorker() {
   navigator.serviceWorker
     .register('./sw.js')
     .then((reg) => {
-      const offer = (w: ServiceWorker) =>
-        toast('Hay una versión nueva de Voz Propia.', {
-          action: { label: 'Actualizar', run: () => w.postMessage('activar') },
-        });
-      if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
+      const hadController = !!navigator.serviceWorker.controller;
       reg.addEventListener('updatefound', () => {
         const w = reg.installing;
         w?.addEventListener('statechange', () => {
-          if (w.state === 'installed' && navigator.serviceWorker.controller) offer(w);
-          if (w.state === 'activated' && !navigator.serviceWorker.controller) toast('Lista para usarse sin internet.', { tone: 'ok' });
+          if (w.state === 'activated' && !hadController) toast('Lista para usarse sin internet.', { tone: 'ok' });
         });
       });
+      void reg.update();
       let reloaded = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (reloaded) return;
+        if (reloaded || !hadController) return;
         reloaded = true;
         location.reload();
       });

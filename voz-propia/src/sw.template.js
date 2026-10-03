@@ -4,12 +4,9 @@ const VERSION = '__VERSION__';
 const CACHE = `voz-propia-${VERSION}`;
 const PRECACHE = __PRECACHE__;
 
+// La versión nueva toma el control en cuanto termina de descargarse: nadie se queda en una vieja.
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)));
-});
-
-self.addEventListener('message', (e) => {
-  if (e.data === 'activar') self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {

@@ -20,6 +20,13 @@ const PROMISES: [string, string, string][] = [
   ['volume', 'Tu voz, tu decisión', 'Suena con la voz que tu familia eligió para ti.'],
 ];
 
+const TIPS: [string, string, string][] = [
+  ['sun', 'Buena luz', 'Que la luz te dé de frente, no por detrás.'],
+  ['scan-face', 'Cara de frente', 'El teléfono a la altura de tu cara, a un brazo de distancia.'],
+  ['eye', 'Labios a la vista', 'Sin cubrebocas ni mano frente a la boca.'],
+  ['gauge', 'Con calma', 'Mueve los labios claro y sin prisa, como si hablaras.'],
+];
+
 /** Capítulos con escena 3D: id, altura del recorrido (en pantallas) y nombre para el índice. */
 const CHAPTERS: { name: string; h: number }[] = [
   { name: 'Inicio', h: 1.9 },
@@ -57,6 +64,9 @@ function template() {
   const promises = PROMISES.map(
     ([ic, t, d], i) => `<li class="g-promise" style="--i:${3 + i}"><span class="g-promise__ic">${icon(ic, 24, 1.9)}</span><div><h3>${t}</h3><p>${d}</p></div></li>`,
   ).join('');
+  const tips = TIPS.map(
+    ([ic, t, d], i) => `<li class="g-tip" data-reveal style="transition-delay:${i * 80}ms"><span class="g-tip__ic">${icon(ic, 22, 1.9)}</span><h3>${t}</h3><p>${d}</p></li>`,
+  ).join('');
   const rail = CHAPTERS.map((c, i) => `<button type="button" data-go="${i}" aria-label="Ir a: ${c.name}"><i></i><span>${c.name}</span></button>`).join('');
 
   return `
@@ -91,6 +101,12 @@ function template() {
           <div data-words></div>
         </div>
 
+        <div class="g-tipsbox">
+          <p class="g-over" data-reveal>[ Antes de empezar ]</p>
+          <h2 class="g-h2" data-reveal>Para que te entienda mejor.</h2>
+          <ul class="g-tips">${tips}</ul>
+        </div>
+
         <div class="g-start" data-reveal>
           <p class="g-over">[ Listo para empezar ]</p>
           <h2 class="g-h2 g-h2--light">Iniciar a utilizar</h2>
@@ -99,8 +115,10 @@ function template() {
             <li><b>1</b><span>Pon tu cara frente a la cámara.</span></li>
             <li><b>2</b><span>Di la palabra moviendo los labios.</span></li>
             <li><b>3</b><span>Escucha cómo suena tu voz.</span></li>
+            <li><b>4</b><span>Si duda, toca la palabra correcta.</span></li>
           </ol>
           <button class="g-start__btn" type="button" disabled>${icon('lock', 20)}<span>Muy pronto</span></button>
+          <p class="g-start__hint">Para salir, mantén presionado <b>Regresar al inicio</b> arriba a la derecha.</p>
         </div>
       </div>
     </section>

@@ -218,13 +218,13 @@ interface Chapter {
 }
 
 const CH: Chapter[] = [
-  { cloud: 'face', side: 1, scale: 1, lipsScale: 1, lipsY: -0.45, lipsZ: 0.86, lipsOn: 1, cand: 0, spheres: 1, yaw: 0 },
+  { cloud: 'face', side: 1, scale: 1, lipsScale: 1, lipsY: -0.45, lipsZ: 0.86, lipsOn: 1, cand: 0, spheres: 0.7, yaw: 0 },
   { cloud: 'face', side: -1, scale: 1.05, lipsScale: 1, lipsY: -0.45, lipsZ: 0.86, lipsOn: 1, cand: 0, spheres: 0.6, yaw: 0 },
   { cloud: 'halo', side: 1, scale: 0.8, lipsScale: 2.4, lipsY: 0, lipsZ: 0.9, lipsOn: 1, cand: 0, spheres: 0.2, yaw: 0 },
   { cloud: 'galaxy', side: -1, scale: 0.78, lipsScale: 1.5, lipsY: 0.1, lipsZ: 0.6, lipsOn: 1, cand: 1, spheres: 0.2, yaw: 0 },
   { cloud: 'galaxy', side: 1, scale: 0.78, lipsScale: 1.5, lipsY: 0.1, lipsZ: 0.6, lipsOn: 1, cand: 1, spheres: 0.2, yaw: 0 },
   { cloud: 'rings', side: -1, scale: 0.95, lipsScale: 1.9, lipsY: 0, lipsZ: 0.9, lipsOn: 1, cand: 0, spheres: 0.3, yaw: 0 },
-  { cloud: 'globe', side: 1, scale: 1, lipsScale: 0.5, lipsY: 0, lipsZ: 1.75, lipsOn: 0.7, cand: 0, spheres: 1, yaw: 0 },
+  { cloud: 'globe', side: 1, scale: 1, lipsScale: 0.5, lipsY: 0, lipsZ: 1.75, lipsOn: 0.7, cand: 0, spheres: 0.75, yaw: 0 },
 ];
 
 const smooth = (a: number, b: number, x: number) => {
@@ -450,11 +450,11 @@ export function createGuideScene(box: HTMLElement, canvas: HTMLCanvasElement, op
     /* Cámara y lado de la escena según el ancho. */
     const wide = w / h > 1.1;
     const shift = wide ? 2.05 : 0;
-    const lift = wide ? 0 : 1.35;
+    const lift = wide ? 0 : 1.05;
     const side = val('side');
     world.position.x = MathUtils.damp(world.position.x, side * shift, 6, dt);
     world.position.y = MathUtils.damp(world.position.y, lift * (side === 0 && progress < 0.5 ? 0.4 : 1), 6, dt);
-    world.scale.setScalar(val('scale') * (wide ? 1 : 0.78));
+    world.scale.setScalar(val('scale') * (wide ? 0.92 : 0.7));
 
     tilt.x = MathUtils.damp(tilt.x, px.y * 0.22, 4, dt);
     tilt.y = MathUtils.damp(tilt.y, px.x * 0.35, 4, dt);
@@ -464,11 +464,13 @@ export function createGuideScene(box: HTMLElement, canvas: HTMLCanvasElement, op
     head.rotation.x = tilt.x;
 
     /* Esferas en órbita. */
+    // En pantalla ancha la órbita se aplana hacia los lados: así ninguna esfera cruza al texto.
     const so = val('spheres');
+    const rx = wide ? 0.62 : 0.8;
     for (let i = 0; i < ORBS; i++) {
       const o = orbData[i];
       const a = o.a + time * o.s;
-      m.position.set(Math.cos(a) * o.r * 1.1, o.y * 3.4 + Math.sin(a * 2 + i) * 0.2, Math.sin(a) * o.r * 0.7 - 0.5);
+      m.position.set(Math.cos(a) * o.r * rx, o.y * 3.2 + Math.sin(a * 2 + i) * 0.2, Math.sin(a) * o.r * 0.5 - 0.6);
       m.scale.setScalar(o.size * 2.2 * so);
       m.updateMatrix();
       orbs.setMatrixAt(i, m.matrix);

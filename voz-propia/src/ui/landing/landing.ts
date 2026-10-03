@@ -16,43 +16,15 @@ interface Options {
   onChoose: (role: Role) => void;
 }
 
-const PALETTES = [
-  { color: '#2F69FF', swatch: '#2F69FF', name: 'Azul cobalto y perla', desc: 'Esferas cobalto en un estudio blanco y perla.' },
-  { color: '#FFC5C2', swatch: '#FFA6B3', name: 'Rosa y crema', desc: 'Rosas dulces con acentos de fresa.' },
-  { color: '#E1FC03', swatch: '#E1FC03', name: 'Lima eléctrica', desc: 'Lima neón contra un horizonte blanco.' },
-  { color: '#96E5FF', swatch: '#96E5FF', name: 'Cielo ártico', desc: 'Azules de cristal con brillo translúcido.' },
-];
-const DEFAULT_COLOR = '#2F69FF';
-const COLOR_KEY = 'voz-propia:esferas';
-
-const HERO_BG: Record<string, string> = {
-  '#2f69ff': 'radial-gradient(circle at center, #ffffff 0%, #ecefff 35%, #c2d1ff 100%)',
-  '#ffc5c2': 'radial-gradient(circle at center, #ffffff 0%, #fff0f1 38%, #ffd1d5 100%)',
-  '#e1fc03': 'radial-gradient(circle at center, #ffffff 0%, #fbffe5 38%, #e8ff9c 100%)',
-  '#96e5ff': 'radial-gradient(circle at center, #ffffff 0%, #eefaff 38%, #c4efff 100%)',
-};
+const BALL_COLOR = '#2F69FF';
+const HERO_BG = 'radial-gradient(circle at center, #ffffff 0%, #ecefff 35%, #c2d1ff 100%)';
 
 const BAND = ['Sí', 'No', 'Tengo sed', 'Me duele', 'Tengo frío', 'Llama a mi familia', 'Tengo miedo', 'Gracias'];
 const MARQUEE = ['Menos silencio', 'Más voz', 'Tus labios hablan', 'Sin internet'];
 
-const readColor = () => {
-  try {
-    return localStorage.getItem(COLOR_KEY) || DEFAULT_COLOR;
-  } catch {
-    return DEFAULT_COLOR;
-  }
-};
-const saveColor = (c: string) => {
-  try {
-    localStorage.setItem(COLOR_KEY, c);
-  } catch {
-    // Sin almacenamiento el color vuelve al azul la próxima vez.
-  }
-};
-
 const orbChevron = (ic = 'chevron-right') => `<span class="l-orb" aria-hidden="true">${icon(ic, 16, 2.4)}</span>`;
 
-function template(color: string) {
+function template() {
   const band = BAND.map((w, i) => `<span class="${i % 2 ? 'is-solid' : ''}">${w}</span><i>✦</i>`).join('');
   const marquee = MARQUEE.map((w) => `<span>${w}</span><i></i>`).join('');
   const card = (n: string, k: string, v: string, d: string) => `
@@ -71,7 +43,7 @@ function template(color: string) {
   return `
   <div class="landing" data-stage="0">
     <div class="l-bg" aria-hidden="true">
-      <i style="background:${HERO_BG[color.toLowerCase()] ?? HERO_BG['#2f69ff']}" data-layer="0"></i>
+      <i style="background:${HERO_BG}" data-layer="0"></i>
       <i data-layer="1"></i><i data-layer="2"></i><i data-layer="3"></i><i data-layer="4"><b class="l-stars"></b></i>
     </div>
     <div class="l-poster" aria-hidden="true">
@@ -99,7 +71,6 @@ function template(color: string) {
         <a href="#entrar" data-scroll="entrar">Entrar</a>
       </nav>
       <div class="l-header__right">
-        <button class="l-glass-btn" type="button" data-drawer aria-label="Colores de las esferas">${icon('sliders', 17)}</button>
         <a class="l-pill" href="#entrar" data-scroll="entrar"><span>Comenzar</span>${orbChevron()}</a>
       </div>
     </header>
@@ -258,29 +229,6 @@ function template(color: string) {
       </div>
     </footer>
 
-    <div class="l-scrim" data-close-drawer hidden></div>
-    <aside class="l-drawer" aria-label="Colores de las esferas" hidden>
-      <div class="l-drawer__head">
-        <p>${icon('sliders', 16)} Colores</p>
-        <button class="l-glass-btn l-glass-btn--plain" type="button" data-close-drawer aria-label="Cerrar">${icon('x', 18)}</button>
-      </div>
-      <p class="l-drawer__note">Elige el color de las esferas del inicio. Al bajar se vuelven lima y luego rosa, cuando forman los labios.</p>
-      <p class="l-drawer__title">${icon('sparkles', 13)} Paleta de las esferas</p>
-      <div class="l-drawer__list">
-        ${PALETTES.map(
-          (p) => `<button class="l-swatch" type="button" data-color="${p.color}" aria-pressed="${p.color.toLowerCase() === color.toLowerCase()}">
-            <span class="l-swatch__row"><b>${p.name}</b><i style="background:${p.swatch}"></i></span>
-            <small>${p.desc}</small>
-          </button>`,
-        ).join('')}
-      </div>
-      <div class="l-drawer__foot">
-        <p><span>Motor 3D</span><span>Three.js WebGL</span></p>
-        <p><span>Física</span><span>Verlet con choques 3D</span></p>
-        <button class="l-btn l-btn--ghost" type="button" data-color="${DEFAULT_COLOR}">${icon('rotate-ccw', 15)} Volver al azul</button>
-      </div>
-    </aside>
-
     <dialog class="l-entry" aria-labelledby="entry-title">
       <div class="l-entry__inner">
         <div class="l-entry__head">
@@ -309,13 +257,10 @@ function template(color: string) {
 
 export function mountLanding(app: HTMLElement, opts: Options) {
   const motionOk = !reducedMotion();
-  let color = readColor();
-  app.innerHTML = template(color);
+  app.innerHTML = template();
   const root = app.querySelector<HTMLElement>('.landing')!;
   const canvasBox = root.querySelector<HTMLElement>('.l-canvas')!;
   const loader = root.querySelector<HTMLElement>('[data-loader]')!;
-  const drawer = root.querySelector<HTMLElement>('.l-drawer')!;
-  const scrim = root.querySelector<HTMLElement>('.l-scrim')!;
   const entry = root.querySelector<HTMLDialogElement>('.l-entry')!;
   const ac = new AbortController();
   const { signal } = ac;
@@ -332,11 +277,8 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     try {
       const { createGravityField } = await import('./scene');
       if (disposed) return;
-      const old = canvasBox.querySelector('canvas')!;
-      const canvas = document.createElement('canvas');
-      old.replaceWith(canvas);
-      field = createGravityField(canvasBox, canvas, {
-        ballColor: color,
+      field = createGravityField(canvasBox, canvasBox.querySelector('canvas')!, {
+        ballColor: BALL_COLOR,
         control,
         pointer,
         reducedMotion: !motionOk,
@@ -454,7 +396,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     addEventListener(
       'wheel',
       (e) => {
-        if (e.ctrlKey || !drawer.hidden || entry.open) return;
+        if (e.ctrlKey || entry.open) return;
         e.preventDefault();
         const delta = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
         if (!gliding) target = scrollY;
@@ -535,26 +477,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     field?.talk(Promise.all([voice, sleep(1600)]));
   });
 
-  /* ---------- Paleta de las esferas ---------- */
-
-  const openDrawer = (open: boolean) => {
-    drawer.hidden = !open;
-    scrim.hidden = !open;
-    requestAnimationFrame(() => root.classList.toggle('drawer-open', open));
-    if (open) drawer.querySelector<HTMLElement>('[aria-pressed="true"]')?.focus();
-  };
-
-  const setColor = (c: string) => {
-    if (c.toLowerCase() === color.toLowerCase()) return;
-    color = c;
-    saveColor(c);
-    root.querySelectorAll<HTMLElement>('[data-color]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.color?.toLowerCase() === c.toLowerCase())));
-    root.querySelector<HTMLElement>('[data-layer="0"]')!.style.background = HERO_BG[c.toLowerCase()] ?? HERO_BG['#2f69ff'];
-    field?.dispose();
-    field = null;
-    void buildScene();
-  };
-
   /* ---------- Elegir modo ---------- */
 
   let chosen: Role = 'usuario';
@@ -582,10 +504,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
         jumpTo(scroll.dataset.scroll!);
         return;
       }
-      if (t.closest('[data-drawer]')) return openDrawer(true);
-      if (t.closest('[data-close-drawer]')) return openDrawer(false);
-      const sw = t.closest<HTMLElement>('[data-color]');
-      if (sw) return setColor(sw.dataset.color!);
       const role = t.closest<HTMLElement>('[data-role]');
       if (role) return openEntry(role.dataset.role as Role);
       if (t.closest('[data-guide]')) {
@@ -597,7 +515,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     },
     { signal },
   );
-  addEventListener('keydown', (e) => e.key === 'Escape' && !drawer.hidden && openDrawer(false), { signal });
 
   return () => {
     disposed = true;
