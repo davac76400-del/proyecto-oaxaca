@@ -1,0 +1,98 @@
+:root {
+  /* Crema cálida: la luz de un cuarto de hospital de día, no un blanco clínico frío. */
+  --cream-0: #fffcf6;
+  --cream-50: #fdf8ef;
+  --cream-100: #fbf3e6;
+  --cream-200: #f5e8d4;
+  --cream-300: #ecd9bd;
+  --sand-400: #dcc3a2;
+
+  --ink: #2b1f19;
+  --ink-2: #4f3f35;
+  --muted: #6f5c50;
+  --line: #e9dac4;
+  --line-strong: #dcc7a9;
+
+  /* Un solo acento: terracota oaxaqueña. */
+  --accent: #b5512a;
+  --accent-600: #9c4321;
+  --accent-700: #7e3519;
+  --accent-300: #e39a72;
+  --accent-100: #f8dfcf;
+  --accent-50: #fcefe6;
+
+  /* Semánticos */
+  --sage: #4f7a61;
+  --sage-700: #3a5c48;
+  --sage-100: #dceadf;
+  --amber: #a86e12;
+  --amber-100: #f7e7c4;
+  --danger: #a8352f;
+  --danger-100: #f6dbd7;
+
+  --font-display: 'Fredoka Variable', 'Fredoka', ui-rounded, system-ui, sans-serif;
+  --font-body: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible', system-ui, sans-serif;
+
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.9375rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.625rem;
+  --fs-2xl: clamp(1.9rem, 1.2rem + 2.6vw, 2.9rem);
+  --fs-3xl: clamp(2.3rem, 1.4rem + 3.6vw, 3.9rem);
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* Profundidad: luz arriba-izquierda, sombras tibias (nunca gris puro). */
+  --shadow-1: 0 1px 2px rgb(94 56 30 / 0.06), 0 2px 6px rgb(94 56 30 / 0.05);
+  --shadow-2: 0 2px 4px rgb(94 56 30 / 0.06), 0 10px 24px -6px rgb(94 56 30 / 0.14);
+  --shadow-3: 0 4px 10px rgb(94 56 30 / 0.07), 0 24px 48px -12px rgb(94 56 30 / 0.22);
+  --shadow-float: 0 18px 40px -10px rgb(94 56 30 / 0.28), 0 6px 14px -4px rgb(94 56 30 / 0.12);
+  --hilite: inset 0 1px 0 rgb(255 255 255 / 0.85);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-1: 140ms;
+  --dur-2: 220ms;
+  --dur-3: 320ms;
+
+  --z-dock: 20;
+  --z-sticky: 30;
+  --z-overlay: 60;
+  --z-modal: 80;
+  --z-toast: 100;
+
+  --dock-h: 76px;
+  --max-w: 1180px;
+
+  color-scheme: light;
+}
+
+/* Alto contraste: tinta más oscura, bordes marcados, sin transparencias. */
+.t-contrast {
+  --ink: #170f0b;
+  --ink-2: #2b1f19;
+  --muted: #3d2f27;
+  --line: #b89d7b;
+  --line-strong: #8f7454;
+  --accent: #8f3a17;
+  --accent-600: #7a3013;
+  --accent-700: #5e240e;
+}
+
+.t-large {
+  font-size: 118.75%;
+}

@@ -1,0 +1,5 @@
+node_modules/
+dist/
+# Se generan con `npm run assets`
+public/mediapipe/
+public/models/face_landmarker.task
