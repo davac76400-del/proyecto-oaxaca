@@ -1,5 +1,5 @@
 import {
-  Activity, ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, AudioLines, AudioWaveform, Bath, Bed, Bell, BrainCircuit, Camera,
+  Activity, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, AudioLines, AudioWaveform, Bath, Bed, Bell, BrainCircuit, Camera,
   Check, ChevronLeft, ChevronRight, CircleHelp, Code, Contrast, Cpu, Download, ExternalLink, Eye, Frown, Gauge,
   GlassWater, Hand, HandHeart, Heart, House, Info, LayoutDashboard, LayoutGrid, Lightbulb, Lock, LogIn,
   MessageCircle, Mic, Moon, MousePointer2, Music, Pencil, Phone, Pill, Play, Plus, RefreshCcw, RotateCcw, ScanFace,
@@ -9,7 +9,7 @@ import {
 } from 'lucide';
 
 const ICONS: Record<string, IconNode> = {
-  activity: Activity, 'arrow-down': ArrowDown, 'arrow-left': ArrowLeft, 'arrow-right': ArrowRight, 'arrow-up-right': ArrowUpRight,
+  activity: Activity, 'arrow-down': ArrowDown, 'arrow-left': ArrowLeft, 'arrow-right': ArrowRight, 'arrow-up': ArrowUp, 'arrow-up-right': ArrowUpRight,
   'audio-lines': AudioLines, waveform: AudioWaveform, bath: Bath, bed: Bed, bell: Bell, brain: BrainCircuit,
   camera: Camera, check: Check, 'chevron-left': ChevronLeft, 'chevron-right': ChevronRight, help: CircleHelp,
   code: Code, contrast: Contrast, cpu: Cpu, download: Download, external: ExternalLink, eye: Eye, frown: Frown,

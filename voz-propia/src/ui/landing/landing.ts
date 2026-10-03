@@ -104,6 +104,7 @@ function template() {
           </div>
           <div class="l-hero__right l-in" style="--d:.45s">
             <p>Lee el movimiento de tus labios y lo dice en voz alta. Para quien perdió la voz, en su propio teléfono.</p>
+            <button class="l-btn l-btn--hero" type="button" data-ayuda>Cómo funciona y cómo te ayuda ${icon('arrow-right', 17)}</button>
             <p class="l-credit">© 2026 · Proyecto para SOLACYT Infomatrix</p>
             <p class="l-cue">${icon('arrow-down', 14)} Desliza</p>
           </div>

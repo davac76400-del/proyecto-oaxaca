@@ -79,6 +79,7 @@ function template() {
     <div class="g-stage" aria-hidden="true"><canvas></canvas></div>
     <nav class="g-rail" aria-label="Capítulos de la guía">${rail}</nav>
     <button class="g-skip" type="button" data-skip>${icon('arrow-down', 18, 2.4)}<span>Pasar directamente a la aplicación</span></button>
+    <button class="g-skip g-top" type="button" data-top>${icon('arrow-up', 18, 2.4)}<span>Volver al inicio de la guía</span></button>
 
     <section class="g-ch g-ch--hero" data-ch="0" data-text="l" style="--h:${CHAPTERS[0].h * 100}svh" aria-labelledby="g-t0">
       ${stops(CHAPTERS[0].h)}
@@ -125,6 +126,7 @@ function template() {
             <li><b>4</b><span>Si duda, toca la palabra correcta.</span></li>
           </ol>
           <button class="g-start__btn" type="button" disabled>${icon('lock', 20)}<span>Muy pronto</span></button>
+          <button class="g-again" type="button" data-top>${icon('arrow-up', 18, 2.4)}<span>Ver la guía otra vez desde el inicio</span></button>
           <p class="g-start__hint">Para salir, mantén presionado <b>Regresar al inicio</b> arriba a la derecha.</p>
         </div>
       </div>
@@ -342,6 +344,7 @@ export function guiaView(root: HTMLElement) {
       scene?.setChosen(was ? -1 : i);
     }),
     on(el, 'click', '[data-skip]', () => pageTo(Math.round(endTop))),
+    on(el, 'click', '[data-top]', () => pageTo(0)),
     on(el, 'click', '[data-go]', (_, b) => {
       const c = chapters[Number(b.dataset.go)];
       if (c) pageTo(Math.round(c.getBoundingClientRect().top + scrollY));

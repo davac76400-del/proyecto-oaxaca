@@ -199,6 +199,32 @@ function registerServiceWorker() {
     });
 }
 
+/**
+ * En vista previa (la app dentro de otra página) se reinicia sola cuando se cierra y se vuelve a abrir:
+ * así siempre empieza desde cero, con el cargador. Fuera de una vista previa no hace nada.
+ */
+function restartWhenReopened() {
+  if (window.top === window.self) return;
+  const restart = () => {
+    history.replaceState(null, '', '#/inicio');
+    location.reload();
+  };
+  let hiddenAt = 0;
+  let coveredAt = 0;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) hiddenAt = Date.now();
+    else if (hiddenAt && Date.now() - hiddenAt > 8000) restart();
+    else hiddenAt = 0;
+  });
+  addEventListener('pageshow', (e) => e.persisted && restart());
+  new ResizeObserver(([e]) => {
+    const gone = e.contentRect.width === 0 || e.contentRect.height === 0;
+    if (gone) coveredAt ||= Date.now();
+    else if (coveredAt && Date.now() - coveredAt > 1200) restart();
+    else coveredAt = 0;
+  }).observe(document.documentElement);
+}
+
 async function boot() {
   enableTilt(document.body);
   await loadSettings();
@@ -206,13 +232,14 @@ async function boot() {
   addEventListener('hashchange', () => void route());
   // Siempre se abre en el inicio (con su cargador); solo el modo programador conserva su dirección.
   const first = hashRoute().split('/')[0];
-  if (first !== 'inicio' && !PRO_ROUTES.has(first)) history.replaceState(null, '', '#/inicio');
+  if (!PRO_ROUTES.has(first)) history.replaceState(null, '', '#/inicio');
   await route();
   document.documentElement.classList.add('is-ready');
   if (!(await db.persistent())) {
     toast('Este navegador no deja guardar datos aquí. Tus frases se borrarán al cerrar la página.', { tone: 'warn', ms: 8000 });
   }
   registerServiceWorker();
+  restartWhenReopened();
 }
 
 void boot();
