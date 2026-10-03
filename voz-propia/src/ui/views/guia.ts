@@ -221,6 +221,8 @@ export function guiaView(root: HTMLElement) {
   let paging = 0;
   let lockUntil = 0;
   const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+  /** Qué tan rápido avanza cada pantalla con rueda y teclado (1 = velocidad anterior). */
+  const PAGE_SPEED = 1.65;
   const snap = (on: boolean) => document.documentElement.classList.toggle('snap-guide', on && !disposed);
   const pageTo = (to: number) => {
     cancelAnimationFrame(paging);
@@ -232,8 +234,8 @@ export function guiaView(root: HTMLElement) {
     }
     const t0 = performance.now();
     // Una pantalla tarda ~0.6 s; un salto largo (ir al final) dura más, hasta 1.9 s.
-    const dur = Math.min(1900, 520 + (Math.abs(to - from) / Math.max(1, innerHeight)) * 70);
-    lockUntil = t0 + dur + 180;
+    const dur = Math.min(1900, 520 + (Math.abs(to - from) / Math.max(1, innerHeight)) * 70) / PAGE_SPEED;
+    lockUntil = t0 + dur + 180 / PAGE_SPEED;
     snap(false);
     const step = (now: number) => {
       const k = Math.min(1, (now - t0) / dur);

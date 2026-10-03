@@ -159,7 +159,7 @@ export function ajustesView(root: HTMLElement) {
           </article>
         </div>
 
-        <p class="fineprint">${icon('info', 14)} Voz Propia es una ayuda para comunicarse. No es un dispositivo médico ni reemplaza la atención del personal de salud. Versión 0.10.0.</p>
+        <p class="fineprint">${icon('info', 14)} Voz Propia es una ayuda para comunicarse. No es un dispositivo médico ni reemplaza la atención del personal de salud. Versión 0.10.1.</p>
       </section>`;
   };
 
