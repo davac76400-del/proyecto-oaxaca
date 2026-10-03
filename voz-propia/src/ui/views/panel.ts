@@ -65,7 +65,7 @@ export function panelView(root: HTMLElement) {
                 .map((p, i) => {
                   const n = engine.sampleCount(p.id);
                   const st = n >= READY_SAMPLES ? 'ok' : n > 0 ? 'mid' : 'none';
-                  return `<div class="dash__bar" role="listitem" data-state="${st}" style="--h:${Math.max(0.04, n / MAX_SAMPLES_PER_PHRASE).toFixed(3)};--i:${i}" title="${esc(p.text)}: ${n} de ${MAX_SAMPLES_PER_PHRASE}" aria-label="${esc(p.text)}: ${n} ejemplos">
+                  return `<div class="dash__bar dash__bar--${p.category}" role="listitem" data-state="${st}" style="--h:${Math.max(0.04, n / MAX_SAMPLES_PER_PHRASE).toFixed(3)};--i:${i}" title="${esc(p.text)}: ${n} de ${MAX_SAMPLES_PER_PHRASE}" aria-label="${esc(p.text)}: ${n} ejemplos">
                     <i></i><span>${icon(p.icon, 14)}</span>
                   </div>`;
                 })

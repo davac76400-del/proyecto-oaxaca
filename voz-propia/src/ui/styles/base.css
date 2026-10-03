@@ -88,7 +88,7 @@ canvas {
 
 /* Usuario: el estudio claro de las esferas, con tres esferas grandes y desenfocadas a la deriva. */
 [data-mode='usuario'] .ambient {
-  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #eef1ff 42%, #cbd8ff 100%);
+  background: radial-gradient(120% 90% at 50% 0%, #fffbf2 0%, #fff4e3 45%, #ffe2c2 100%);
 }
 
 .ambient i {
@@ -102,7 +102,7 @@ canvas {
   height: 46vmax;
   top: -18vmax;
   right: -14vmax;
-  background: radial-gradient(circle at 35% 30%, #c3d3ff 0%, #6f95ff 45%, #2f69ff 80%);
+  background: radial-gradient(circle at 35% 30%, #ffe3d6 0%, #ffa98a 45%, #ff6b4a 80%);
   opacity: 0.28;
   filter: blur(40px);
   animation: drift1 36s ease-in-out infinite alternate;
@@ -113,7 +113,7 @@ canvas {
   height: 34vmax;
   bottom: -14vmax;
   left: -12vmax;
-  background: radial-gradient(circle at 35% 30%, #ffe3e8 0%, #ffa6b3 50%, #ff4d6d 90%);
+  background: radial-gradient(circle at 35% 30%, #e8fff3 0%, #8fe3bf 50%, #3dc794 90%);
   opacity: 0.26;
   filter: blur(46px);
   animation: drift2 42s ease-in-out infinite alternate;
@@ -124,7 +124,7 @@ canvas {
   height: 18vmax;
   top: 46%;
   right: 8%;
-  background: radial-gradient(circle at 35% 30%, #fbffe2 0%, #e1fc03 55%, #b1e200 100%);
+  background: radial-gradient(circle at 35% 30%, #fff6d0 0%, #ffd54a 55%, #e5a800 100%);
   opacity: 0.22;
   filter: blur(34px);
   animation: drift1 50s ease-in-out infinite alternate-reverse;
@@ -497,4 +497,37 @@ canvas {
   .ambient i {
     animation: none;
   }
+}
+
+/* Usuario: la guía ocupa todo el ancho. */
+[data-mode='usuario'] .main {
+  max-width: none;
+  padding: 0;
+}
+
+[data-mode='usuario'] .topbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  max-width: none;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+[data-mode='usuario'] .topbar::before {
+  display: none;
+}
+
+.btn--back {
+  gap: 8px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--accent-deep);
+  border-color: transparent;
+  box-shadow: 0 10px 22px -10px rgb(185 45 23 / 0.8);
+}
+
+.guia-view,
+[data-route='guia'] .view {
+  animation: none;
 }

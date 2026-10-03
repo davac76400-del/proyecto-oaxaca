@@ -1088,3 +1088,28 @@
   font-size: var(--fs-sm);
   line-height: 1.4;
 }
+
+/* Programador: más color que solo verde. */
+[data-mode='programador'] .stat:nth-child(1) .stat__value::after { background: var(--accent); }
+[data-mode='programador'] .stat:nth-child(2) .stat__value::after { background: var(--accent-2); }
+[data-mode='programador'] .stat:nth-child(3) .stat__value::after { background: var(--accent-3); }
+[data-mode='programador'] .stat:nth-child(4) .stat__value::after { background: var(--accent-4); }
+[data-mode='programador'] .quick:nth-child(1) .quick__icon { color: var(--accent); background: rgb(93 240 168 / 0.12); }
+[data-mode='programador'] .quick:nth-child(2) .quick__icon { color: var(--accent-2); background: rgb(255 138 160 / 0.12); }
+[data-mode='programador'] .quick:nth-child(3) .quick__icon { color: var(--accent-3); background: rgb(255 210 122 / 0.12); }
+[data-mode='programador'] .quick:nth-child(4) .quick__icon { color: var(--accent-4); background: rgb(183 156 255 / 0.12); }
+[data-mode='programador'] .panel:nth-child(1) h2 .ic { color: var(--accent-2); }
+[data-mode='programador'] .panel:nth-child(2) h2 .ic { color: var(--accent-5); }
+[data-mode='programador'] .panel:nth-child(3) h2 .ic { color: var(--accent-3); }
+[data-mode='programador'] .panel:nth-child(4) h2 .ic { color: var(--accent-4); }
+[data-mode='programador'] .kicker { color: var(--accent-3); }
+[data-mode='programador'] .hl { background: linear-gradient(90deg, var(--accent), var(--accent-5) 60%, var(--accent-4)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+[data-mode='programador'] .dash__bar[data-state='ok'] i { background: linear-gradient(180deg, var(--cat, var(--accent)), color-mix(in srgb, var(--cat, var(--accent)) 25%, transparent)); }
+.dash__bar--necesidad { --cat: #6aa6ff; }
+.dash__bar--cuerpo { --cat: #ff8aa0; }
+.dash__bar--emocion { --cat: #b79cff; }
+.dash__bar--social { --cat: #ffb454; }
+.dash__bar--respuesta { --cat: #5df0a8; }
+[data-mode='programador'] .progress-orb .bar { stroke: var(--accent-3); }
+[data-mode='programador'] .stepper li.is-current { background: rgb(255 210 122 / 0.14); color: var(--accent-3); }
+[data-mode='programador'] .stepper li.is-current span { background: var(--accent-3); }

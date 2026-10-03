@@ -5,6 +5,7 @@ import './ui/styles/tokens.css';
 import './ui/styles/base.css';
 import './ui/styles/components.css';
 import './ui/styles/views.css';
+import './ui/styles/guia.css';
 
 import { hashRoute, startRouter, type Route, type View } from './app/router';
 import { loadSettings, state, updateSettings } from './app/state';
@@ -18,6 +19,7 @@ import { toast } from './ui/components/toast';
 import { icon } from './ui/icons';
 import { ajustesView } from './ui/views/ajustes';
 import { entrenarView } from './ui/views/entrenar';
+import { guiaView } from './ui/views/guia';
 import { hablarView } from './ui/views/hablar';
 import { panelView } from './ui/views/panel';
 import { tableroView } from './ui/views/tablero';
@@ -33,12 +35,9 @@ interface Mode {
 
 const MODES: Record<Role, Mode> = {
   usuario: {
-    home: 'hablar',
-    views: { hablar: hablarView, tablero: tableroView },
-    nav: [
-      ['hablar', 'scan-face', 'Hablar'],
-      ['tablero', 'layout-grid', 'Tablero'],
-    ],
+    home: 'guia',
+    views: { guia: guiaView },
+    nav: [],
   },
   programador: {
     home: 'panel',
@@ -53,7 +52,7 @@ const MODES: Record<Role, Mode> = {
   },
 };
 
-const THEME_COLOR: Record<Kind, string> = { inicio: '#ECEFFF', usuario: '#ECEFFF', programador: '#04060F' };
+const THEME_COLOR: Record<Kind, string> = { inicio: '#ECEFFF', usuario: '#FFF4E3', programador: '#04060F' };
 
 const app = document.getElementById('app')!;
 let mounted: { kind: Kind; unmount: () => void } | null = null;
@@ -91,12 +90,12 @@ function shell(role: Role) {
         ${
           pro
             ? `<a class="btn btn--ghost btn--sm" href="#/inicio" title="Volver al inicio">${icon('house', 16)}<span class="hide-sm">Inicio</span></a>`
-            : `<button class="icon-btn icon-btn--glass" type="button" data-menu aria-label="Opciones">${icon('sliders', 20)}</button>`
+            : `<a class="btn btn--sm btn--back" href="#/inicio/elegir">${icon('arrow-left', 17, 2.4)}<span>Regresar al inicio</span></a><button class="icon-btn icon-btn--glass" type="button" data-menu aria-label="Opciones">${icon('sliders', 20)}</button>`
         }
       </div>
     </header>
     <main id="view" class="main" tabindex="-1"></main>
-    <nav class="dock dock--${m.nav.length}" aria-label="Secciones">${links}</nav>`;
+    ${m.nav.length ? `<nav class="dock dock--${m.nav.length}" aria-label="Secciones">${links}</nav>` : ''}`;
 }
 
 function mountApp(role: Role) {
@@ -145,7 +144,13 @@ async function chooseRole(role: Role) {
 }
 
 async function route() {
-  const h = hashRoute();
+  let h = hashRoute();
+  // Entrada discreta para quien prepara la app: no aparece en el menú de elección.
+  if (h === 'programador') {
+    await updateSettings({ role: 'programador' });
+    history.replaceState(null, '', '#/panel');
+    h = 'panel';
+  }
   const kind: Kind = h.startsWith('inicio') || !state.settings.role ? 'inicio' : state.settings.role;
   if (mounted?.kind === kind) return;
   const token = ++routing;

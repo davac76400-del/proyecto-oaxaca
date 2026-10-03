@@ -214,17 +214,17 @@ function template(color: string) {
               <span class="l-role__balls" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
               <span class="l-role__tag">${icon('user', 15)} Usuario</span>
               <span class="l-role__title">Soy usuario</span>
-              <span class="l-role__desc">Para quien va a hablar. Usa las frases que su equipo ya preparó.</span>
-              <span class="l-role__list"><span>${icon('check', 16, 2.6)} Habla moviendo los labios</span><span>${icon('check', 16, 2.6)} Tablero con Sí, No y dolor</span><span>${icon('check', 16, 2.6)} Nada que configurar</span></span>
+              <span class="l-role__desc">Para quien va a hablar. Conoce cómo trabajamos y con qué palabras contamos.</span>
+              <span class="l-role__list"><span>${icon('check', 16, 2.6)} Cómo trabajamos, paso a paso</span><span>${icon('check', 16, 2.6)} Las palabras con las que contamos</span><span>${icon('check', 16, 2.6)} Nada que configurar</span></span>
               <span class="l-role__cta"><span>Entrar como usuario</span>${orbChevron()}</span>
             </button>
-            <button class="l-role l-role--pro" type="button" data-role="programador" data-reveal style="--d:.12s">
+            <button class="l-role l-role--pro" type="button" data-scroll="como-funciona" data-reveal style="--d:.12s">
               <span class="l-role__grid" aria-hidden="true"></span>
-              <span class="l-role__tag">${icon('code', 15)} Programador</span>
-              <span class="l-role__title">Soy programador</span>
-              <span class="l-role__desc">Para quien prepara la app: familia, terapeuta o equipo de salud.</span>
-              <span class="l-role__list"><span>${icon('check', 16, 2.6)} Entrena frases con la persona</span><span>${icon('check', 16, 2.6)} Elige voces y graba audios</span><span>${icon('check', 16, 2.6)} Ajusta la confianza y respaldos</span></span>
-              <span class="l-role__cta"><span>Entrar como programador</span>${orbChevron()}</span>
+              <span class="l-role__tag">${icon('sparkles', 15)} Guía</span>
+              <span class="l-role__title">Cómo funciona la aplicación</span>
+              <span class="l-role__desc">Repasa cómo trabajamos, antes de entrar.</span>
+              <span class="l-role__list"><span>${icon('check', 16, 2.6)} Mira tus labios</span><span>${icon('check', 16, 2.6)} Aprende contigo</span><span>${icon('check', 16, 2.6)} Habla por ti, sin internet</span></span>
+              <span class="l-role__cta"><span>Ver cómo funciona</span>${orbChevron()}</span>
             </button>
           </div>
           <p class="l-soon" data-reveal>${icon('lock', 15)} Muy pronto: inicia sesión o crea tu cuenta para guardar tu perfil.</p>

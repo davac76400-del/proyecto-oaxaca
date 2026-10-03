@@ -17,18 +17,12 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 ## Dos modos
 
-La primera vez se abre el **inicio** y al final se elige quién la va a usar. La elección se guarda; se puede cambiar después.
+La primera vez se abre el **inicio**; ahí se elige «Soy usuario» o se repasa «Cómo funciona la aplicación».
 
-| | Usuario (paciente) | Programador (familia, terapeuta, equipo) |
-|---|---|---|
-| Secciones | Hablar, Tablero | Panel, Entrenar, Probar, Tablero, Ajustes |
-| Entrenar frases | No | Sí, con los labios de la persona usuaria |
-| Elegir voz y ajustes | No (solo letra grande y contraste) | Sí |
-| Tema | Claro, cobalto, esferas de colores | Oscuro, menta, centro de control |
-| Cambiar de modo | Opciones › mantener presionado 2 s | Ajustes › Ver como usuario / Volver al inicio |
+- **Usuario:** una sola página de scroll cinematográfico (GSAP + ScrollTrigger): letras 3D, tarjeta que se expande, pasos que avanzan de lado y **«Contamos con estas palabras»**, que lista el vocabulario de la app (tocar una palabra la dice). Un botón claro «Regresar al inicio» siempre visible.
+- **Programador:** panel oscuro con Panel, Entrenar, Probar, Tablero y Ajustes. No aparece en el menú: se entra con la dirección `#/programador`. Las palabras que agrega se reflejan en la guía del usuario en el mismo dispositivo.
 
-El **Panel** del programador muestra cuántos ejemplos tiene cada frase y una lista de «antes de entregarla» (Sí y No entrenadas, al menos 5 frases listas, voz elegida).
-Iniciar sesión y crear cuenta aparecen como «Pronto»: hoy todo se guarda solo en el dispositivo.
+Sincronizar entre dispositivos en tiempo real necesita un servidor (por ejemplo Supabase); hoy todo se guarda en el dispositivo.
 
 ## El inicio
 
