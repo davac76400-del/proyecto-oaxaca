@@ -12,12 +12,13 @@ import { icon } from '../icons';
 const RING = 2 * Math.PI * 54;
 
 export function hablarView(root: HTMLElement) {
+  const pro = state.settings.role === 'programador';
   root.innerHTML = `
     <section class="view talk">
       <header class="view-head">
         <div>
-          <p class="kicker">${icon('scan-face', 16)} Hablar</p>
-          <h1>Mueve los labios.<br><span class="hl">Yo pongo la voz.</span></h1>
+          <p class="kicker">[ ${pro ? 'Probar lectura' : 'Hablar'} ]</p>
+          <h1>${pro ? 'Prueba cómo lee.<br><span class="hl">Así lo vive el usuario.</span>' : 'Mueve los labios.<br><span class="hl">Yo pongo la voz.</span>'}</h1>
         </div>
         <span class="chip chip--soft" data-ready></span>
       </header>
@@ -33,7 +34,7 @@ export function hablarView(root: HTMLElement) {
                 <circle cx="60" cy="60" r="54" class="track"/>
                 <circle cx="60" cy="60" r="54" class="bar" data-ring style="stroke-dasharray:${RING};stroke-dashoffset:${RING}"/>
               </svg>
-              <span class="capture__core">${icon('scan-face', 34, 1.8)}</span>
+              <span class="capture__core">${icon('scan-face', 36, 1.8)}</span>
             </button>
             <div class="capture__meta">
               <p class="capture__label" data-label>Toca y habla sin voz</p>
@@ -78,22 +79,32 @@ export function hablarView(root: HTMLElement) {
 
   const renderReady = () => {
     const n = engine.trainedPhrases.length;
-    ready.innerHTML = `${icon('sparkles', 15)} ${n} ${n === 1 ? 'frase lista' : 'frases listas'}`;
+    ready.innerHTML = `<span class="dot"></span> ${n} ${n === 1 ? 'frase lista' : 'frases listas'}`;
     btn.disabled = n === 0;
-    root.querySelector('.talk')?.classList.toggle('is-empty', n === 0);
+    // El programador siempre ve la cámara para probarla; el usuario solo si ya hay frases preparadas.
+    root.querySelector('.talk')?.classList.toggle('is-empty', n === 0 && !pro);
     if (n === 0) renderEmpty();
     else if (!result.firstElementChild || result.querySelector('.result__empty')) renderIdle();
   };
 
   const renderEmpty = () => {
-    result.innerHTML = `
+    result.innerHTML = pro
+      ? `
       <div class="result__empty">
-        <div class="bubble-3d">${icon('sparkles', 28)}</div>
-        <h2>Primero enséñame cómo dices tus frases</h2>
-        <p>Grabas cada frase 3 veces, unos 5 segundos cada una. Así aprendo tu forma de mover los labios.</p>
+        <span class="sphere sphere--accent">${icon('sparkles', 26)}</span>
+        <h2>Aún no hay frases entrenadas</h2>
+        <p>Graba cada frase 3 veces con la persona que la va a usar. Mientras, aquí puedes revisar que la cámara vea bien su boca.</p>
         <div class="row">
-          <button class="btn btn--primary" type="button" data-go="entrenar">${icon('sparkles', 18)}<span>Entrenar mis frases</span></button>
-          <button class="btn btn--ghost" type="button" data-go="tablero">${icon('layout-grid', 18)}<span>Usar el tablero</span></button>
+          <button class="btn btn--primary" type="button" data-go="entrenar">${icon('sparkles', 18)}<span>Entrenar frases</span></button>
+        </div>
+      </div>`
+      : `
+      <div class="result__empty">
+        <span class="sphere sphere--accent">${icon('hand-heart', 26)}</span>
+        <h2>Tus frases todavía se están preparando</h2>
+        <p>Tu familia o tu equipo las van a enseñar muy pronto. Mientras tanto, el tablero ya habla por ti: toca y se escucha.</p>
+        <div class="row">
+          <button class="btn btn--primary btn--lg" type="button" data-go="tablero">${icon('layout-grid', 20)}<span>Abrir el tablero</span></button>
         </div>
       </div>`;
   };
@@ -103,12 +114,17 @@ export function hablarView(root: HTMLElement) {
     result.innerHTML = `
       <div class="result__idle">
         <p class="result__eyebrow">Listo para leer</p>
-        <p class="result__lead">Mira a la cámara, toca el botón y di una de tus frases moviendo los labios.</p>
+        <p class="result__lead">${pro ? 'Pide que mire a la cámara, toca el botón y que diga una frase sin voz.' : 'Mira a la cámara, toca el botón y di una de tus frases moviendo los labios.'}</p>
         <div class="result__known">${engine.trainedPhrases
           .slice(0, 8)
           .map((p) => `<span class="mini-chip">${icon(p.icon, 14)}${esc(p.text)}</span>`)
           .join('')}</div>
       </div>`;
+  };
+
+  // En pantallas angostas el resultado queda bajo el botón: se acerca a la vista al aparecer.
+  const reveal = () => {
+    if (innerWidth < 960) result.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   };
 
   const renderSaid = (p: Phrase, confidence: number, corrected = false) => {
@@ -117,13 +133,13 @@ export function hablarView(root: HTMLElement) {
     result.innerHTML = `
       <div class="said said--${tone}">
         <div class="said__top">
-          <div class="said__icon bubble-3d">${icon(p.icon, 26)}</div>
+          <span class="sphere sphere--${p.category}">${icon(p.icon, 26)}</span>
           <div class="conf" style="--p:${corrected ? 100 : pct}" aria-label="Seguridad ${pct}%">
             <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" class="track"/><circle cx="22" cy="22" r="18" class="bar" pathLength="100"/></svg>
             <span>${corrected ? icon('check', 16, 2.6) : `${pct}%`}</span>
           </div>
         </div>
-        <p class="said__label">${corrected ? 'Corregido y aprendido' : 'Dijiste'}</p>
+        <p class="said__label">${corrected ? (state.settings.learnFromUse ? 'Corregido y aprendido' : 'Corregido') : 'Dijiste'}</p>
         <p class="said__text">${esc(p.text)}</p>
         <div class="row">
           <button class="btn btn--soft" type="button" data-repeat="${p.id}">${icon('volume', 18)}<span>Decir otra vez</span></button>
@@ -154,7 +170,7 @@ export function hablarView(root: HTMLElement) {
         const p = engine.phrase(c.phraseId);
         if (!p) return '';
         return `<button class="opt" type="button" data-pick="${p.id}" style="--i:${i}" data-tilt="10">
-          <span class="opt__icon">${icon(p.icon, 22)}</span>
+          <span class="sphere sphere--sm sphere--${p.category}">${icon(p.icon, 20)}</span>
           <span class="opt__text">${esc(p.text)}</span>
           <span class="opt__pct">${Math.round(c.probability * 100)}%</span>
         </button>`;
@@ -221,6 +237,7 @@ export function hablarView(root: HTMLElement) {
         showOptions(pred, '¿Cuál quisiste decir?');
       } else {
         renderSaid(top, pred.confidence);
+        reveal();
         void say(top);
       }
     } catch (err) {
@@ -251,7 +268,7 @@ export function hablarView(root: HTMLElement) {
       renderSaid(p, 1, !wasTop);
       void say(p);
       // Cada confirmación es un ejemplo nuevo: la app mejora con el uso, como en LipLearner.
-      if (lastSeq) {
+      if (lastSeq && state.settings.learnFromUse) {
         await engine.addSample(p.id, lastSeq, 'correccion');
         lastSeq = null;
         toast('Gracias. Aprendí de esta respuesta.', { tone: 'ok' });
@@ -275,7 +292,7 @@ export function hablarView(root: HTMLElement) {
 
   renderReady();
   renderHistory();
-  if (engine.trainedPhrases.length) void stage.start();
+  if (pro || engine.trainedPhrases.length) void stage.start();
 
   return () => {
     capture?.cancel();

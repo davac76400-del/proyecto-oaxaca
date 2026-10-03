@@ -1,50 +1,52 @@
 import { $$ } from '../ui/dom';
 
-export type Route = 'hablar' | 'tablero' | 'entrenar' | 'ajustes';
+export type Route = 'panel' | 'hablar' | 'tablero' | 'entrenar' | 'ajustes';
 export type View = (el: HTMLElement) => (() => void) | void;
 
-const ROUTES: Route[] = ['hablar', 'tablero', 'entrenar', 'ajustes'];
+export const hashRoute = () => location.hash.replace(/^#\/?/, '');
 
-let current: Route | null = null;
-let cleanup: (() => void) | void;
-
-export function currentRoute(): Route {
-  const r = location.hash.replace(/^#\/?/, '') as Route;
-  return ROUTES.includes(r) ? r : 'hablar';
-}
-
-export function go(r: Route) {
+/** `inicio/elegir` abre el inicio directo en la elección de modo. */
+export function go(r: Route | 'inicio' | 'inicio/elegir') {
   if (location.hash !== `#/${r}`) location.hash = `#/${r}`;
-  else render();
 }
 
-let views: Record<Route, View>;
-let outlet: HTMLElement;
+/**
+ * Enruta solo entre las vistas que el modo actual permite. Una ruta ajena (por ejemplo «entrenar» en modo
+ * usuario) cae en la vista inicial del modo. Devuelve una función para detenerlo al cambiar de modo.
+ */
+export function startRouter(outlet: HTMLElement, views: Partial<Record<Route, View>>, fallback: Route) {
+  let current: Route | null = null;
+  let cleanup: (() => void) | void;
 
-function render() {
-  const r = currentRoute();
-  if (r === current) return;
-  const swap = () => {
-    cleanup?.();
-    current = r;
-    outlet.innerHTML = '';
-    outlet.dataset.route = r;
-    cleanup = views[r](outlet);
-    outlet.focus({ preventScroll: true });
-    scrollTo({ top: 0 });
-    for (const a of $$<HTMLAnchorElement>('[data-route]')) {
-      a.toggleAttribute('aria-current', a.dataset.route === r);
-      if (a.dataset.route === r) a.setAttribute('aria-current', 'page');
-    }
+  const render = () => {
+    const wanted = hashRoute();
+    if (wanted.startsWith('inicio')) return;
+    const r = (wanted in views ? wanted : fallback) as Route;
+    if (wanted !== r) history.replaceState(null, '', `#/${r}`);
+    if (r === current) return;
+    const swap = () => {
+      cleanup?.();
+      current = r;
+      outlet.innerHTML = '';
+      outlet.dataset.route = r;
+      cleanup = views[r]!(outlet);
+      outlet.focus({ preventScroll: true });
+      scrollTo({ top: 0 });
+      for (const a of $$<HTMLAnchorElement>('[data-route]')) {
+        if (a.dataset.route === r) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
+      }
+    };
+    // Transición nativa entre vistas cuando el navegador la soporta.
+    if ('startViewTransition' in document && current !== null) document.startViewTransition(swap);
+    else swap();
   };
-  // Transición nativa entre vistas cuando el navegador la soporta.
-  if ('startViewTransition' in document && current !== null) document.startViewTransition(swap);
-  else swap();
-}
 
-export function startRouter(el: HTMLElement, v: Record<Route, View>) {
-  outlet = el;
-  views = v;
   addEventListener('hashchange', render);
   render();
+  return () => {
+    removeEventListener('hashchange', render);
+    cleanup?.();
+    current = null;
+  };
 }

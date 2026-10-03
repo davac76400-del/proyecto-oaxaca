@@ -7,10 +7,8 @@ interface ToastOptions {
   ms?: number;
 }
 
-let host: HTMLElement | null = null;
-
 export function toast(message: string, opts: ToastOptions = {}) {
-  host ??= document.getElementById('toasts');
+  const host = document.getElementById('toasts');
   if (!host) return;
   const el = document.createElement('div');
   el.className = `toast toast--${opts.tone ?? 'info'}`;

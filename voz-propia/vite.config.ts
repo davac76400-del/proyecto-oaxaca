@@ -3,7 +3,8 @@ import { join, relative } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 
 // Archivos que no se precargan: se guardan en caché la primera vez que se usan.
-const LAZY = [/nosimd/, /ort[-.].*\.(wasm|m?js)$/, /\.onnx$/];
+// También los alfabetos de las tipografías que la app no usa (cirílico, griego, vietnamita).
+const LAZY = [/nosimd/, /ort[-.].*\.(wasm|m?js)$/, /\.onnx$/, /-(cyrillic|cyrillic-ext|greek|greek-ext|vietnamese|hebrew)-/];
 
 async function walk(dir: string): Promise<string[]> {
   const out: string[] = [];
@@ -39,7 +40,8 @@ function serviceWorker(): Plugin {
 
 export default defineConfig({
   base: './',
-  build: { target: 'es2022', assetsInlineLimit: 0 },
+  // La escena 3D del inicio (Three.js) va en su propio archivo y solo se carga en el inicio.
+  build: { target: 'es2022', assetsInlineLimit: 0, chunkSizeWarningLimit: 600 },
   optimizeDeps: { exclude: ['onnxruntime-web'] },
   plugins: [serviceWorker()],
 });

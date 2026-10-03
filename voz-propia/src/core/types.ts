@@ -41,25 +41,33 @@ export interface Prediction {
 
 export type VoiceMode = 'sistema' | 'grabada';
 
+/** Usuario: solo habla con lo que ya está preparado. Programador: entrena, elige voces y ajusta. */
+export type Role = 'usuario' | 'programador';
+
 export interface Settings {
-  onboarded: boolean;
+  role: Role | null;
   voiceURI: string | null;
   rate: number;
   pitch: number;
   /** Hablar solo cuando la confianza supera este valor; si no, mostrar opciones. */
   autoSpeakThreshold: number;
   maxCaptureMs: number;
+  /** Cuando el usuario corrige una lectura, esa toma se guarda como ejemplo nuevo. */
+  learnFromUse: boolean;
+  cameraId: string | null;
   largeText: boolean;
   highContrast: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  onboarded: false,
+  role: null,
   voiceURI: null,
   rate: 0.95,
   pitch: 1,
   autoSpeakThreshold: 0.7,
   maxCaptureMs: 4000,
+  learnFromUse: true,
+  cameraId: null,
   largeText: false,
   highContrast: false,
 };

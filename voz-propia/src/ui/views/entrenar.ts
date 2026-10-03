@@ -1,5 +1,5 @@
 import { state } from '../../app/state';
-import { engine, MAX_SAMPLES_PER_PHRASE } from '../../core/engine';
+import { engine, MAX_SAMPLES_PER_PHRASE, READY_SAMPLES as TARGET } from '../../core/engine';
 import type { Category, Phrase } from '../../core/types';
 import { captureSequence, CaptureError, type Capture } from '../../core/vision/recorder';
 import { recordAudio, speakPhrase, speakText, type AudioRecording } from '../../core/voice/speaker';
@@ -9,7 +9,6 @@ import { toast } from '../components/toast';
 import { $, esc, on, reducedMotion, sleep, vibrate } from '../dom';
 import { icon } from '../icons';
 
-const TARGET = 3;
 const TAKE_MS = 5000;
 
 export function entrenarView(root: HTMLElement) {
@@ -21,8 +20,8 @@ export function entrenarView(root: HTMLElement) {
       <section class="view train">
         <header class="view-head">
           <div>
-            <p class="kicker">${icon('sparkles', 16)} Entrenar</p>
-            <h1>Enséñame cómo<br><span class="hl">dices cada frase.</span></h1>
+            <p class="kicker">[ Entrenar ]</p>
+            <h1>Enséñale cómo<br><span class="hl">dice cada frase.</span></h1>
           </div>
         </header>
 
@@ -32,8 +31,8 @@ export function entrenarView(root: HTMLElement) {
             <span>${done}<small>/${total}</small></span>
           </div>
           <div>
-            <h2>${done === 0 ? 'Empieza con 3 frases' : done === total ? 'Todas tus frases están listas' : 'Vas muy bien'}</h2>
-            <p>Cada frase necesita ${TARGET} ejemplos de 5 segundos. Una persona de tu familia puede ayudarte a sostener el teléfono.</p>
+            <h2>${done === 0 ? 'Empieza con Sí, No y una frase más' : done === total ? 'Todas las frases están listas' : 'Va muy bien'}</h2>
+            <p>Cada frase necesita ${TARGET} ejemplos de 5 segundos <b>de la persona que la va a usar</b>. Sostén el teléfono frente a su cara y que hable sin voz.</p>
           </div>
           <button class="btn btn--primary" type="button" data-new>${icon('plus', 18)}<span>Nueva frase</span></button>
         </div>
@@ -44,7 +43,7 @@ export function entrenarView(root: HTMLElement) {
               const n = engine.sampleCount(p.id);
               const status = n >= TARGET ? 'ok' : n > 0 ? 'mid' : 'none';
               return `<li class="pcard pcard--${status}">
-                <span class="pcard__icon">${icon(p.icon, 22)}</span>
+                <span class="sphere sphere--sm sphere--${p.category}">${icon(p.icon, 20)}</span>
                 <div class="pcard__body">
                   <p class="pcard__text">${esc(p.text)}</p>
                   <p class="pcard__meta">
@@ -91,8 +90,8 @@ function openTrainer(phrase: Phrase) {
   dlg.innerHTML = `
     <div class="sheet__inner">
       <header class="sheet__head">
-        <span class="pcard__icon">${icon(phrase.icon, 22)}</span>
-        <div><p class="kicker">Entrenando</p><h2>${esc(phrase.text)}</h2></div>
+        <span class="sphere sphere--sm sphere--${phrase.category}">${icon(phrase.icon, 20)}</span>
+        <div><p class="kicker">[ Entrenando ]</p><h2>${esc(phrase.text)}</h2></div>
         <button class="icon-btn" type="button" data-close aria-label="Cerrar">${icon('x', 20)}</button>
       </header>
       <ol class="stepper" data-stepper>
@@ -134,15 +133,16 @@ function openTrainer(phrase: Phrase) {
   const renderStep = () => {
     const n = engine.sampleCount(phrase.id);
     if (step === 1) {
-      const ok = face === 'listo';
+      // En computadora la cara suele verse chica: «lejos» también sirve, los rasgos no dependen del tamaño.
+      const ok = face === 'listo' || face === 'lejos';
       panel.innerHTML = `
-        <h3>Ponte cómodo frente a la cámara</h3>
+        <h3>Que mire de frente a la cámara</h3>
         <ul class="checks">
           <li class="${face !== 'sin-camara' ? 'ok' : ''}">${icon(face !== 'sin-camara' ? 'check' : 'camera', 16)} Cámara encendida</li>
           <li class="${face === 'listo' || face === 'lejos' ? 'ok' : ''}">${icon(face === 'listo' || face === 'lejos' ? 'check' : 'scan-face', 16)} Tu cara a la vista</li>
-          <li class="${ok ? 'ok' : ''}">${icon(ok ? 'check' : 'eye', 16)} A buena distancia, con luz de frente</li>
+          <li class="${face === 'listo' ? 'ok' : ''}">${icon(face === 'listo' ? 'check' : 'eye', 16)} ${face === 'lejos' ? 'Un poco más cerca sería mejor' : 'A buena distancia, con luz de frente'}</li>
         </ul>
-        <button class="btn btn--primary btn--lg" type="button" data-next ${ok ? '' : 'disabled'}>${icon('arrow-right', 18)}<span>${ok ? 'Estoy listo' : 'Esperando tu cara…'}</span></button>`;
+        <button class="btn btn--primary btn--lg" type="button" data-next ${ok ? '' : 'disabled'}>${icon('arrow-right', 18)}<span>${ok ? 'Listo, empezar' : 'Esperando su cara…'}</span></button>`;
     } else if (step === 2) {
       const enough = n >= TARGET;
       panel.innerHTML = `
@@ -161,9 +161,9 @@ function openTrainer(phrase: Phrase) {
       const has = !!engine.phrase(phrase.id)?.audioId;
       panel.innerHTML = `
         <h3>¿Con qué voz la digo?</h3>
-        <p class="muted">Puedes usar la voz del teléfono, o grabar la frase con la voz de alguien de tu familia, o con una grabación tuya de antes.</p>
+        <p class="muted">Puede usar la voz del dispositivo, la voz de alguien de su familia o una grabación suya de antes.</p>
         <div class="voice-opts">
-          <button class="voice-opt" type="button" data-test-sys data-tilt="6">${icon('volume', 22)}<span><b>Voz del teléfono</b><small>Escuchar ejemplo</small></span></button>
+          <button class="voice-opt" type="button" data-test-sys data-tilt="6">${icon('volume', 22)}<span><b>Voz del dispositivo</b><small>Escuchar ejemplo</small></span></button>
           <button class="voice-opt ${rec ? 'is-rec' : ''}" type="button" data-mic data-tilt="6">${icon(rec ? 'square' : 'mic', 22)}<span><b>${rec ? 'Detener grabación' : has ? 'Volver a grabar' : 'Grabar una voz'}</b><small>${rec ? 'Grabando…' : has ? 'Ya hay una voz grabada' : 'Unos segundos bastan'}</small></span></button>
         </div>
         ${has ? `<div class="row"><button class="btn btn--soft" type="button" data-play>${icon('play', 18)}<span>Escuchar grabación</span></button><button class="btn btn--ghost" type="button" data-rm-audio>${icon('trash', 18)}<span>Quitar</span></button></div>` : ''}
@@ -189,7 +189,7 @@ function openTrainer(phrase: Phrase) {
   const recordTake = async () => {
     if (capture) return capture.stop();
     if (face === 'buscando' || face === 'sin-camara') {
-      toast('No veo tu cara. Vuelve a centrarte.', { tone: 'warn' });
+      toast('No veo su cara. Que se centre frente a la cámara.', { tone: 'warn' });
       return;
     }
     const btn = panel.querySelector<HTMLButtonElement>('[data-rec]');

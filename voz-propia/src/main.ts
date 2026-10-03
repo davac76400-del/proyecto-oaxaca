@@ -1,70 +1,166 @@
-import '@fontsource-variable/fredoka/wght.css';
+import '@fontsource-variable/raleway/wght.css';
 import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
+import '@fontsource-variable/jetbrains-mono/wght.css';
 import './ui/styles/tokens.css';
 import './ui/styles/base.css';
 import './ui/styles/components.css';
 import './ui/styles/views.css';
 
-import { startRouter } from './app/router';
-import { loadSettings, state } from './app/state';
+import { hashRoute, startRouter, type Route, type View } from './app/router';
+import { loadSettings, state, updateSettings } from './app/state';
 import { engine } from './core/engine';
 import { db } from './core/storage/db';
+import type { Role } from './core/types';
 import { tracker } from './core/vision/face-tracker';
+import { brandMark } from './ui/brand';
 import { enableTilt } from './ui/components/tilt';
-import { orb } from './ui/components/orb';
 import { toast } from './ui/components/toast';
 import { icon } from './ui/icons';
 import { ajustesView } from './ui/views/ajustes';
 import { entrenarView } from './ui/views/entrenar';
 import { hablarView } from './ui/views/hablar';
-import { showOnboarding } from './ui/views/onboarding';
+import { panelView } from './ui/views/panel';
 import { tableroView } from './ui/views/tablero';
+import { openUserMenu } from './ui/views/user-menu';
 
-const NAV = [
-  ['hablar', 'scan-face', 'Hablar'],
-  ['tablero', 'layout-grid', 'Tablero'],
-  ['entrenar', 'sparkles', 'Entrenar'],
-  ['ajustes', 'settings', 'Ajustes'],
-] as const;
+type Kind = Role | 'inicio';
 
-function shell() {
-  document.getElementById('app')!.innerHTML = `
-    <div class="ambient" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+interface Mode {
+  home: Route;
+  views: Partial<Record<Route, View>>;
+  nav: [Route, string, string][];
+}
+
+const MODES: Record<Role, Mode> = {
+  usuario: {
+    home: 'hablar',
+    views: { hablar: hablarView, tablero: tableroView },
+    nav: [
+      ['hablar', 'scan-face', 'Hablar'],
+      ['tablero', 'layout-grid', 'Tablero'],
+    ],
+  },
+  programador: {
+    home: 'panel',
+    views: { panel: panelView, entrenar: entrenarView, hablar: hablarView, tablero: tableroView, ajustes: ajustesView },
+    nav: [
+      ['panel', 'dashboard', 'Panel'],
+      ['entrenar', 'sparkles', 'Entrenar'],
+      ['hablar', 'scan-face', 'Probar'],
+      ['tablero', 'layout-grid', 'Tablero'],
+      ['ajustes', 'settings', 'Ajustes'],
+    ],
+  },
+};
+
+const THEME_COLOR: Record<Kind, string> = { inicio: '#ECEFFF', usuario: '#ECEFFF', programador: '#04060F' };
+
+const app = document.getElementById('app')!;
+let mounted: { kind: Kind; unmount: () => void } | null = null;
+let routing = 0;
+
+/* ---------- Instalación como app ---------- */
+
+let installPrompt: (Event & { prompt: () => Promise<void> }) | null = null;
+addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e as typeof installPrompt;
+  document.querySelectorAll<HTMLElement>('[data-install]').forEach((b) => (b.hidden = false));
+});
+
+/* ---------- Shell de la app (usuario o programador) ---------- */
+
+function shell(role: Role) {
+  const m = MODES[role];
+  const links = m.nav
+    .map(([r, ic, label]) => `<a class="nav__item" href="#/${r}" data-route="${r}">${icon(ic, 22)}<span>${label}</span></a>`)
+    .join('');
+  const pro = role === 'programador';
+  app.innerHTML = `
+    <div class="ambient" aria-hidden="true">${
+      pro ? '<i class="stars"></i><i class="stars stars--far"></i><i class="horizon"></i>' : '<i class="s1"></i><i class="s2"></i><i class="s3"></i>'
+    }</div>
     <header class="topbar">
-      <a class="brand" href="#/hablar" aria-label="Voz Propia, inicio">${orb('sm')}<span>Voz Propia</span></a>
+      <a class="brand" href="#/${m.home}" aria-label="Voz Propia, inicio de la sección">${brandMark()}<span class="brand__word">Voz Propia</span>${
+        pro ? `<span class="mode-badge">${icon('code', 13, 2.4)}Programador</span>` : ''
+      }</a>
+      ${pro ? `<nav class="topnav" aria-label="Secciones">${links}</nav>` : ''}
       <div class="topbar__right">
         <span class="chip chip--net" data-net hidden>${icon('wifi-off', 14)} Sin internet · todo funciona</span>
-        <button class="btn btn--soft btn--sm" type="button" data-install hidden>${icon('download', 16)}<span>Instalar</span></button>
+        <button class="btn btn--soft btn--sm" type="button" data-install ${installPrompt ? '' : 'hidden'}>${icon('download', 16)}<span>Instalar</span></button>
+        ${
+          pro
+            ? `<a class="btn btn--ghost btn--sm" href="#/inicio" title="Volver al inicio">${icon('house', 16)}<span class="hide-sm">Inicio</span></a>`
+            : `<button class="icon-btn icon-btn--glass" type="button" data-menu aria-label="Opciones">${icon('sliders', 20)}</button>`
+        }
       </div>
     </header>
     <main id="view" class="main" tabindex="-1"></main>
-    <nav class="dock" aria-label="Secciones">
-      ${NAV.map(([r, ic, label]) => `<a class="dock__item" href="#/${r}" data-route="${r}">${icon(ic, 22)}<span>${label}</span></a>`).join('')}
-    </nav>
-    <div id="toasts" class="toasts" aria-live="polite"></div>`;
+    <nav class="dock dock--${m.nav.length}" aria-label="Secciones">${links}</nav>`;
 }
 
-function watchNetwork() {
-  const chip = document.querySelector<HTMLElement>('[data-net]')!;
-  const update = () => (chip.hidden = navigator.onLine);
-  addEventListener('online', update);
-  addEventListener('offline', update);
-  update();
+function mountApp(role: Role) {
+  shell(role);
+  const ac = new AbortController();
+  const net = app.querySelector<HTMLElement>('[data-net]')!;
+  const updateNet = () => (net.hidden = navigator.onLine);
+  addEventListener('online', updateNet, { signal: ac.signal });
+  addEventListener('offline', updateNet, { signal: ac.signal });
+  updateNet();
+
+  app.addEventListener(
+    'click',
+    async (e) => {
+      const t = e.target as Element;
+      if (t.closest('[data-menu]')) openUserMenu();
+      if (t.closest('[data-install]')) {
+        app.querySelectorAll<HTMLElement>('[data-install]').forEach((b) => (b.hidden = true));
+        await installPrompt?.prompt();
+        installPrompt = null;
+      }
+    },
+    { signal: ac.signal },
+  );
+
+  const stopRouter = startRouter(app.querySelector<HTMLElement>('#view')!, MODES[role].views, MODES[role].home);
+
+  // Precarga del lector de labios en segundo plano: la cámara abre al instante después.
+  const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 1500));
+  idle(() => void tracker.preload().catch(() => {}));
+
+  return () => {
+    ac.abort();
+    stopRouter();
+    tracker.stop();
+    app.innerHTML = '';
+  };
 }
 
-function watchInstall() {
-  const btn = document.querySelector<HTMLButtonElement>('[data-install]')!;
-  let deferred: (Event & { prompt: () => Promise<void> }) | null = null;
-  addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferred = e as typeof deferred;
-    btn.hidden = false;
-  });
-  btn.addEventListener('click', async () => {
-    btn.hidden = true;
-    await deferred?.prompt();
-    deferred = null;
-  });
+/* ---------- Qué se muestra: el inicio o la app en su modo ---------- */
+
+async function chooseRole(role: Role) {
+  await updateSettings({ role });
+  history.replaceState(null, '', `#/${MODES[role].home}`);
+  await route();
+}
+
+async function route() {
+  const h = hashRoute();
+  const kind: Kind = h.startsWith('inicio') || !state.settings.role ? 'inicio' : state.settings.role;
+  if (mounted?.kind === kind) return;
+  const token = ++routing;
+  mounted?.unmount();
+  mounted = null;
+  document.documentElement.dataset.mode = kind;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLOR[kind]);
+  scrollTo({ top: 0 });
+  if (kind === 'inicio') {
+    const { mountLanding } = await import('./ui/landing/landing');
+    if (token !== routing) return;
+    mounted = { kind, unmount: mountLanding(app, { jumpToRoles: h === 'inicio/elegir', onChoose: (r) => void chooseRole(r) }) };
+  } else {
+    mounted = { kind, unmount: mountApp(kind) };
+  }
 }
 
 function registerServiceWorker() {
@@ -97,26 +193,15 @@ function registerServiceWorker() {
 }
 
 async function boot() {
-  shell();
   enableTilt(document.body);
-  watchNetwork();
-  watchInstall();
   await loadSettings();
   await engine.load();
-  startRouter(document.getElementById('view')!, {
-    hablar: hablarView,
-    tablero: tableroView,
-    entrenar: entrenarView,
-    ajustes: ajustesView,
-  });
+  addEventListener('hashchange', () => void route());
+  await route();
   document.documentElement.classList.add('is-ready');
   if (!(await db.persistent())) {
     toast('Este navegador no deja guardar datos aquí. Tus frases se borrarán al cerrar la página.', { tone: 'warn', ms: 8000 });
   }
-  if (!state.settings.onboarded) await showOnboarding();
-  // Precarga del lector de labios en segundo plano: la cámara abre al instante después.
-  const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 1500));
-  idle(() => void tracker.preload().catch(() => {}));
   registerServiceWorker();
 }
 

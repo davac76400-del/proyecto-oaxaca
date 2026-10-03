@@ -8,6 +8,8 @@ import { DEFAULT_PHRASES } from '../data/default-phrases';
 type Listener = () => void;
 
 export const MAX_SAMPLES_PER_PHRASE = 8;
+/** Ejemplos con los que una frase se considera lista. */
+export const READY_SAMPLES = 3;
 
 export interface PhraseSnapshot {
   phrase: Phrase;

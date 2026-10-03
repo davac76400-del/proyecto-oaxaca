@@ -19,14 +19,14 @@ export function tableroView(root: HTMLElement) {
       <section class="view board">
         <header class="view-head">
           <div>
-            <p class="kicker">${icon('layout-grid', 16)} Tablero</p>
+            <p class="kicker">[ Tablero ]</p>
             <h1>Toca y se escucha.<br><span class="hl">Sin cámara, al instante.</span></h1>
           </div>
         </header>
 
         <div class="yesno">
-          <button class="yn yn--yes" type="button" data-say="${yes?.id ?? ''}" data-text="Sí">${icon('check', 44, 2.6)}<span>Sí</span></button>
-          <button class="yn yn--no" type="button" data-say="${no?.id ?? ''}" data-text="No">${icon('x', 44, 2.6)}<span>No</span></button>
+          <button class="yn yn--yes" type="button" data-say="${yes?.id ?? ''}" data-text="Sí"><span class="yn__orb">${icon('check', 40, 3)}</span><span>Sí</span></button>
+          <button class="yn yn--no" type="button" data-say="${no?.id ?? ''}" data-text="No"><span class="yn__orb">${icon('x', 40, 3)}</span><span>No</span></button>
         </div>
 
         <div class="pain" role="group" aria-labelledby="pain-title">
@@ -43,12 +43,12 @@ export function tableroView(root: HTMLElement) {
           .map(
             (g) => `
           <div class="board__group">
-            <h2 class="board__title">${CATEGORY_LABEL[g.c]}</h2>
+            <h2 class="board__title"><i class="cat-dot cat-dot--${g.c}" aria-hidden="true"></i>${CATEGORY_LABEL[g.c]}</h2>
             <div class="tiles">
               ${g.items
                 .map(
                   (p) => `<button class="tile" type="button" data-say="${p.id}" data-tilt="8">
-                    <span class="tile__icon">${icon(p.icon, 26)}</span>
+                    <span class="sphere sphere--${p.category}">${icon(p.icon, 24)}</span>
                     <span class="tile__text">${esc(p.text)}</span>
                     ${p.audioId ? `<span class="tile__badge" title="Con voz grabada">${icon('mic', 12)}</span>` : ''}
                   </button>`,

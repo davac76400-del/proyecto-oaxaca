@@ -9,11 +9,57 @@ export interface TrackFrame {
   aspect: number;
 }
 
-export type TrackerStatus = 'apagado' | 'cargando' | 'listo' | 'sin-permiso' | 'error';
+export type TrackerStatus =
+  | 'apagado'
+  | 'cargando'
+  | 'listo'
+  | 'sin-permiso'
+  /** El navegador la bloquea sin preguntar: vista previa dentro de otra página. */
+  | 'bloqueada'
+  | 'sin-camara'
+  /** Otra app (Zoom, Teams, Cámara de Windows) la tiene tomada. */
+  | 'ocupada'
+  | 'error';
 type Listener = (f: TrackFrame) => void;
 type StatusListener = (s: TrackerStatus, detail?: string) => void;
 
 const asset = (p: string) => new URL(p, document.baseURI).href;
+
+export const inFrame = () => {
+  try {
+    return window.top !== window.self;
+  } catch {
+    return true;
+  }
+};
+
+const BASE: MediaTrackConstraints = { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } };
+
+/** De lo más específico a lo más simple: las cámaras de escritorio rechazan a veces `facingMode`. */
+async function openCamera(deviceId: string | null): Promise<MediaStream> {
+  const attempts: (MediaTrackConstraints | true)[] = [
+    ...(deviceId ? [{ ...BASE, deviceId: { exact: deviceId } }] : []),
+    { ...BASE, facingMode: 'user' },
+    BASE,
+    true,
+  ];
+  let last: unknown;
+  for (const video of attempts) {
+    try {
+      return await navigator.mediaDevices.getUserMedia({ video, audio: false });
+    } catch (err) {
+      last = err;
+      const name = (err as DOMException)?.name;
+      if (name === 'NotAllowedError' || name === 'SecurityError') break;
+    }
+  }
+  throw last;
+}
+
+export async function listCameras(): Promise<MediaDeviceInfo[]> {
+  if (!navigator.mediaDevices?.enumerateDevices) return [];
+  return (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+}
 
 /** Cámara + MediaPipe Face Landmarker. Todo corre en el dispositivo; ningún cuadro sale del teléfono. */
 class FaceTracker {
@@ -72,38 +118,64 @@ class FaceTracker {
     return this.loading;
   }
 
-  async start(video: HTMLVideoElement) {
-    if (this.running && this.video === video) return;
+  /** Id de la cámara que está abierta ahora (para poder cambiar a la siguiente). */
+  get deviceId(): string | null {
+    return this.stream?.getVideoTracks()[0]?.getSettings().deviceId ?? null;
+  }
+
+  async start(video: HTMLVideoElement, deviceId: string | null = null) {
+    if (this.running && this.video === video && (!deviceId || deviceId === this.deviceId)) return;
     this.stop();
     this.video = video;
     this.setStatus('cargando');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.setStatus('error', 'Este navegador no deja usar la cámara en esta dirección. Ábrela con https o desde la app instalada.');
+      return;
+    }
+    // El modelo se carga mientras el navegador pregunta por el permiso; sus errores se reportan aparte.
+    const model = this.preload().then(
+      () => null,
+      () => 'No pude cargar el lector de labios. Revisa tu conexión la primera vez y recarga la página.',
+    );
+    let stream: MediaStream;
     try {
-      const [stream] = await Promise.all([
-        navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } },
-          audio: false,
-        }),
-        this.preload(),
-      ]);
-      if (this.video !== video) {
-        stream.getTracks().forEach((t) => t.stop());
-        return;
-      }
-      this.stream = stream;
-      video.srcObject = stream;
-      video.muted = true;
-      video.playsInline = true;
-      await video.play();
-      this.running = true;
-      this.lastVideoTime = -1;
-      this.setStatus('listo');
-      this.schedule();
+      stream = await openCamera(deviceId);
     } catch (err) {
+      if (this.video !== video) return;
       const name = (err as DOMException)?.name;
-      if (name === 'NotAllowedError' || name === 'SecurityError') this.setStatus('sin-permiso');
+      if (name === 'NotAllowedError' || name === 'SecurityError') this.setStatus(inFrame() ? 'bloqueada' : 'sin-permiso');
+      else if (name === 'NotFoundError' || name === 'OverconstrainedError') this.setStatus('sin-camara');
+      else if (name === 'NotReadableError' || name === 'AbortError' || name === 'TrackStartError') this.setStatus('ocupada');
       else this.setStatus('error', (err as Error)?.message);
       this.stop(false);
+      return;
     }
+    if (this.video !== video) {
+      stream.getTracks().forEach((t) => t.stop());
+      return;
+    }
+    this.stream = stream;
+    const modelError = await model;
+    if (this.video !== video) return;
+    if (modelError) {
+      this.setStatus('error', modelError);
+      this.stop(false);
+      return;
+    }
+    try {
+      video.muted = true;
+      video.playsInline = true;
+      video.srcObject = stream;
+      await video.play();
+    } catch (err) {
+      this.setStatus('error', (err as Error)?.message);
+      this.stop(false);
+      return;
+    }
+    this.running = true;
+    this.lastVideoTime = -1;
+    this.setStatus('listo');
+    this.schedule();
   }
 
   stop(resetStatus = true) {

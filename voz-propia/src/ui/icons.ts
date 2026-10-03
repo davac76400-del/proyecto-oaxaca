@@ -1,22 +1,27 @@
 import {
-  Activity, ArrowRight, AudioLines, Bath, Bed, Bell, Camera, Check, ChevronLeft, ChevronRight, CircleHelp,
-  Download, Eye, Frown, GlassWater, Hand, HandHeart, Heart, House, Info, LayoutGrid, Lightbulb, MessageCircle,
-  Mic, Moon, Music, Pencil, Phone, Pill, Play, Plus, RefreshCcw, RotateCcw, ScanFace, Settings, ShieldCheck,
-  Smile, Snowflake, Sparkles, Square, Stethoscope, Sun, Thermometer, Trash2, Tv, Undo2, Upload, Utensils,
-  Volume2, Wind, WifiOff, X, Zap, type IconNode,
+  Activity, ArrowDown, ArrowRight, ArrowUpRight, AudioLines, AudioWaveform, Bath, Bed, Bell, BrainCircuit, Camera,
+  Check, ChevronLeft, ChevronRight, CircleHelp, Code, Contrast, Cpu, Download, ExternalLink, Eye, Frown, Gauge,
+  GlassWater, Hand, HandHeart, Heart, House, Info, LayoutDashboard, LayoutGrid, Lightbulb, Lock, LogIn,
+  MessageCircle, Mic, Moon, MousePointer2, Music, Pencil, Phone, Pill, Play, Plus, RefreshCcw, RotateCcw, ScanFace,
+  Settings, ShieldCheck, SlidersHorizontal, Smile, Snowflake, Sparkles, Square, Stethoscope, Sun, SwitchCamera,
+  Thermometer, Trash2, Tv, Type, Undo2, Upload, UserPlus, UserRound, Utensils, Volume2, Wind, WifiOff, X, Zap,
+  type IconNode,
 } from 'lucide';
 
 const ICONS: Record<string, IconNode> = {
-  activity: Activity, 'arrow-right': ArrowRight, 'audio-lines': AudioLines, bath: Bath, bed: Bed, bell: Bell,
+  activity: Activity, 'arrow-down': ArrowDown, 'arrow-right': ArrowRight, 'arrow-up-right': ArrowUpRight,
+  'audio-lines': AudioLines, waveform: AudioWaveform, bath: Bath, bed: Bed, bell: Bell, brain: BrainCircuit,
   camera: Camera, check: Check, 'chevron-left': ChevronLeft, 'chevron-right': ChevronRight, help: CircleHelp,
-  download: Download, eye: Eye, frown: Frown, 'glass-water': GlassWater, hand: Hand, 'hand-heart': HandHeart,
-  heart: Heart, house: House, info: Info, 'layout-grid': LayoutGrid, lightbulb: Lightbulb,
-  'message-circle': MessageCircle, mic: Mic, moon: Moon, music: Music, pencil: Pencil, phone: Phone, pill: Pill,
-  play: Play, plus: Plus, 'refresh-ccw': RefreshCcw, 'rotate-ccw': RotateCcw, 'scan-face': ScanFace,
-  settings: Settings, 'shield-check': ShieldCheck, smile: Smile, snowflake: Snowflake, sparkles: Sparkles,
-  square: Square, stethoscope: Stethoscope, sun: Sun, thermometer: Thermometer, trash: Trash2, tv: Tv,
-  undo: Undo2, upload: Upload, utensils: Utensils, volume: Volume2, wind: Wind, 'wifi-off': WifiOff, x: X,
-  zap: Zap,
+  code: Code, contrast: Contrast, cpu: Cpu, download: Download, external: ExternalLink, eye: Eye, frown: Frown,
+  gauge: Gauge, 'glass-water': GlassWater, hand: Hand, 'hand-heart': HandHeart, heart: Heart, house: House,
+  info: Info, dashboard: LayoutDashboard, 'layout-grid': LayoutGrid, lightbulb: Lightbulb, lock: Lock,
+  'log-in': LogIn, 'message-circle': MessageCircle, mic: Mic, moon: Moon, pointer: MousePointer2, music: Music,
+  pencil: Pencil, phone: Phone, pill: Pill, play: Play, plus: Plus, 'refresh-ccw': RefreshCcw,
+  'rotate-ccw': RotateCcw, 'scan-face': ScanFace, settings: Settings, 'shield-check': ShieldCheck,
+  sliders: SlidersHorizontal, smile: Smile, snowflake: Snowflake, sparkles: Sparkles, square: Square,
+  stethoscope: Stethoscope, sun: Sun, 'switch-camera': SwitchCamera, thermometer: Thermometer, trash: Trash2,
+  tv: Tv, type: Type, undo: Undo2, upload: Upload, 'user-plus': UserPlus, user: UserRound, utensils: Utensils,
+  volume: Volume2, wind: Wind, 'wifi-off': WifiOff, x: X, zap: Zap,
 };
 
 const attr = (o: Record<string, string | number | undefined>) =>

@@ -15,29 +15,71 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 `npm run assets` (se ejecuta solo en dev y build) copia el runtime de MediaPipe y descarga el modelo de rostro a `public/`.
 
-## Cómo funciona
+## Dos modos
+
+La primera vez se abre el **inicio** y al final se elige quién la va a usar. La elección se guarda; se puede cambiar después.
+
+| | Usuario (paciente) | Programador (familia, terapeuta, equipo) |
+|---|---|---|
+| Secciones | Hablar, Tablero | Panel, Entrenar, Probar, Tablero, Ajustes |
+| Entrenar frases | No | Sí, con los labios de la persona usuaria |
+| Elegir voz y ajustes | No (solo letra grande y contraste) | Sí |
+| Tema | Claro, cobalto, esferas de colores | Oscuro, menta, centro de control |
+| Cambiar de modo | Opciones › mantener presionado 2 s | Ajustes › Ver como usuario / Volver al inicio |
+
+El **Panel** del programador muestra cuántos ejemplos tiene cada frase y una lista de «antes de entregarla» (Sí y No entrenadas, al menos 5 frases listas, voz elegida).
+Iniciar sesión y crear cuenta aparecen como «Pronto»: hoy todo se guarda solo en el dispositivo.
+
+## El inicio
+
+Una página con scroll cinematográfico (`src/ui/landing/`):
+
+1. **Cargador** que calibra mientras la escena 3D se prepara.
+2. **Campo de esferas** (Three.js, `MeshPhysicalMaterial` de vidrio y mate) con física propia: choques, piso que rebota y el cursor que las aparta. Con el scroll flotan, caen al suelo, se ordenan en forma de **labios** y despegan hacia la cámara.
+3. Los colores cambian por capítulo: cobalto → lima → rosa labio → amarillo → noche con menta.
+4. «Mantén presionado y escucha cómo hablan»: los labios de esferas se abren y cierran mientras la app dice una frase.
+5. Cómo funciona, cifras reales del sistema y la elección de modo.
+
+La física usa paso fijo de 1/60 s (igual en pantallas de 30, 60 o 120 Hz). La escena se carga aparte: el modo usuario no descarga Three.js.
+Con «reducir movimiento» activado en el sistema no hay scroll suave ni animaciones de entrada.
+
+## La cámara en computadora
+
+Funciona en cualquier navegador moderno siempre que la página se abra **directamente** (https o `localhost`). Si algo falla, la pantalla de la cámara dice qué pasó:
+
+- **Falta el permiso**: cómo activarlo en el candado de la barra de direcciones.
+- **Está ocupada**: otra app (Zoom, Teams, Meet, Cámara de Windows) la tiene tomada.
+- **No hay cámara**: conectar una cámara web o usar el teléfono.
+- **Vista previa**: dentro de otra página (por ejemplo, una vista previa embebida) el navegador la bloquea; se ofrece abrirla en su propia pestaña.
+
+Si hay varias cámaras aparece un botón para cambiar de una a otra, y en Ajustes se puede fijar cuál usar.
+
+## Cómo funciona la lectura
 
 1. **Cámara → MediaPipe Face Landmarker** (WASM, GPU si hay): 478 puntos de la cara, de los que se usan 40 de los labios y 25 *blendshapes* de la boca.
 2. **Rasgos invariantes** (`core/vision/lip-features.ts`): los labios se centran, se rotan según la línea de los ojos y se escalan por la distancia entre ojos. Así no importa dónde esté la cara ni qué tan cerca.
 3. **Secuencia** (`core/learn/sequence.ts`): se recortan los cuadros quietos, se remuestrea a 32 cuadros y se agrega la velocidad de cada rasgo.
 4. **Few-shot con DTW** (`core/learn/classifier.ts`): cada frase se aprende con 1 a 5 ejemplos. La confianza depende de cuánto más lejos queda la segunda opción que la primera; si duda, la interfaz muestra 3 opciones flotantes.
-5. **Aprende con el uso**: cuando la persona elige la opción correcta, esa toma se guarda como ejemplo nuevo (máximo 8 por frase, se descartan los más viejos).
+5. **Aprende con el uso**: cuando la persona elige la opción correcta, esa toma se guarda como ejemplo nuevo (máximo 8 por frase, se descartan los más viejos). El programador puede apagarlo en Ajustes.
 6. **Voz** (`core/voice/speaker.ts`): voz del sistema en español (incluida Voz Personal de Apple si el sistema la expone) o un audio grabado por frase.
 
-Codificador neuronal opcional: si existe `public/models/lip-encoder.onnx` (entrada `[1, 32, 105]`, salida `[1, 32, E]`), la app lo carga con ONNX Runtime Web (WebGPU, con respaldo a WASM) y lo usa en lugar de la geometría directa. Pensado para un codificador contrastivo entrenado al estilo LipLearner.
+Codificador neuronal opcional: si existe `public/models/lip-encoder.onnx` (entrada `[1, 32, 105]`, salida `[1, 32, E]`), la app lo carga con ONNX Runtime Web (WebGPU, con respaldo a WASM) y lo usa en lugar de la geometría directa.
 
 ## Estructura
 
 ```
 src/
-  app/        estado global y enrutador
+  app/        estado global y enrutador por modo
   core/       lógica sin interfaz: visión, aprendizaje, voz, almacenamiento (IndexedDB)
   data/       frases de hospital iniciales
-  ui/         componentes, vistas y estilos
+  ui/
+    landing/  inicio 3D (escena Three.js, página y estilos; se carga aparte)
+    views/    Panel, Hablar, Tablero, Entrenar, Ajustes y opciones del usuario
+    styles/   tokens de los dos temas, base, componentes y vistas
   sw.template.js   service worker (la lista de precarga se genera en cada build)
 ```
 
 ## Privacidad
 
-No se graba ni se envía video. Solo se guardan números con la forma de los labios, en el propio teléfono.
+No se graba ni se envía video. Solo se guardan números con la forma de los labios, en el propio dispositivo.
 Voz Propia es una ayuda para comunicarse, no un dispositivo médico.

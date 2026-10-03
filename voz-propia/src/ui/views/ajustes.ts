@@ -1,9 +1,9 @@
-import { showOnboarding } from './onboarding';
+import { go } from '../../app/router';
 import { state, updateSettings } from '../../app/state';
 import { engine } from '../../core/engine';
 import { db } from '../../core/storage/db';
 import type { Phrase, Sample } from '../../core/types';
-import { tracker } from '../../core/vision/face-tracker';
+import { listCameras, tracker } from '../../core/vision/face-tracker';
 import { isPersonalVoice, onVoicesChanged, spanishVoices, speakText } from '../../core/voice/speaker';
 import { toast } from '../components/toast';
 import { $, esc, on } from '../dom';
@@ -59,6 +59,12 @@ async function importBackup(file: File) {
 export function ajustesView(root: HTMLElement) {
   let wipeArmed = false;
 
+  let cameras: MediaDeviceInfo[] = [];
+  void listCameras().then((c) => {
+    cameras = c;
+    if (root.isConnected) render();
+  });
+
   const render = () => {
     const s = state.settings;
     const voices = spanishVoices();
@@ -67,8 +73,8 @@ export function ajustesView(root: HTMLElement) {
       <section class="view settings">
         <header class="view-head">
           <div>
-            <p class="kicker">${icon('settings', 16)} Ajustes</p>
-            <h1>Hazla tuya.</h1>
+            <p class="kicker">[ Ajustes ]</p>
+            <h1>Todo bajo control.</h1>
           </div>
         </header>
 
@@ -76,7 +82,7 @@ export function ajustesView(root: HTMLElement) {
           <article class="panel">
             <h2>${icon('volume', 20)} Voz</h2>
             <label class="field">
-              <span class="field__label">Voz del teléfono</span>
+              <span class="field__label">Voz del dispositivo</span>
               <select class="input" data-voice>
                 ${voices.length ? '' : '<option value="">Voz predeterminada</option>'}
                 ${voices.map((v) => `<option value="${esc(v.voiceURI)}" ${v.voiceURI === s.voiceURI ? 'selected' : ''}>${esc(v.name)} · ${esc(v.lang)}${isPersonalVoice(v) ? ' · Voz Personal' : ''}${v.localService ? '' : ' (requiere internet)'}</option>`).join('')}
@@ -112,6 +118,18 @@ export function ajustesView(root: HTMLElement) {
               <span class="field__label">Tiempo máximo por frase <output data-out="maxCaptureMs">${(s.maxCaptureMs / 1000).toFixed(1)} s</output></span>
               <input type="range" class="range" min="2000" max="6000" step="500" value="${s.maxCaptureMs}" data-range="maxCaptureMs">
             </label>
+            ${
+              cameras.length > 1
+                ? `<label class="field">
+              <span class="field__label">Cámara</span>
+              <select class="input" data-camera>
+                <option value="">La que elija el navegador</option>
+                ${cameras.map((c, i) => `<option value="${esc(c.deviceId)}" ${c.deviceId === s.cameraId ? 'selected' : ''}>${esc(c.label || `Cámara ${i + 1}`)}</option>`).join('')}
+              </select>
+            </label>`
+                : ''
+            }
+            <label class="switch"><input type="checkbox" data-toggle="learnFromUse" ${s.learnFromUse ? 'checked' : ''}><span class="switch__ui"></span><span>Aprender cuando el usuario corrige una lectura</span></label>
             <dl class="stats">
               <div><dt>Motor</dt><dd>${esc(engine.encoderName)}</dd></div>
               <div><dt>Detector de rostro</dt><dd>MediaPipe ${tracker.delegate === 'GPU' ? 'con GPU' : tracker.delegate === 'CPU' ? 'en CPU' : '(se carga al abrir la cámara)'}</dd></div>
@@ -124,12 +142,21 @@ export function ajustesView(root: HTMLElement) {
             <h2>${icon('eye', 20)} Ver mejor</h2>
             <label class="switch"><input type="checkbox" data-toggle="largeText" ${s.largeText ? 'checked' : ''}><span class="switch__ui"></span><span>Letra más grande</span></label>
             <label class="switch"><input type="checkbox" data-toggle="highContrast" ${s.highContrast ? 'checked' : ''}><span class="switch__ui"></span><span>Más contraste</span></label>
-            <button class="btn btn--ghost" type="button" data-intro>${icon('help', 18)}<span>Ver la introducción otra vez</span></button>
+          </article>
+
+          <article class="panel">
+            <h2>${icon('user', 20)} Modo</h2>
+            <p class="muted">Estás en <b>modo programador</b>. El modo usuario solo muestra Hablar y el Tablero: no puede entrenar ni cambiar la voz.</p>
+            <div class="row">
+              <button class="btn btn--primary" type="button" data-as-user>${icon('eye', 18)}<span>Ver como usuario</span></button>
+              <button class="btn btn--soft" type="button" data-intro>${icon('house', 18)}<span>Volver al inicio</span></button>
+            </div>
+            <p class="field__help">Para volver aquí desde el modo usuario: botón de opciones › mantener presionado «Cambiar de modo».</p>
           </article>
 
           <article class="panel">
             <h2>${icon('shield-check', 20)} Tus datos</h2>
-            <p class="muted">Todo vive solo en este teléfono. No guardamos video: solo la forma de tus labios en números.</p>
+            <p class="muted">Todo vive solo en este dispositivo. No se guarda video: solo la forma de los labios en números.</p>
             <div class="row">
               <button class="btn btn--soft" type="button" data-export>${icon('download', 18)}<span>Guardar respaldo</span></button>
               <label class="btn btn--soft">${icon('upload', 18)}<span>Cargar respaldo</span><input type="file" accept="application/json" data-import hidden></label>
@@ -138,7 +165,7 @@ export function ajustesView(root: HTMLElement) {
           </article>
         </div>
 
-        <p class="fineprint">${icon('info', 14)} Voz Propia es una ayuda para comunicarse. No es un dispositivo médico ni reemplaza la atención del personal de salud. Versión 0.1.0.</p>
+        <p class="fineprint">${icon('info', 14)} Voz Propia es una ayuda para comunicarse. No es un dispositivo médico ni reemplaza la atención del personal de salud. Versión 0.2.0.</p>
       </section>`;
   };
 
@@ -154,7 +181,12 @@ export function ajustesView(root: HTMLElement) {
     on(root, 'change', '[data-voice]', (_, el) => void updateSettings({ voiceURI: (el as HTMLSelectElement).value || null })),
     on(root, 'change', '[data-toggle]', (_, el) => void updateSettings({ [el.dataset.toggle!]: (el as HTMLInputElement).checked })),
     on(root, 'click', '[data-test]', () => void speakText('Hola. Esta es mi voz.', state.settings)),
-    on(root, 'click', '[data-intro]', () => void showOnboarding()),
+    on(root, 'click', '[data-intro]', () => go('inicio')),
+    on(root, 'click', '[data-as-user]', async () => {
+      await updateSettings({ role: 'usuario' });
+      go('hablar');
+    }),
+    on(root, 'change', '[data-camera]', (_, el) => void updateSettings({ cameraId: (el as HTMLSelectElement).value || null })),
     on(root, 'click', '[data-export]', () => void exportBackup().then(() => toast('Respaldo descargado.', { tone: 'ok' }))),
     on(root, 'change', '[data-import]', async (_, el) => {
       const f = (el as HTMLInputElement).files?.[0];
@@ -178,7 +210,7 @@ export function ajustesView(root: HTMLElement) {
       }
       wipeArmed = false;
       await db.wipe();
-      await updateSettings({ onboarded: true });
+      await updateSettings({ role: 'programador' });
       await engine.reload();
       toast('Se borró todo. Empezamos de cero.', { tone: 'ok' });
     }),

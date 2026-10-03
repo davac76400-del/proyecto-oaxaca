@@ -8,36 +8,28 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  background: var(--bg);
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
   min-height: 100dvh;
-  background: var(--cream-100);
+  background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--fs-md);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-}
-
-/* Grano de papel muy sutil: quita lo "digital plano" al crema. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.35;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  overflow-x: clip;
 }
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
+  font-feature-settings: 'lnum' 1;
   font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.015em;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
   margin: 0;
   text-wrap: balance;
 }
@@ -71,9 +63,9 @@ canvas {
 }
 
 :focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 3px solid var(--focus);
   outline-offset: 3px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 [hidden] {
@@ -81,7 +73,7 @@ canvas {
 }
 
 ::selection {
-  background: var(--accent-100);
+  background: var(--accent-soft);
 }
 
 /* ---------- Fondo ambiental ---------- */
@@ -94,49 +86,101 @@ canvas {
   overflow: hidden;
 }
 
+/* Usuario: el estudio claro de las esferas, con tres esferas grandes y desenfocadas a la deriva. */
+[data-mode='usuario'] .ambient {
+  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #eef1ff 42%, #cbd8ff 100%);
+}
+
 .ambient i {
   position: absolute;
   border-radius: 50%;
   will-change: transform;
 }
 
-.ambient .b1 {
-  width: 70vmax;
-  height: 70vmax;
-  top: -32vmax;
-  right: -26vmax;
-  background: radial-gradient(closest-side, rgb(246 200 170 / 0.75), rgb(246 200 170 / 0));
-  animation: drift1 38s ease-in-out infinite alternate;
+.ambient .s1 {
+  width: 46vmax;
+  height: 46vmax;
+  top: -18vmax;
+  right: -14vmax;
+  background: radial-gradient(circle at 35% 30%, #c3d3ff 0%, #6f95ff 45%, #2f69ff 80%);
+  opacity: 0.28;
+  filter: blur(40px);
+  animation: drift1 36s ease-in-out infinite alternate;
 }
 
-.ambient .b2 {
-  width: 60vmax;
-  height: 60vmax;
-  bottom: -30vmax;
-  left: -24vmax;
-  background: radial-gradient(closest-side, rgb(206 225 208 / 0.8), rgb(206 225 208 / 0));
-  animation: drift2 44s ease-in-out infinite alternate;
+.ambient .s2 {
+  width: 34vmax;
+  height: 34vmax;
+  bottom: -14vmax;
+  left: -12vmax;
+  background: radial-gradient(circle at 35% 30%, #ffe3e8 0%, #ffa6b3 50%, #ff4d6d 90%);
+  opacity: 0.26;
+  filter: blur(46px);
+  animation: drift2 42s ease-in-out infinite alternate;
 }
 
-.ambient .b3 {
-  width: 40vmax;
-  height: 40vmax;
-  top: 30%;
-  left: 40%;
-  background: radial-gradient(closest-side, rgb(255 236 205 / 0.9), rgb(255 236 205 / 0));
-  animation: drift1 52s ease-in-out infinite alternate-reverse;
+.ambient .s3 {
+  width: 18vmax;
+  height: 18vmax;
+  top: 46%;
+  right: 8%;
+  background: radial-gradient(circle at 35% 30%, #fbffe2 0%, #e1fc03 55%, #b1e200 100%);
+  opacity: 0.22;
+  filter: blur(34px);
+  animation: drift1 50s ease-in-out infinite alternate-reverse;
+}
+
+/* Programador: cielo nocturno con estrellas y el borde luminoso de un planeta abajo. */
+[data-mode='programador'] .ambient {
+  background:
+    radial-gradient(125% 62% at 50% -10%, rgb(58 108 255 / 0.26) 0%, transparent 62%),
+    radial-gradient(80% 60% at 100% 110%, rgb(93 240 168 / 0.08) 0%, transparent 60%),
+    #04060f;
+}
+
+.ambient .stars {
+  inset: 0;
+  border-radius: 0;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 22%, #cfe0ff 50%, transparent 51%),
+    radial-gradient(1px 1px at 33% 68%, #cfe0ff 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 58% 14%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 76% 44%, #cfe0ff 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 88% 82%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 22% 88%, #cfe0ff 50%, transparent 51%);
+  background-size: 380px 380px;
+  opacity: 0.5;
+  animation: twinkle 7s ease-in-out infinite alternate;
+}
+
+.ambient .stars--far {
+  background-size: 260px 260px;
+  opacity: 0.28;
+  animation-duration: 11s;
+  animation-direction: alternate-reverse;
+}
+
+.ambient .horizon {
+  left: 50%;
+  bottom: -128vmax;
+  width: 150vmax;
+  height: 150vmax;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at 50% 0%, #0d1838 0%, #04060f 30%);
+  box-shadow: 0 0 0 1px rgb(193 250 255 / 0.18), 0 -8px 60px 6px rgb(58 108 255 / 0.35), inset 0 22px 60px -20px rgb(193 250 255 / 0.25);
+  opacity: 0.9;
 }
 
 @keyframes drift1 {
-  to {
-    transform: translate3d(-8vmax, 6vmax, 0) scale(1.08);
-  }
+  to { transform: translate3d(-6vmax, 5vmax, 0) scale(1.06); }
 }
 
 @keyframes drift2 {
-  to {
-    transform: translate3d(7vmax, -5vmax, 0) scale(1.12);
-  }
+  to { transform: translate3d(6vmax, -4vmax, 0) scale(1.1); }
+}
+
+@keyframes twinkle {
+  to { opacity: 0.85; }
 }
 
 /* ---------- Estructura ---------- */
@@ -155,9 +199,25 @@ canvas {
   align-items: center;
   justify-content: space-between;
   gap: var(--s-3);
-  max-width: var(--max-w);
+  max-width: calc(var(--max-w) + 64px);
   margin: 0 auto;
   padding: calc(env(safe-area-inset-top) + 12px) 16px 12px;
+}
+
+.topbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  z-index: -1;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-mask: linear-gradient(#000 65%, transparent);
+  mask: linear-gradient(#000 65%, transparent);
 }
 
 .brand {
@@ -166,10 +226,40 @@ canvas {
   gap: 10px;
   color: var(--ink);
   text-decoration: none;
+  min-height: 44px;
+}
+
+.brand__word {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.2rem;
-  letter-spacing: -0.01em;
+  font-weight: 900;
+  font-size: 0.98rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-pill);
+  font: 600 10.5px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid rgb(93 240 168 / 0.22);
+}
+
+@media (max-width: 520px) {
+  .brand__word {
+    font-size: 0.86rem;
+    letter-spacing: 0.16em;
+  }
+  .mode-badge {
+    display: none;
+  }
 }
 
 .topbar__right {
@@ -178,11 +268,15 @@ canvas {
   gap: var(--s-2);
 }
 
+.topnav {
+  display: none;
+}
+
 .main {
   position: relative;
-  max-width: var(--max-w);
+  max-width: calc(var(--max-w) + 64px);
   margin: 0 auto;
-  padding: 4px 16px calc(var(--dock-h) + env(safe-area-inset-bottom) + 40px);
+  padding: 8px 16px calc(var(--dock-h) + env(safe-area-inset-bottom) + 44px);
   outline: none;
 }
 
@@ -194,61 +288,111 @@ canvas {
   }
 }
 
-/* ---------- Dock inferior ---------- */
+.hide-sm {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hide-sm {
+    display: inline;
+  }
+}
+
+/* ---------- Navegación: dock inferior y barra superior ---------- */
 
 .dock {
   position: fixed;
   z-index: var(--z-dock);
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 12px);
+  bottom: calc(env(safe-area-inset-bottom) + 14px);
   transform: translateX(-50%);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 4px;
   width: min(460px, calc(100% - 24px));
   padding: 6px;
-  border-radius: 24px;
-  background: rgb(255 252 246 / 0.82);
-  border: 1px solid rgb(255 255 255 / 0.9);
-  box-shadow: var(--shadow-float), var(--hilite);
-  -webkit-backdrop-filter: saturate(1.4) blur(16px);
-  backdrop-filter: saturate(1.4) blur(16px);
+  border-radius: 26px;
+  background: var(--surface-2);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-float), var(--surface-hilite);
+  -webkit-backdrop-filter: saturate(1.4) blur(20px);
+  backdrop-filter: saturate(1.4) blur(20px);
 }
 
-.dock__item {
+.dock--2 {
+  width: min(400px, calc(100% - 24px));
+}
+
+.nav__item {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   min-height: 58px;
-  border-radius: 18px;
+  border-radius: 20px;
   color: var(--muted);
   text-decoration: none;
+  font-family: var(--font-display);
   font-size: var(--fs-xs);
   font-weight: 700;
   transition: color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
 }
 
-.dock__item:active {
-  transform: scale(0.95);
+.dock--2 .nav__item {
+  flex-direction: row;
+  gap: 10px;
+  min-height: 62px;
+  font-size: var(--fs-md);
 }
 
-.dock__item[aria-current='page'] {
-  color: var(--accent-700);
-  background: linear-gradient(180deg, var(--accent-50), var(--accent-100));
-  box-shadow: var(--hilite), 0 1px 0 rgb(181 81 42 / 0.12), 0 6px 14px -6px rgb(181 81 42 / 0.45);
+.nav__item:active {
+  transform: scale(0.96);
 }
 
-.dock__item[aria-current='page'] .ic {
-  transform: translateY(-1px);
+.nav__item[aria-current='page'] {
+  color: var(--accent-ink);
+  background: var(--btn-primary);
+  box-shadow: var(--btn-primary-shadow);
 }
 
 @media (hover: hover) {
-  .dock__item:not([aria-current='page']):hover {
+  .nav__item:not([aria-current='page']):hover {
     color: var(--ink);
-    background: rgb(245 232 212 / 0.6);
+    background: var(--accent-soft);
+  }
+}
+
+/* Programador en pantalla grande: navegación arriba como en un panel de control. */
+@media (min-width: 960px) {
+  [data-mode='programador'] .topnav {
+    display: flex;
+    gap: 4px;
+    padding: 5px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+  [data-mode='programador'] .topnav .nav__item {
+    flex-direction: row;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: var(--fs-sm);
+  }
+  [data-mode='programador'] .topnav .nav__item .ic {
+    width: 17px;
+    height: 17px;
+  }
+  [data-mode='programador'] .dock {
+    display: none;
+  }
+  [data-mode='programador'] .main {
+    padding-bottom: 64px;
   }
 }
 
@@ -256,14 +400,15 @@ canvas {
 
 .view {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-5);
-  animation: view-in var(--dur-3) var(--ease-out);
+  animation: view-in 420ms var(--ease-out);
 }
 
 @keyframes view-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
 }
 
@@ -273,31 +418,33 @@ canvas {
   justify-content: space-between;
   gap: var(--s-4);
   flex-wrap: wrap;
-  padding-top: var(--s-3);
+  padding-top: var(--s-4);
 }
 
 .view-head h1 {
   font-size: var(--fs-2xl);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1;
 }
 
 .kicker {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
-  color: var(--accent-600);
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  margin-bottom: 12px;
+  color: var(--accent-text);
+  font: 600 11px/1.2 var(--font-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .hl {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
-h1 .hl {
-  display: inline-block;
-  text-wrap: balance;
+[data-mode='usuario'] .hl {
+  color: var(--accent);
 }
 
 .muted {
@@ -336,7 +483,7 @@ h1 .hl {
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 200ms;
+  animation-duration: 220ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
