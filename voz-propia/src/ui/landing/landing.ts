@@ -173,10 +173,7 @@ function template() {
             <p class="l-eye">Por qué importa</p>
             <h2 class="l-big__title"><b data-count-to="945">945</b> mil personas<br>en México casi no pueden hablar.<span class="l-script l-script--big" aria-hidden="true">y tienen mucho que decir</span></h2>
             <p class="l-big__p">Tienen mucha dificultad para hablar o comunicarse, o no pueden hacerlo. Para quienes todavía mueven los labios, Voz Propia puede ser su voz.</p>
-            <div class="l-big__row">
-              <button class="l-btn" type="button" data-ayuda>Ver cómo funciona y cómo ayuda ${icon('arrow-right', 17)}</button>
-              <span class="l-big__src">Fuente: INEGI, Censo 2020</span>
-            </div>
+            <p class="l-big__src">Fuente: INEGI, Censo 2020</p>
           </div>
           <div class="l-stats">
             ${[['478', 'Puntos de tu cara'], ['30', 'Cuadros por segundo'], ['~6 ms', 'Para reconocer una frase'], ['0', 'Videos guardados']]
@@ -191,9 +188,9 @@ function template() {
           <div class="l-head">
             <p class="l-eye" data-reveal>Empecemos</p>
             <h2 data-reveal style="--d:.08s">¿Quién va a usar Voz Propia?</h2>
-            <p data-reveal style="--d:.16s">Elige tu modo. Se puede cambiar después.</p>
+            <p data-reveal style="--d:.16s">Entra y conoce cómo trabajamos, paso a paso.</p>
           </div>
-          <div class="l-role-grid">
+          <div class="l-role-grid l-role-grid--one">
             <button class="l-role l-role--user" type="button" data-role="usuario" data-reveal>
               <span class="l-role__balls" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
               <span class="l-role__tag">${icon('user', 15)} Usuario</span>
@@ -201,14 +198,6 @@ function template() {
               <span class="l-role__desc">Para quien va a hablar. Conoce cómo trabajamos y con qué palabras contamos.</span>
               <span class="l-role__list"><span>${icon('check', 16, 2.6)} Cómo trabajamos, paso a paso</span><span>${icon('check', 16, 2.6)} Las palabras con las que contamos</span><span>${icon('check', 16, 2.6)} Nada que configurar</span></span>
               <span class="l-role__cta"><span>Entrar como usuario</span>${orbChevron()}</span>
-            </button>
-            <button class="l-role l-role--pro" type="button" data-ayuda data-reveal style="--d:.12s">
-              <span class="l-role__grid" aria-hidden="true"></span>
-              <span class="l-role__tag">${icon('sparkles', 15)} Conoce el proyecto</span>
-              <span class="l-role__title">Cómo funciona y cómo te ayuda</span>
-              <span class="l-role__desc">Datos reales, a quién ayuda y cómo lee tus labios.</span>
-              <span class="l-role__list"><span>${icon('check', 16, 2.6)} Datos de México y el mundo</span><span>${icon('check', 16, 2.6)} A quién ayuda y cómo</span><span>${icon('check', 16, 2.6)} Pruébalo con un ejemplo</span></span>
-              <span class="l-role__cta"><span>Ver cómo ayuda</span>${orbChevron()}</span>
             </button>
           </div>
           <p class="l-soon" data-reveal>${icon('lock', 15)} Muy pronto: inicia sesión o crea tu cuenta para guardar tu perfil.</p>

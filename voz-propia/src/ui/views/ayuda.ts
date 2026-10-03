@@ -3,7 +3,8 @@ import { go } from '../../app/router';
 import { state } from '../../app/state';
 import { speakText } from '../../core/voice/speaker';
 import { CATEGORY_LABEL, DEFAULT_PHRASES } from '../../data/default-phrases';
-import { esc, on, reducedMotion, sleep } from '../dom';
+import { bindPalette, currentTheme, paletteHTML, type Theme } from '../components/theme';
+import { esc, on, reducedMotion, rich, sleep } from '../dom';
 import { icon } from '../icons';
 import type { Field, Shape } from './ayuda-field';
 
@@ -14,6 +15,7 @@ const sh = (s: Shape) => SHAPES.push(s) - 1;
 const S = {
   lips: sh({ draw: 'lips' }),
   voz: sh({ text: 'VOZ' }),
+  datos: sh({ text: 'DATOS' }),
   mx: sh({ text: '945 MIL' }),
   mundo: sh({ text: '189 MIL' }),
   traqueo: sh({ text: '+58 MIL' }),
@@ -25,7 +27,9 @@ const S = {
   hola: sh({ text: 'HOLA' }),
   cero: sh({ text: '0 VIDEOS' }),
   tuvoz: sh({ text: 'TU VOZ' }),
+  limites: sh({ text: 'SÍ Y NO' }),
   duda: sh({ text: '?' }),
+  ruta: sh({ text: 'HOY' }),
 };
 
 /* ---------- Fuentes ---------- */
@@ -55,7 +59,7 @@ const srcLinks = (ids: string[]) =>
     })
     .join('')}</span>`;
 
-/* ---------- Contenido ---------- */
+/* ---------- Contenido (las ideas clave van entre *asteriscos*) ---------- */
 
 interface Fact {
   shape: number;
@@ -67,6 +71,9 @@ interface Fact {
   body: string;
   extra?: string;
   sources: string[];
+  /** Resumen para la vista «en una mirada». */
+  gu: string;
+  gl: string;
 }
 
 const FACTS: Fact[] = [
@@ -76,9 +83,11 @@ const FACTS: Fact[] = [
     count: 945,
     unit: 'mil personas',
     title: 'no pueden hablar, o les cuesta muchísimo.',
-    body: 'Es lo que contó el Censo 2020: personas con mucha dificultad para hablar o comunicarse, o que no pueden hacerlo. Detrás de cada número hay alguien que sí tiene qué decir.',
-    extra: 'De 126 millones de habitantes, 7.2 millones (5.7%) tienen alguna discapacidad o condición mental. Hablar o comunicarse es la dificultad que menos se reporta.',
+    body: 'Es lo que contó el Censo 2020: personas con *mucha dificultad* para hablar o comunicarse, o que *no pueden hacerlo*. Detrás de cada número hay alguien que sí tiene qué decir.',
+    extra: 'De 126 millones de habitantes, *7.2 millones (5.7%)* tienen alguna discapacidad o condición mental. Hablar o comunicarse es la dificultad que menos se reporta.',
     sources: ['inegi'],
+    gu: 'mil',
+    gl: 'personas en México no pueden hablar o les cuesta muchísimo',
   },
   {
     shape: S.mundo,
@@ -86,8 +95,10 @@ const FACTS: Fact[] = [
     count: 189,
     unit: 'mil casos nuevos',
     title: 'de cáncer de laringe en un solo año.',
-    body: 'Fue en 2022. Más de 17 mil fueron en América Latina y el Caribe. La cirugía de laringe puede quitar la voz, pero los labios se siguen moviendo.',
+    body: 'Fue en 2022. Más de *17 mil* fueron en *América Latina y el Caribe*. La cirugía de laringe puede quitar la voz, pero *los labios se siguen moviendo*.',
     sources: ['globocan', 'lac'],
+    gu: 'mil',
+    gl: 'casos nuevos de cáncer de laringe en el mundo, en 2022',
   },
   {
     shape: S.traqueo,
@@ -95,8 +106,10 @@ const FACTS: Fact[] = [
     count: 58,
     unit: 'mil o más al año',
     title: 'traqueostomías, solo en Estados Unidos.',
-    body: 'Entre 2002 y 2017 fueron de 58 mil a casi 90 mil cada año. Con la cánula en el cuello, el aire ya no pasa por las cuerdas vocales y la voz no sale. La boca sí se mueve, y eso es lo que Voz Propia lee.',
+    body: 'Entre 2002 y 2017 fueron de *58 mil a casi 90 mil* cada año. Con la cánula en el cuello, el aire ya no pasa por las cuerdas vocales y *la voz no sale*. *La boca sí se mueve*, y eso es lo que Voz Propia lee.',
     sources: ['traqueo'],
+    gu: 'mil o más',
+    gl: 'traqueostomías al año, solo en Estados Unidos',
   },
   {
     shape: S.ela,
@@ -105,9 +118,11 @@ const FACTS: Fact[] = [
     big: 'La mayoría',
     unit: '',
     title: 'de las personas con ELA pierde el habla con el avance de la enfermedad.',
-    body: 'La esclerosis lateral amiotrófica debilita poco a poco los músculos. En un estudio con pacientes con ELA esporádica, alrededor de 3 de cada 10 ya tenían problemas del habla al ser diagnosticados.',
-    extra: 'Mientras los labios todavía se muevan, Voz Propia puede acompañar esa etapa.',
+    body: 'La esclerosis lateral amiotrófica debilita poco a poco los músculos. En un estudio con pacientes con ELA esporádica, *alrededor de 3 de cada 10* ya tenían problemas del habla al ser diagnosticados.',
+    extra: 'Mientras *los labios todavía se muevan*, Voz Propia puede acompañar esa etapa.',
     sources: ['ela'],
+    gu: '',
+    gl: 'de las personas con ELA pierde el habla con la enfermedad',
   },
   {
     shape: S.uci,
@@ -115,8 +130,10 @@ const FACTS: Fact[] = [
     count: 54,
     unit: 'por ciento',
     title: 'de los pacientes con ventilador están despiertos y podrían comunicarse.',
-    body: 'Un estudio con 2,671 pacientes encontró que más de la mitad estaba alerta y respondía. Pero el tubo no les deja hablar.',
+    body: 'Un estudio con 2,671 pacientes encontró que *más de la mitad* estaba alerta y respondía. Pero *el tubo no les deja hablar*.',
     sources: ['happ15'],
+    gu: '%',
+    gl: 'de los pacientes con ventilador están despiertos y podrían comunicarse',
   },
   {
     shape: S.dolor,
@@ -124,16 +141,27 @@ const FACTS: Fact[] = [
     count: 1,
     unit: 'de cada 3',
     title: 'conversaciones sobre el dolor no se entienden.',
-    body: 'En terapia intensiva, el 37.7% de los intentos de un paciente intubado por explicar su dolor fallaron. Decir «me duele» a tiempo lo cambia todo.',
+    body: 'En terapia intensiva, el *37.7%* de los intentos de un paciente intubado por explicar su dolor fallaron. Decir «me duele» *a tiempo lo cambia todo*.',
     sources: ['happ11'],
+    gu: 'de cada 3',
+    gl: 'intentos de explicar el dolor fallan en terapia intensiva',
   },
 ];
 
+const SUMMARY: [string, string, string][] = [
+  ['Problema', 'help', 'Muchas personas *pierden la voz* por una traqueostomía, una cirugía de laringe, una intubación o una enfermedad. Pero *siguen moviendo los labios*.'],
+  ['Solución', 'sparkles', '*Voz Propia* lee ese movimiento con la cámara del teléfono y *lo dice en voz alta*.'],
+  ['Cómo', 'scan-face', 'Sigue *478 puntos* de la cara, usa los *40 de la boca* y los compara con *palabras preparadas*.'],
+  ['Privacidad', 'shield-check', '*No graba ni envía video.* Funciona *sin internet*, dentro del teléfono.'],
+  ['Hoy', 'check', 'Guía, página de datos y *modo programador* para preparar palabras. Las *primeras palabras están en preparación*.'],
+  ['Sigue', 'arrow-right', '*Iniciar a utilizar* con la cámara, más palabras preparadas y cuentas para guardar tu perfil.'],
+];
+
 const PILLARS: [string, string, string][] = [
-  ['scan-face', 'Lee tus labios', 'Sigue 478 puntos de tu cara y se queda con los 40 de la boca.'],
-  ['sparkles', 'Palabras preparadas', 'Las prepara nuestro equipo, con cuidado.'],
-  ['volume', 'Habla en voz alta', 'La palabra suena al instante, con la voz de tu teléfono.'],
-  ['wifi-off', 'Sin internet', 'Todo corre dentro del teléfono, incluso sin señal.'],
+  ['scan-face', 'Lee tus labios', 'Sigue *478 puntos* de tu cara y se queda con los *40 de la boca*.'],
+  ['sparkles', 'Palabras preparadas', 'Las prepara *nuestro equipo*, con cuidado.'],
+  ['volume', 'Habla en voz alta', 'La palabra suena al instante, con *la voz de tu teléfono*.'],
+  ['wifi-off', 'Sin internet', 'Todo corre dentro del teléfono, *incluso sin señal*.'],
 ];
 
 interface Who {
@@ -154,9 +182,9 @@ const WHO: Who[] = [
     tab: 'Traqueostomía',
     icon: 'wind',
     title: 'Respiras por la cánula, hablas con los labios.',
-    body: 'La cánula desvía el aire y la voz no sale. Tus labios siguen formando cada palabra: Voz Propia las lee y las dice.',
+    body: 'La cánula desvía el aire y la voz no sale. *Tus labios siguen formando cada palabra*: Voz Propia las lee y las dice.',
     before: 'Pizarrón, señas o esperar a que alguien adivine.',
-    after: 'Mueves los labios y suena tu palabra.',
+    after: 'Mueves los labios y *suena tu palabra*.',
     points: ['Sin tapar la cánula', 'Acostado o sentado', 'Frases para pedir lo urgente'],
     note: 'Funciona mientras puedas mover los labios.',
   },
@@ -165,9 +193,9 @@ const WHO: Who[] = [
     tab: 'Laringectomía',
     icon: 'heart',
     title: 'Después de la cirugía, tu voz no se queda atrás.',
-    body: 'Mientras aprendes otras formas de hablar, Voz Propia te da una voz desde el primer día, con la que tu familia eligió.',
+    body: 'Mientras aprendes otras formas de hablar, Voz Propia te da *una voz desde el primer día*, con la que tu familia eligió.',
     before: 'Días sin poder pedir lo más básico.',
-    after: 'Una voz lista desde el primer día.',
+    after: '*Una voz lista* desde el primer día.',
     points: ['Desde el primer día', 'Voz elegida por tu familia', 'Sin aparatos extra'],
   },
   {
@@ -175,9 +203,9 @@ const WHO: Who[] = [
     tab: 'Terapia intensiva',
     icon: 'bed',
     title: 'Despierto, con tubo y sin poder decir «me duele».',
-    body: 'En un cuarto de hospital sin señal, Voz Propia funciona igual: todo corre dentro del teléfono, sin internet.',
-    before: 'El 37.7% de los intentos de explicar el dolor fallan.',
-    after: 'Dices «Me duele» y el equipo lo escucha.',
+    body: 'En un cuarto de hospital sin señal, Voz Propia funciona igual: *todo corre dentro del teléfono*, sin internet.',
+    before: 'El *37.7%* de los intentos de explicar el dolor fallan.',
+    after: 'Dices «Me duele» y *el equipo lo escucha*.',
     points: ['Funciona sin internet', 'Sí, no y dolor', 'Pregunta si duda'],
   },
   {
@@ -185,20 +213,31 @@ const WHO: Who[] = [
     tab: 'ELA',
     icon: 'activity',
     title: 'Mientras puedas mover los labios, puedes seguir diciendo.',
-    body: 'Con ELA el habla se debilita poco a poco. Voz Propia puede acompañar esa etapa. No reemplaza otras ayudas de comunicación.',
+    body: 'Con ELA el habla se debilita poco a poco. Voz Propia puede *acompañar esa etapa*. No reemplaza otras ayudas de comunicación.',
     before: 'Cada vez es más difícil que te entiendan.',
-    after: 'Palabras claras, con la voz del teléfono.',
+    after: 'Palabras *claras*, con la voz del teléfono.',
     points: ['Acompaña la etapa con labios', 'Palabras preparadas con cuidado', 'Complementa otras ayudas'],
     note: 'Cuando los labios ya no se muevan, harán falta otras ayudas.',
+  },
+  {
+    id: 'salud',
+    tab: 'Personal de salud',
+    icon: 'stethoscope',
+    title: 'Entender a la primera.',
+    body: 'Cuando la persona puede decir lo que necesita, el equipo *responde más rápido* y con menos adivinanzas.',
+    before: 'Preguntar una y otra vez, y leer gestos.',
+    after: 'Recibir *la palabra exacta*: dolor, sed, falta de aire.',
+    points: ['Frases básicas de hospital', 'Sin instalar equipos', 'Funciona sin internet'],
+    note: 'Es una ayuda para comunicarse. No sustituye la valoración clínica.',
   },
   {
     id: 'familia',
     tab: 'Su familia',
     icon: 'hand-heart',
     title: 'Dejar de adivinar.',
-    body: 'Señas, pizarrones y papelitos cansan y se malentienden. Con Voz Propia la familia escucha la palabra exacta.',
+    body: 'Señas, pizarrones y papelitos cansan y se malentienden. Con Voz Propia la familia escucha *la palabra exacta*.',
     before: 'Adivinar, preguntar una y otra vez.',
-    after: 'Escuchar la palabra exacta, sin adivinar.',
+    after: 'Escuchar la palabra exacta, *sin adivinar*.',
     points: ['Menos frustración', 'Respuestas al instante', 'Nada se graba ni se envía'],
   },
 ];
@@ -212,14 +251,30 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { name: 'Mira', icon: 'scan-face', title: 'La cámara sigue tu cara.', body: 'Sigue 478 puntos de tu cara, hasta 30 veces por segundo. No graba video.', tech: 'Detector de rostro MediaPipe, dentro del teléfono.' },
-  { name: 'Boca', icon: 'activity', title: 'Se queda con tus labios.', body: 'De esos puntos usa los 40 que dibujan la boca. Aunque te muevas o te alejes, la forma se mide igual.', tech: 'Los números se ajustan al tamaño de tu cara.' },
-  { name: 'Compara', icon: 'brain', title: 'Compara con lo preparado.', body: 'Pone la secuencia de formas de tus labios junto a cada palabra que preparó nuestro equipo.', tech: 'Alineación en el tiempo (DTW): da igual si hablas más rápido o más lento.' },
-  { name: 'Elige', icon: 'help', title: 'Elige, o te pregunta.', body: 'Si una palabra gana con claridad, la elige. Si dos se parecen, te muestra las opciones y tú eliges.', tech: 'Con poca seguridad, pide confirmar antes de hablar.' },
-  { name: 'Habla', icon: 'volume', title: 'Suena al instante.', body: 'La palabra se dice en voz alta con la voz de tu teléfono, la que tu familia eligió.', tech: 'Voz del dispositivo. No necesita internet.' },
+  { name: 'Mira', icon: 'scan-face', title: 'La cámara sigue tu cara.', body: 'Sigue *478 puntos* de tu cara, hasta *30 veces por segundo*. *No graba video.*', tech: 'Detector de rostro MediaPipe, dentro del teléfono.' },
+  { name: 'Boca', icon: 'activity', title: 'Se queda con tus labios.', body: 'De esos puntos usa *los 40 que dibujan la boca*. Aunque te muevas o te alejes, la forma se mide igual.', tech: 'Los números se ajustan al tamaño de tu cara.' },
+  { name: 'Compara', icon: 'brain', title: 'Compara con lo preparado.', body: 'Pone la *secuencia de formas* de tus labios junto a cada palabra que preparó nuestro equipo.', tech: 'Alineación en el tiempo (DTW): da igual si hablas más rápido o más lento.' },
+  { name: 'Elige', icon: 'help', title: 'Elige, o te pregunta.', body: 'Si una palabra gana con claridad, la elige. *Si dos se parecen, te muestra las opciones* y tú eliges.', tech: 'Con poca seguridad, pide confirmar antes de hablar.' },
+  { name: 'Habla', icon: 'volume', title: 'Suena al instante.', body: 'La palabra se dice *en voz alta* con la voz de tu teléfono, la que tu familia eligió.', tech: 'Voz del dispositivo. No necesita internet.' },
+];
+
+const TAGS: [string, string][] = [
+  ['scan-face', 'Detección de rostro (MediaPipe)'],
+  ['brain', 'Comparación en el tiempo (DTW)'],
+  ['download', 'App web instalable (PWA)'],
+  ['wifi-off', 'Funciona sin internet'],
+  ['volume', 'Voz del dispositivo'],
+  ['lock', 'Datos solo en tu dispositivo'],
 ];
 
 const DEMO = ['Tengo sed', 'Me duele', 'Tengo frío', 'Llama a mi familia'];
+
+const PREP: [string, string, string][] = [
+  ['Grabamos', 'camera', 'De *1 a 5 ejemplos* de la palabra, con la cámara.'],
+  ['Convertimos', 'cpu', 'Cada ejemplo se vuelve *números* con la forma de los labios.'],
+  ['Probamos', 'activity', 'Revisamos que *no se confunda* con otras palabras.'],
+  ['Publicamos', 'sparkles', 'La palabra aparece en la guía, *lista para escucharse*.'],
+];
 
 interface Layer {
   name: string;
@@ -229,10 +284,10 @@ interface Layer {
 }
 
 const LAYERS: Layer[] = [
-  { name: 'La cámara', icon: 'camera', saved: false, text: 'Ve tu cara solo mientras hablas. El video no se graba ni se envía a ningún lado.' },
-  { name: '478 puntos', icon: 'scan-face', saved: false, text: 'Tu cara se convierte en puntos al momento. Los puntos se usan y se descartan.' },
+  { name: 'La cámara', icon: 'camera', saved: false, text: 'Ve tu cara solo mientras hablas. *El video no se graba ni se envía* a ningún lado.' },
+  { name: '478 puntos', icon: 'scan-face', saved: false, text: 'Tu cara se convierte en puntos al momento. Los puntos *se usan y se descartan*.' },
   { name: '40 de la boca', icon: 'activity', saved: false, text: 'Se queda solo con los puntos de tus labios para medir su forma.' },
-  { name: 'Números', icon: 'cpu', saved: true, text: 'La forma de los labios en números. Es lo único que se guarda, y vive solo en el dispositivo.' },
+  { name: 'Números', icon: 'cpu', saved: true, text: 'La forma de los labios en números. *Es lo único que se guarda*, y vive solo en el dispositivo.' },
 ];
 
 const PROMISES: [string, string, string][] = [
@@ -243,9 +298,9 @@ const PROMISES: [string, string, string][] = [
 ];
 
 const MOMENTS: { tab: string; icon: string; before: string; after: string }[] = [
-  { tab: 'De madrugada', icon: 'moon', before: 'Tienes sed y no hay nadie cerca. Intentas llamar, pero sin voz.', after: 'Mueves los labios: «Tengo sed». El teléfono lo dice en voz alta.' },
-  { tab: 'Con el equipo médico', icon: 'stethoscope', before: 'Quieres decir que te duele y te responden con preguntas que no puedes contestar.', after: 'Dices «Me duele». Si dudan, tú respondes «Sí» o «No».' },
-  { tab: 'Con tu familia', icon: 'hand-heart', before: 'Tu familia adivina y tú niegas con la cabeza.', after: 'Dices «Gracias» o «Llama a mi familia», con tu voz.' },
+  { tab: 'De madrugada', icon: 'moon', before: 'Tienes sed y no hay nadie cerca. Intentas llamar, pero sin voz.', after: 'Mueves los labios: «Tengo sed». *El teléfono lo dice en voz alta.*' },
+  { tab: 'Con el equipo médico', icon: 'stethoscope', before: 'Quieres decir que te duele y te responden con preguntas que no puedes contestar.', after: 'Dices «Me duele». Si dudan, *tú respondes «Sí» o «No»*.' },
+  { tab: 'Con tu familia', icon: 'hand-heart', before: 'Tu familia adivina y tú niegas con la cabeza.', after: 'Dices «Gracias» o «Llama a mi familia», *con tu voz*.' },
 ];
 
 const COMPARE: [string, string][] = [
@@ -255,29 +310,71 @@ const COMPARE: [string, string][] = [
   ['Apps que necesitan internet', 'Funciona en modo avión'],
 ];
 
+const LIMITS: { tab: string; icon: string; items: string[] }[] = [
+  {
+    tab: 'Lo que hace hoy',
+    icon: 'check',
+    items: [
+      'Lee tus labios con la cámara del teléfono.',
+      'Dice la palabra *en voz alta*.',
+      'Funciona *sin internet*.',
+      'Si duda, *te pregunta* y tú eliges.',
+      '*No graba ni envía video.*',
+    ],
+  },
+  {
+    tab: 'Lo que todavía no',
+    icon: 'x',
+    items: [
+      'Entender cualquier frase: *solo las palabras preparadas*.',
+      'Leer labios tapados con cubrebocas o con la mano.',
+      'Funcionar bien con poca luz: *mejor con luz de frente*.',
+      'Reemplazar la atención del personal de salud.',
+      'Guardar tu perfil en una cuenta (*muy pronto*).',
+    ],
+  },
+];
+
+const EASY: [string, string][] = [
+  ['type', 'Letras grandes y buen contraste'],
+  ['hand', 'Botones grandes, fáciles de tocar'],
+  ['user', 'Sin cuenta para empezar'],
+  ['message-circle', 'Todo en español'],
+  ['wifi-off', 'Funciona sin internet'],
+  ['eye', 'Un paso a la vez'],
+];
+
 const FAQ: [string, string][] = [
-  ['¿Necesita internet?', 'No. Después de abrirla por primera vez con internet, todo corre dentro del teléfono, incluso en un cuarto de hospital sin señal.'],
-  ['¿Guarda mi video?', 'No. La cámara no graba ni envía video. Solo trabaja con números de la forma de tus labios.'],
-  ['¿Qué pasa si se equivoca?', 'Si no está segura, te muestra las opciones y tú eliges. Con poca seguridad, te pide confirmar antes de hablar.'],
-  ['¿Cuántas palabras entiende?', 'Las que prepara nuestro equipo. Las primeras están en preparación y se irán sumando.'],
-  ['¿Quién prepara las palabras?', 'Nuestro equipo. Graba varios ejemplos de cada palabra y los convierte en números. La persona usuaria no tiene que crear nada.'],
-  ['¿Funciona con cubrebocas o con la mano en la boca?', 'No. Necesita ver tus labios. Sin cubrebocas y sin tapar la boca.'],
-  ['¿Qué luz necesita?', 'Mejor con buena luz de frente, no por detrás. El teléfono a la altura de tu cara, a un brazo de distancia.'],
-  ['¿Qué tan rápido es?', 'Compara en milisegundos. La palabra suena casi al mismo tiempo que terminas de decirla.'],
-  ['¿Es un dispositivo médico?', 'No. Es una ayuda para comunicarse. No reemplaza la atención del personal de salud.'],
+  ['¿Necesita internet?', '*No.* Después de abrirla por primera vez con internet, todo corre dentro del teléfono, incluso en un cuarto de hospital sin señal.'],
+  ['¿Guarda mi video?', '*No.* La cámara no graba ni envía video. Solo trabaja con números de la forma de tus labios.'],
+  ['¿Qué pasa si se equivoca?', 'Si no está segura, *te muestra las opciones y tú eliges*. Con poca seguridad, te pide confirmar antes de hablar.'],
+  ['¿Cuántas palabras entiende?', 'Las que prepara nuestro equipo. *Las primeras están en preparación* y se irán sumando.'],
+  ['¿Quién prepara las palabras?', '*Nuestro equipo.* Graba varios ejemplos de cada palabra y los convierte en números. La persona usuaria no tiene que crear nada.'],
+  ['¿Funciona con cubrebocas o con la mano en la boca?', '*No.* Necesita ver tus labios. Sin cubrebocas y sin tapar la boca.'],
+  ['¿Qué luz necesita?', 'Mejor con *buena luz de frente*, no por detrás. El teléfono a la altura de tu cara, a un brazo de distancia.'],
+  ['¿Qué tan rápido es?', 'Compara en *milisegundos*. La palabra suena casi al mismo tiempo que terminas de decirla.'],
+  ['¿Se puede instalar en el teléfono?', '*Sí.* Es una app web: se puede instalar desde el navegador y abrirse como cualquier app.'],
+  ['¿Es un dispositivo médico?', '*No.* Es una ayuda para comunicarse. No reemplaza la atención del personal de salud.'],
 ];
 
 const TERMS: [string, string][] = [
-  ['Traqueostomía', 'Una abertura en el cuello, con una cánula, por donde entra el aire. Si el aire no pasa por las cuerdas vocales, la voz no sale.'],
-  ['Laringectomía', 'Cirugía que quita la laringe, donde están las cuerdas vocales. Se hace, por ejemplo, por cáncer de laringe.'],
-  ['Intubación', 'Un tubo que pasa por la boca hasta la tráquea para ayudar a respirar. Con él no se puede hablar.'],
-  ['ELA', 'Esclerosis lateral amiotrófica. Enfermedad que debilita poco a poco los músculos, incluidos los del habla.'],
-  ['Disartria', 'Dificultad para pronunciar por debilidad de los músculos del habla.'],
-  ['Afonía', 'Pérdida de la voz: la persona mueve la boca, pero el sonido no sale.'],
+  ['Traqueostomía', 'Una abertura en el cuello, con una cánula, por donde entra el aire. Si el aire no pasa por las cuerdas vocales, *la voz no sale*.'],
+  ['Laringectomía', 'Cirugía que quita la laringe, donde están las cuerdas vocales. Se hace, por ejemplo, por *cáncer de laringe*.'],
+  ['Intubación', 'Un tubo que pasa por la boca hasta la tráquea para ayudar a respirar. *Con él no se puede hablar.*'],
+  ['ELA', 'Esclerosis lateral amiotrófica. Enfermedad que *debilita poco a poco los músculos*, incluidos los del habla.'],
+  ['Disartria', 'Dificultad para pronunciar por *debilidad de los músculos del habla*.'],
+  ['Afonía', 'Pérdida de la voz: la persona *mueve la boca*, pero el sonido no sale.'],
+];
+
+const ROUTE: { when: string; icon: string; items: string[] }[] = [
+  { when: 'Hoy', icon: 'check', items: ['Guía de cómo funciona', 'Página de datos y fuentes', 'Modo programador para preparar palabras', 'Funciona sin internet'] },
+  { when: 'Muy pronto', icon: 'lock', items: ['Iniciar a utilizar con la cámara', 'Inicio de sesión y cuenta'] },
+  { when: 'Después', icon: 'sparkles', items: ['Más palabras preparadas', 'Pruebas con personal de salud y familias'] },
 ];
 
 const NAV: [string, string][] = [
   ['a-top', 'Inicio'],
+  ['a-resumen', 'Resumen'],
   ['a-que', 'Qué es'],
   ['a-datos', 'Datos'],
   ['a-quien', 'A quién ayuda'],
@@ -286,7 +383,9 @@ const NAV: [string, string][] = [
   ['a-palabras', 'Palabras'],
   ['a-priv', 'Privacidad'],
   ['a-ayuda', 'Cómo te ayuda'],
+  ['a-limites', 'Alcances y límites'],
   ['a-faq', 'Preguntas'],
+  ['a-ruta', 'Ruta'],
   ['a-fuentes', 'Fuentes'],
 ];
 
@@ -295,20 +394,31 @@ const NAV: [string, string][] = [
 function template() {
   const facts = FACTS.map(
     (d, i) => `
-    <section class="a-sec a-data" ${i === 0 ? 'id="a-datos"' : ''} data-nav="a-datos" data-shape="${d.shape}" aria-labelledby="a-d${i}">
+    <section class="a-sec a-data" id="a-f${i}" data-nav="a-datos" data-shape="${d.shape}" aria-labelledby="a-d${i}">
       <div class="a-copy">
         <p class="a-over">[ 0${i + 1} · ${d.over} ]</p>
-        <h2 class="a-num" id="a-d${i}">${d.count === null ? `<b class="a-num__txt">${d.big}</b>` : `<b data-count="${d.count}">0</b>`}${d.unit ? `<span>${d.unit}</span>` : ''}</h2>
+        <h3 class="a-num" id="a-d${i}">${d.count === null ? `<b class="a-num__txt">${d.big}</b>` : `<b data-count="${d.count}">0</b>`}${d.unit ? `<span>${d.unit}</span>` : ''}</h3>
         <p class="a-title">${d.title}</p>
-        <p class="a-body">${d.body}</p>
-        ${d.extra ? `<p class="a-extra">${icon('info', 18)}<span>${d.extra}</span></p>` : ''}
+        <p class="a-body">${rich(d.body)}</p>
+        ${d.extra ? `<p class="a-extra">${icon('info', 18)}<span>${rich(d.extra)}</span></p>` : ''}
         ${srcLinks(d.sources)}
       </div>
     </section>`,
   ).join('');
 
+  const glance = FACTS.map(
+    (d, i) => `<li><button class="a-gl" type="button" data-jump="a-f${i}">
+      <b>${d.count === null ? d.big : `<span data-count="${d.count}">0</span> ${d.gu}`}</b>
+      <span>${d.gl}</span><i aria-hidden="true">${icon('arrow-right', 16, 2.4)}</i>
+    </button></li>`,
+  ).join('');
+
+  const summary = SUMMARY.map(
+    ([t, ic, d]) => `<li class="a-sum__i"><span class="a-sum__ic">${icon(ic, 22, 1.9)}</span><small>${t}</small><p>${rich(d)}</p></li>`,
+  ).join('');
+
   const pillars = PILLARS.map(
-    ([ic, t, d]) => `<li class="a-pillar"><span class="a-pillar__ic">${icon(ic, 24, 1.9)}</span><h3>${t}</h3><p>${d}</p></li>`,
+    ([ic, t, d]) => `<li class="a-pillar"><span class="a-pillar__ic">${icon(ic, 24, 1.9)}</span><h3>${t}</h3><p>${rich(d)}</p></li>`,
   ).join('');
 
   const whoTabs = WHO.map(
@@ -319,6 +429,8 @@ function template() {
     (s, i) => `<button class="a-sn" type="button" role="tab" id="a-sn-${i}" aria-controls="a-step-panel" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}" data-step="${i}"><b>${i + 1}</b><span>${s.name}</span></button>`,
   ).join('');
 
+  const tags = TAGS.map(([ic, t]) => `<li>${icon(ic, 16)}<span>${t}</span></li>`).join('');
+
   const demoChips = DEMO.map((t, i) => `<button class="a-chip" type="button" data-demo="${i}" aria-pressed="false">${t}</button>`).join('');
   const demoRows = DEMO.map((t) => `<div class="a-row"><span>${t}</span><div class="a-track"><i></i></div><b>0%</b></div>`).join('');
 
@@ -326,6 +438,10 @@ function template() {
   const catTabs = cats
     .map((c, i) => `<button class="a-tab a-tab--sm" type="button" role="tab" id="a-cat-${c}" aria-controls="a-cat-panel" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}" data-cat="${i}"><span>${CATEGORY_LABEL[c]}</span></button>`)
     .join('');
+
+  const prep = PREP.map(
+    ([t, ic, d], i) => `<li class="a-prep__i"><span class="a-prep__n">${i + 1}</span><span class="a-prep__ic">${icon(ic, 20)}</span><div><h4>${t}</h4><p>${rich(d)}</p></div></li>`,
+  ).join('');
 
   const layerTabs = LAYERS.map(
     (l, i) => `<button class="a-layer" type="button" role="tab" id="a-ly-${i}" aria-controls="a-layer-panel" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}" data-layer="${i}"><span class="a-layer__ic">${icon(l.icon, 20)}</span><span>${l.name}</span>${i < LAYERS.length - 1 ? `<i class="a-layer__arrow" aria-hidden="true">${icon('chevron-right', 16)}</i>` : ''}</button>`,
@@ -352,10 +468,18 @@ function template() {
     .map(([v, l]) => `<li><b data-count="${v}">0</b><span>${l}</span></li>`)
     .join('');
 
-  const faq = FAQ.map(([q, a]) => `<details class="a-q"><summary>${q}<i aria-hidden="true">${icon('chevron-right', 20, 2.4)}</i></summary><p>${a}</p></details>`).join('');
+  const limTabs = LIMITS.map(
+    (l, i) => `<button class="a-tab a-tab--sm" type="button" role="tab" id="a-lim-${i}" aria-controls="a-lim-panel" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}" data-lim="${i}">${icon(l.icon, 16, 2.4)}<span>${l.tab}</span></button>`,
+  ).join('');
 
-  const termTabs = TERMS.map(
-    ([t], i) => `<button class="a-term" type="button" aria-pressed="${i === 0}" data-term="${i}">${t}</button>`,
+  const easy = EASY.map(([ic, t]) => `<li>${icon(ic, 18)}<span>${t}</span></li>`).join('');
+
+  const faq = FAQ.map(([q, a]) => `<details class="a-q"><summary>${q}<i aria-hidden="true">${icon('chevron-right', 20, 2.4)}</i></summary><p>${rich(a)}</p></details>`).join('');
+
+  const termTabs = TERMS.map(([t], i) => `<button class="a-term" type="button" aria-pressed="${i === 0}" data-term="${i}">${t}</button>`).join('');
+
+  const route = ROUTE.map(
+    (r) => `<li class="a-rt"><h3>${icon(r.icon, 18, 2.4)}${r.when}</h3><ul>${r.items.map((t) => `<li>${t}</li>`).join('')}</ul></li>`,
   ).join('');
 
   const sources = SOURCES.map((s) => `<li><a href="${s.url}" target="_blank" rel="noopener noreferrer">${s.name}${icon('external', 14)}</a></li>`).join('');
@@ -366,6 +490,7 @@ function template() {
   <div class="ayuda" data-ayuda-page>
     <div class="a-stage" aria-hidden="true"><canvas></canvas></div>
     <i class="a-progress" aria-hidden="true"></i>
+    ${paletteHTML()}
     <button class="a-idx-btn" type="button" data-idx aria-expanded="false" aria-controls="a-idx">${icon('layout-grid', 18)}<span>Índice</span></button>
     <nav class="a-idx" id="a-idx" aria-label="Índice de la página" hidden><p>Ir a…</p><ol>${idx}</ol></nav>
 
@@ -383,12 +508,29 @@ function template() {
       </div>
     </section>
 
+    <section class="a-sec a-dense" id="a-resumen" data-nav="a-resumen" data-shape="${S.lips}" aria-labelledby="a-sum-t">
+      <div class="a-copy a-copy--wide">
+        <p class="a-over">[ Resumen ]</p>
+        <h2 class="a-h2" id="a-sum-t">El proyecto en una pantalla.</h2>
+        <ul class="a-sum">${summary}</ul>
+      </div>
+    </section>
+
     <section class="a-sec a-dense" id="a-que" data-nav="a-que" data-shape="${S.voz}" aria-labelledby="a-que-t">
       <div class="a-copy a-copy--wide">
         <p class="a-over">[ Qué es ]</p>
         <h2 class="a-h2" id="a-que-t">Una voz que vive en tu teléfono.</h2>
-        <p class="a-body">Voz Propia lee el movimiento de tus labios y lo dice en voz alta. Es para quien perdió la voz, pero todavía puede mover la boca.</p>
+        <p class="a-body">${rich('Voz Propia lee *el movimiento de tus labios* y lo dice en voz alta. Es para quien *perdió la voz*, pero todavía puede mover la boca.')}</p>
         <ul class="a-pillars">${pillars}</ul>
+      </div>
+    </section>
+
+    <section class="a-sec a-dense" id="a-datos" data-nav="a-datos" data-shape="${S.datos}" aria-labelledby="a-dat-t">
+      <div class="a-copy a-copy--wide">
+        <p class="a-over">[ Datos ]</p>
+        <h2 class="a-h2" id="a-dat-t">Los números, en una mirada.</h2>
+        <p class="a-body">Cifras reales de México y del mundo. Toca una para ver el detalle y su fuente.</p>
+        <ul class="a-glance">${glance}</ul>
       </div>
     </section>
 
@@ -416,6 +558,8 @@ function template() {
             <button class="a-round" type="button" data-step-next aria-label="Paso siguiente">${icon('chevron-right', 20, 2.4)}</button>
           </div>
         </div>
+        <h3 class="a-h3">Hecha con</h3>
+        <ul class="a-tags">${tags}</ul>
       </div>
     </section>
 
@@ -438,10 +582,12 @@ function template() {
       <div class="a-copy a-copy--wide">
         <p class="a-over">[ Palabras ]</p>
         <h2 class="a-h2" id="a-pal-t">Las que prepara el equipo.</h2>
-        <p class="a-body">Estas son las frases que más piden las personas sin voz en un hospital. Nuestro equipo las está preparando una por una. Toca una para escucharla.</p>
+        <p class="a-body">${rich('Estas son las frases que más piden las personas sin voz en un hospital. *Nuestro equipo las está preparando una por una.* Toca una para escucharla.')}</p>
         <div class="a-tabs" role="tablist" aria-label="Categorías de palabras">${catTabs}</div>
         <div class="a-panel a-panel--words" id="a-cat-panel" role="tabpanel" aria-labelledby="a-cat-${cats[0]}" data-cat-panel></div>
         <p class="a-note">Todavía no están todas listas. Cuando una esté lista, aparece en la guía.</p>
+        <h3 class="a-h3">Cómo preparamos cada palabra</h3>
+        <ol class="a-prep">${prep}</ol>
       </div>
     </section>
 
@@ -449,7 +595,7 @@ function template() {
       <div class="a-copy a-copy--wide">
         <p class="a-over">[ Privacidad ]</p>
         <h2 class="a-h2" id="a-priv-t">Tu cara se queda contigo.</h2>
-        <p class="a-body">Toca cada paso para ver qué pasa con tu imagen y qué se guarda.</p>
+        <p class="a-body">${rich('Toca cada paso para ver qué pasa con tu imagen y *qué se guarda*.')}</p>
         <div class="a-layers" role="tablist" aria-label="Qué pasa con tu imagen">${layerTabs}</div>
         <div class="a-panel a-panel--layer" id="a-layer-panel" role="tabpanel" aria-labelledby="a-ly-0" data-layer-panel></div>
         <ul class="a-promises">${promises}</ul>
@@ -473,6 +619,18 @@ function template() {
       </div>
     </section>
 
+    <section class="a-sec a-dense" id="a-limites" data-nav="a-limites" data-shape="${S.limites}" aria-labelledby="a-lim-t">
+      <div class="a-copy a-copy--wide">
+        <p class="a-over">[ Alcances y límites ]</p>
+        <h2 class="a-h2" id="a-lim-t">Lo que hace, y lo que todavía no.</h2>
+        <p class="a-body">${rich('Decir con claridad *hasta dónde llega* también es parte de cuidar a quien la usa.')}</p>
+        <div class="a-tabs" role="tablist" aria-label="Alcances y límites">${limTabs}</div>
+        <div class="a-panel a-panel--lim" id="a-lim-panel" role="tabpanel" aria-labelledby="a-lim-0" data-lim-panel></div>
+        <h3 class="a-h3">Pensada para ser fácil</h3>
+        <ul class="a-easy">${easy}</ul>
+      </div>
+    </section>
+
     <section class="a-sec a-dense" id="a-faq" data-nav="a-faq" data-shape="${S.duda}" aria-labelledby="a-faq-t">
       <div class="a-copy a-copy--wide">
         <p class="a-over">[ Preguntas ]</p>
@@ -481,6 +639,14 @@ function template() {
         <h3 class="a-h3">Palabras que conviene conocer</h3>
         <div class="a-terms" role="group" aria-label="Glosario">${termTabs}</div>
         <p class="a-def" data-term-panel aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="a-sec a-dense" id="a-ruta" data-nav="a-ruta" data-shape="${S.ruta}" aria-labelledby="a-rt-t">
+      <div class="a-copy a-copy--wide">
+        <p class="a-over">[ Ruta ]</p>
+        <h2 class="a-h2" id="a-rt-t">Dónde estamos y lo que sigue.</h2>
+        <ul class="a-route">${route}</ul>
       </div>
     </section>
 
@@ -522,13 +688,16 @@ export function ayudaView(root: HTMLElement) {
     try {
       const { createField } = await import('./ayuda-field');
       if (disposed) return;
-      field = createField(stage, stage.querySelector('canvas')!, SHAPES, { reducedMotion: still });
+      field = createField(stage, stage.querySelector('canvas')!, SHAPES, { reducedMotion: still, palette: currentTheme() });
       field.setShape(active);
       el.classList.add('has-field');
     } catch {
       el.classList.add('no-webgl');
     }
   })();
+
+  const offPalette = bindPalette(el);
+  addEventListener('palette', (e) => field?.setPalette((e as CustomEvent<Theme>).detail), { signal });
 
   /* ---------- Sección al centro: cambia la figura de los puntos y marca el índice ---------- */
 
@@ -638,10 +807,10 @@ export function ayudaView(root: HTMLElement) {
     whoPanel.innerHTML = `
       <span class="a-panel__ic">${icon(w.icon, 28, 1.8)}</span>
       <h3>${w.title}</h3>
-      <p>${w.body}</p>
+      <p>${rich(w.body)}</p>
       <div class="a-ba">
-        <div class="a-ba__b"><small>Antes</small><span>${w.before}</span></div>
-        <div class="a-ba__a"><small>Con Voz Propia</small><span>${w.after}</span></div>
+        <div class="a-ba__b"><small>Antes</small><span>${rich(w.before)}</span></div>
+        <div class="a-ba__a"><small>Con Voz Propia</small><span>${rich(w.after)}</span></div>
       </div>
       <ul>${w.points.map((p) => `<li>${icon('check', 16, 2.6)}${p}</li>`).join('')}</ul>
       ${w.note ? `<p class="a-panel__note">${icon('info', 16)}${w.note}</p>` : ''}`;
@@ -661,7 +830,7 @@ export function ayudaView(root: HTMLElement) {
       <span class="a-panel__ic a-panel__ic--lg">${icon(s.icon, 34, 1.8)}</span>
       <p class="a-panel__n">Paso ${i + 1} de ${STEPS.length}</p>
       <h3>${s.title}</h3>
-      <p>${s.body}</p>
+      <p>${rich(s.body)}</p>
       <p class="a-tech">${icon('cpu', 16)}<span>${s.tech}</span></p>`;
     stepBar.style.setProperty('--p', String((i + 1) / STEPS.length));
     swap(stepPanel);
@@ -697,7 +866,7 @@ export function ayudaView(root: HTMLElement) {
     layerPanel.innerHTML = `
       <span class="a-badge ${l.saved ? 'a-badge--on' : ''}">${icon(l.saved ? 'cpu' : 'shield-check', 16, 2.2)}${l.saved ? 'Solo números, en tu dispositivo' : 'No se guarda'}</span>
       <h3>${l.name}</h3>
-      <p>${l.text}</p>`;
+      <p>${rich(l.text)}</p>`;
     swap(layerPanel);
   });
   setLayer(0);
@@ -709,18 +878,29 @@ export function ayudaView(root: HTMLElement) {
     momentPanel.setAttribute('aria-labelledby', `a-mo-${i}`);
     momentPanel.innerHTML = `
       <div class="a-ba">
-        <div class="a-ba__b"><small>Antes</small><span>${m.before}</span></div>
-        <div class="a-ba__a"><small>Con Voz Propia</small><span>${m.after}</span></div>
+        <div class="a-ba__b"><small>Antes</small><span>${rich(m.before)}</span></div>
+        <div class="a-ba__a"><small>Con Voz Propia</small><span>${rich(m.after)}</span></div>
       </div>`;
     swap(momentPanel);
   });
   setMoment(0);
 
+  /* Alcances y límites */
+  const limPanel = el.querySelector<HTMLElement>('[data-lim-panel]')!;
+  const setLim = tabs('lim', (i) => {
+    const l = LIMITS[i];
+    limPanel.setAttribute('aria-labelledby', `a-lim-${i}`);
+    limPanel.classList.toggle('is-no', i === 1);
+    limPanel.innerHTML = `<ul class="a-ticks">${l.items.map((t) => `<li>${icon(l.icon, 18, 2.6)}<span>${rich(t)}</span></li>`).join('')}</ul>`;
+    swap(limPanel);
+  });
+  setLim(0);
+
   /* Glosario */
   const termPanel = el.querySelector<HTMLElement>('[data-term-panel]')!;
   const showTerm = (i: number) => {
     el.querySelectorAll<HTMLElement>('[data-term]').forEach((b, n) => b.setAttribute('aria-pressed', String(n === i)));
-    termPanel.innerHTML = `<b>${TERMS[i][0]}.</b> ${TERMS[i][1]}`;
+    termPanel.innerHTML = `<b>${TERMS[i][0]}.</b> ${rich(TERMS[i][1])}`;
     swap(termPanel);
   };
   showTerm(0);
@@ -813,6 +993,7 @@ export function ayudaView(root: HTMLElement) {
 
   return () => {
     disposed = true;
+    offPalette();
     ac.abort();
     offs.forEach((off) => off());
     cancelAnimationFrame(raf);

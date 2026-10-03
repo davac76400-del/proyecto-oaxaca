@@ -1,3 +1,4 @@
+import type { Palette } from '../components/theme';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, OrthographicCamera, Points, Scene, ShaderMaterial, WebGLRenderer } from 'three';
 
 /** Figura que forman los puntos: un texto (cifras) o un dibujo. */
@@ -6,10 +7,11 @@ export type Shape = { text: string } | { draw: 'lips' | 'heart' | 'wave' };
 export interface Field {
   setShape: (i: number) => void;
   setVisible: (v: boolean) => void;
+  setPalette: (p: Palette) => void;
   dispose: () => void;
 }
 
-const PALETTE = ['#2F69FF', '#2F69FF', '#2F69FF', '#5D80FF', '#9DB7FF', '#F4F7FA', '#3DF2A0'].map((c) => new Color(c));
+const paletteColors = (p: Palette) => [p.a1, p.a1, p.a1, p.a1m, p.a1l, '#F4F7FA', p.a2].map((c) => new Color(c));
 
 /* ---------- Muestreo: se dibuja la figura en un lienzo oculto y se toman sus píxeles ---------- */
 
@@ -86,7 +88,9 @@ function sample(s: Shape, w: number, h: number, want: number): Float32Array {
 
 /* ---------- Campo ---------- */
 
-export function createField(box: HTMLElement, canvas: HTMLCanvasElement, shapes: Shape[], opts: { reducedMotion: boolean }): Field {
+export function createField(box: HTMLElement, canvas: HTMLCanvasElement, shapes: Shape[], opts: { reducedMotion: boolean; palette: Palette }): Field {
+  let PALETTE = paletteColors(opts.palette);
+  let colors = new Float32Array(0);
   const renderer = new WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'high-performance' });
   let dpr = Math.min(devicePixelRatio || 1, 1.75);
   renderer.setPixelRatio(dpr);
@@ -153,6 +157,7 @@ export function createField(box: HTMLElement, canvas: HTMLCanvasElement, shapes:
       seed = new Float32Array(N);
       dust = new Uint8Array(N);
       const col = new Float32Array(N * 3);
+      colors = col;
       const size = new Float32Array(N);
       for (let i = 0; i < N; i++) {
         pos[i * 3] = Math.random() * w;
@@ -355,6 +360,12 @@ export function createField(box: HTMLElement, canvas: HTMLCanvasElement, shapes:
     },
     setVisible: (v) => {
       visible = v && !document.hidden;
+      wake();
+    },
+    setPalette: (p) => {
+      PALETTE = paletteColors(p);
+      for (let i = 0; i < N; i++) PALETTE[i % PALETTE.length].toArray(colors, i * 3);
+      geo.getAttribute('color').needsUpdate = true;
       wake();
     },
     dispose: () => {

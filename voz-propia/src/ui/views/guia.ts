@@ -4,8 +4,9 @@ import { engine } from '../../core/engine';
 import { speakPhrase, speakText } from '../../core/voice/speaker';
 import { CATEGORY_LABEL } from '../../data/default-phrases';
 import type { Category } from '../../core/types';
-import { esc, on, reducedMotion, sleep } from '../dom';
+import { esc, on, reducedMotion, rich, sleep } from '../dom';
 import { icon } from '../icons';
+import { bindPalette, currentTheme, paletteHTML, type Theme } from '../components/theme';
 import type { GuideScene } from './guia-scene';
 
 const ORDER: Category[] = ['respuesta', 'necesidad', 'cuerpo', 'emocion', 'social'];
@@ -14,10 +15,10 @@ const SHAPE_NAMES = ['Cerrados', 'Abiertos', 'Redondos', 'Anchos'];
 const OPTIONS = ['Tengo sed', 'Tengo frío', 'Me duele'];
 const BARS: [string, number][] = [['Tengo sed', 92], ['Tengo frío', 5], ['Me duele', 3]];
 const PROMISES: [string, string, string][] = [
-  ['wifi-off', 'Sin internet', 'Todo corre dentro del teléfono, incluso en un cuarto sin señal.'],
-  ['shield-check', 'Sin video guardado', 'Solo se guardan números con la forma de los labios.'],
-  ['sparkles', 'Palabras preparadas', 'Nuestro equipo prepara y cuida cada palabra.'],
-  ['volume', 'Tu voz, tu decisión', 'Suena con la voz que tu familia eligió para ti.'],
+  ['wifi-off', 'Sin internet', 'Todo corre dentro del teléfono, *incluso en un cuarto sin señal*.'],
+  ['shield-check', 'Sin video guardado', 'Solo se guardan *números* con la forma de los labios.'],
+  ['sparkles', 'Palabras preparadas', 'Nuestro equipo *prepara y cuida* cada palabra.'],
+  ['volume', 'Tu voz, tu decisión', 'Suena con *la voz que tu familia eligió* para ti.'],
 ];
 
 const TIPS: [string, string, string][] = [
@@ -50,7 +51,7 @@ function chapter(i: number, text: 'l' | 'r' | 'c', kicker: string, title: string
         <div class="g-copy">
           <p class="g-over" style="--i:0">[ ${kicker} ]</p>
           <h2 class="g-title" id="g-t${i}" style="--i:1">${title}</h2>
-          <p class="g-body" style="--i:2">${body}</p>
+          <p class="g-body" style="--i:2">${rich(body)}</p>
           ${extra}
         </div>
       </div>
@@ -67,7 +68,7 @@ function template() {
   ).join('');
   const options = OPTIONS.map((t, i) => `<button class="g-opt" type="button" data-opt="${i}" aria-pressed="false" style="--i:${3 + i}">${t}</button>`).join('');
   const promises = PROMISES.map(
-    ([ic, t, d], i) => `<li class="g-promise" style="--i:${3 + i}"><span class="g-promise__ic">${icon(ic, 24, 1.9)}</span><div><h3>${t}</h3><p>${d}</p></div></li>`,
+    ([ic, t, d], i) => `<li class="g-promise" style="--i:${3 + i}"><span class="g-promise__ic">${icon(ic, 24, 1.9)}</span><div><h3>${t}</h3><p>${rich(d)}</p></div></li>`,
   ).join('');
   const tips = TIPS.map(
     ([ic, t, d], i) => `<li class="g-tip" data-reveal style="transition-delay:${i * 80}ms"><span class="g-tip__ic">${icon(ic, 22, 1.9)}</span><h3>${t}</h3><p>${d}</p></li>`,
@@ -78,6 +79,7 @@ function template() {
   <div class="guia" data-guia>
     <div class="g-stage" aria-hidden="true"><canvas></canvas></div>
     <nav class="g-rail" aria-label="Capítulos de la guía">${rail}</nav>
+    ${paletteHTML()}
     <button class="g-skip" type="button" data-skip>${icon('arrow-down', 18, 2.4)}<span>Pasar directamente a la aplicación</span></button>
     <button class="g-skip g-top" type="button" data-top>${icon('arrow-up', 18, 2.4)}<span>Volver al inicio de la guía</span></button>
 
@@ -87,17 +89,17 @@ function template() {
         <div class="g-copy">
           <p class="g-over" style="--i:0">[ Así funciona ]</p>
           <h1 class="g-hero" id="g-t0" style="--i:1"><span class="g-hero__a">Tus labios</span><span class="g-hero__b">hablan.</span></h1>
-          <p class="g-body g-body--lead" style="--i:2">Mira cómo Voz Propia convierte el movimiento de tus labios en voz, paso a paso y sin internet.</p>
+          <p class="g-body g-body--lead" style="--i:2">${rich('Mira cómo Voz Propia convierte el movimiento de tus labios en voz, *paso a paso y sin internet*.')}</p>
           <p class="g-cue" style="--i:3">${icon('arrow-down', 16)} Desliza para empezar</p>
         </div>
       </div>
     </section>
 
-    ${chapter(1, 'r', '01 · Mira', 'Mira tus<br>labios.', 'La cámara sigue 478 puntos de tu cara. Se queda con los 40 que dibujan la boca, aunque te muevas o te alejes.', `<ul class="g-stats">${stats}</ul>`)}
-    ${chapter(2, 'l', '02 · Forma', 'Cada palabra<br>tiene una forma.', 'Los labios se cierran, se abren, se redondean y se estiran. Esa secuencia es la huella de cada palabra.', `<ol class="g-shapes" aria-label="Formas de los labios">${shapes}</ol>`)}
-    ${chapter(3, 'r', '03 · Compara', 'La compara con<br>lo preparado.', 'Nuestro equipo prepara cada palabra con cuidado. Voz Propia compara tu movimiento con todas y elige la más parecida.', `<div class="g-bars" role="img" aria-label="Ejemplo: tengo sed 92 por ciento, tengo frío 5, me duele 3">${bars}</div><p class="g-note" style="--i:6">Ejemplo ilustrativo</p>`)}
-    ${chapter(4, 'l', '04 · Duda', 'Si duda,<br>te pregunta.', 'Cuando dos palabras se parecen, no adivina. Te muestra las opciones y tú eliges.', `<div class="g-opts" role="group" aria-label="Opciones de ejemplo">${options}</div><p class="g-note" style="--i:6">Toca una opción. Ejemplo ilustrativo.</p>`)}
-    ${chapter(5, 'r', '05 · Voz', 'Habla<br>por ti.', 'La palabra suena al instante, sin internet, con la voz que tu familia eligió.', `<button class="g-listen" type="button" data-listen style="--i:3">${icon('volume', 22, 2.2)}<span>Escuchar un ejemplo</span></button>`)}
+    ${chapter(1, 'r', '01 · Mira', 'Mira tus<br>labios.', 'La cámara sigue *478 puntos* de tu cara. Se queda con *los 40 que dibujan la boca*, aunque te muevas o te alejes.', `<ul class="g-stats">${stats}</ul>`)}
+    ${chapter(2, 'l', '02 · Forma', 'Cada palabra<br>tiene una forma.', 'Los labios se cierran, se abren, se redondean y se estiran. *Esa secuencia es la huella de cada palabra.*', `<ol class="g-shapes" aria-label="Formas de los labios">${shapes}</ol>`)}
+    ${chapter(3, 'r', '03 · Compara', 'La compara con<br>lo preparado.', 'Nuestro equipo prepara cada palabra con cuidado. Voz Propia compara tu movimiento con todas y *elige la más parecida*.', `<div class="g-bars" role="img" aria-label="Ejemplo: tengo sed 92 por ciento, tengo frío 5, me duele 3">${bars}</div><p class="g-note" style="--i:6">Ejemplo ilustrativo</p>`)}
+    ${chapter(4, 'l', '04 · Duda', 'Si duda,<br>te pregunta.', 'Cuando dos palabras se parecen, *no adivina*. Te muestra las opciones y *tú eliges*.', `<div class="g-opts" role="group" aria-label="Opciones de ejemplo">${options}</div><p class="g-note" style="--i:6">Toca una opción. Ejemplo ilustrativo.</p>`)}
+    ${chapter(5, 'r', '05 · Voz', 'Habla<br>por ti.', 'La palabra suena al instante, *sin internet*, con la voz que tu familia eligió.', `<button class="g-listen" type="button" data-listen style="--i:3">${icon('volume', 22, 2.2)}<span>Escuchar un ejemplo</span></button>`)}
     ${chapter(6, 'l', '06 · Promesas', 'Hecha<br>para tu voz.', 'Cuatro cosas que no cambian.', `<ul class="g-promises">${promises}</ul>`)}
 
     <section class="g-end" aria-labelledby="g-words-t">
@@ -105,7 +107,7 @@ function template() {
         <div class="g-words" data-reveal>
           <p class="g-over g-over--dark">[ Contamos con ]</p>
           <h2 class="g-h2" id="g-words-t">Estas son las palabras<br>con las que contamos.</h2>
-          <p class="g-sub">Toca una para escucharla. Cuando nuestro equipo prepara una nueva, aparece aquí.</p>
+          <p class="g-sub">${rich('Toca una para escucharla. Cuando *nuestro equipo* prepara una nueva, aparece aquí.')}</p>
           <div data-words></div>
         </div>
 
@@ -118,7 +120,7 @@ function template() {
         <div class="g-start" data-reveal>
           <p class="g-over">[ Listo para empezar ]</p>
           <h2 class="g-h2 g-h2--light">Iniciar a utilizar</h2>
-          <p class="g-start__p">Cuando haya palabras listas, aquí empiezas a hablar con tus labios y Voz Propia pone la voz.</p>
+          <p class="g-start__p">${rich('Cuando haya palabras listas, aquí empiezas a hablar *con tus labios* y Voz Propia pone la voz.')}</p>
           <ol class="g-start__steps">
             <li><b>1</b><span>Pon tu cara frente a la cámara.</span></li>
             <li><b>2</b><span>Di la palabra moviendo los labios.</span></li>
@@ -151,6 +153,9 @@ export function guiaView(root: HTMLElement) {
   let scene: GuideScene | null = null;
   let disposed = false;
 
+  const offPalette = bindPalette(el);
+  addEventListener('palette', (e) => scene?.setPalette((e as CustomEvent<Theme>).detail), { signal });
+
   /* ---------- Escena 3D (si no hay WebGL, la guía se lee igual sin ella) ---------- */
 
   void (async () => {
@@ -158,6 +163,7 @@ export function guiaView(root: HTMLElement) {
       const { createGuideScene } = await import('./guia-scene');
       if (disposed) return;
       scene = createGuideScene(stage, stage.querySelector('canvas')!, {
+        palette: currentTheme(),
         reducedMotion: still,
         onShape: (i) => shapeItems.forEach((s, n) => s.classList.toggle('is-on', n === i)),
       });
@@ -355,6 +361,7 @@ export function guiaView(root: HTMLElement) {
   return () => {
     disposed = true;
     document.documentElement.classList.remove('snap-guide');
+    offPalette();
     ac.abort();
     offs.forEach((off) => off());
     io.disconnect();

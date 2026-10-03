@@ -15,6 +15,7 @@ import { db } from './core/storage/db';
 import type { Role } from './core/types';
 import { tracker } from './core/vision/face-tracker';
 import { brandMark } from './ui/brand';
+import { currentTheme, loadTheme } from './ui/components/theme';
 import { enableTilt } from './ui/components/tilt';
 import { bindWaterBack, waterBackHTML } from './ui/components/water-back';
 import { toast } from './ui/components/toast';
@@ -163,7 +164,7 @@ async function route() {
   mounted?.unmount();
   mounted = null;
   document.documentElement.dataset.mode = kind;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLOR[kind]);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', kind === 'usuario' ? currentTheme().ink : THEME_COLOR[kind]);
   scrollTo({ top: 0 });
   if (kind === 'inicio') {
     const { mountLanding } = await import('./ui/landing/landing');
@@ -226,6 +227,7 @@ function restartWhenReopened() {
 }
 
 async function boot() {
+  loadTheme();
   enableTilt(document.body);
   await loadSettings();
   await engine.load();

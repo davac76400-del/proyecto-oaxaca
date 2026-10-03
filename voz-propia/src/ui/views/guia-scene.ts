@@ -20,6 +20,7 @@ import {
   SphereGeometry,
   WebGLRenderer,
 } from 'three';
+import type { Palette } from '../components/theme';
 
 /**
  * Escena de la guía: UN solo lienzo fijo y UN solo dibujo de puntos que se transforma con el scroll
@@ -36,10 +37,13 @@ export interface GuideScene {
   talk: (until: Promise<unknown>) => void;
   /** Pausa el dibujo cuando el lienzo no se ve. */
   setVisible: (v: boolean) => void;
+  /** Cambia los colores de puntos, labios y esferas. */
+  setPalette: (p: Palette) => void;
   dispose: () => void;
 }
 
 interface Options {
+  palette: Palette;
   reducedMotion: boolean;
   /** Se llama con el índice de la forma de labios mostrada (capítulo 2). */
   onShape: (i: number) => void;
@@ -129,6 +133,11 @@ class LipRing {
     this.oGeo.getAttribute('position').needsUpdate = true;
     this.iGeo.getAttribute('position').needsUpdate = true;
     this.pGeo.getAttribute('position').needsUpdate = true;
+  }
+
+  /** Fuerza a repintar con el color actual (cuando el color cambia sin cambiar de objeto). */
+  refresh() {
+    this.lastColor = null;
   }
 
   color(c: Color, opacity: number) {
@@ -262,6 +271,10 @@ export function createGuideScene(box: HTMLElement, canvas: HTMLCanvasElement, op
       void main(){ float d = length(gl_PointCoord - 0.5); if (d > 0.5) discard;
         float a = smoothstep(0.5, 0.0, d); gl_FragColor = vec4(vColor, a * a * 1.15 * uAlpha); }`,
   });
+
+  BLUE.set(opts.palette.a1);
+  BLUE_L.set(opts.palette.a1l);
+  GREEN.set(opts.palette.a2);
 
   const T = buildTargets();
   const cloudGeo = new BufferGeometry();
@@ -538,6 +551,18 @@ export function createGuideScene(box: HTMLElement, canvas: HTMLCanvasElement, op
     setVisible: (v) => {
       visible = v && !document.hidden;
       if (visible) requestRender();
+    },
+    setPalette: (p) => {
+      BLUE.set(p.a1);
+      BLUE_L.set(p.a1l);
+      GREEN.set(p.a2);
+      for (let i = 0; i < CLOUD; i++) (i % 9 === 0 ? WHITE : i % 4 === 0 ? BLUE_L : BLUE).toArray(col, i * 3);
+      cloudGeo.getAttribute('color').needsUpdate = true;
+      for (let i = 0; i < ORBS; i++) orbs.setColorAt(i, i % 4 === 0 ? WHITE : i % 4 === 1 ? GREEN : BLUE);
+      if (orbs.instanceColor) orbs.instanceColor.needsUpdate = true;
+      lips.refresh();
+      cands.forEach((c) => c.refresh());
+      requestRender();
     },
     dispose: () => {
       disposed = true;

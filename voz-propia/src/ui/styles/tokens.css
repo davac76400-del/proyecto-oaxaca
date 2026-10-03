@@ -1,4 +1,20 @@
 :root {
+  /* Paleta de las páginas oscuras (guía y ayuda). Se cambia desde el selector de colores. */
+  --t-ink: #05080a;
+  --t-ink-rgb: 5 8 10;
+  --t-card: #0a0f14;
+  --t-card-rgb: 10 15 20;
+  --t-a1: #2f69ff;
+  --t-a1-rgb: 47 105 255;
+  --t-a1m: #5d80ff;
+  --t-a1l: #9db7ff;
+  --t-a1l-rgb: 157 183 255;
+  --t-a1d: #0e2ac5;
+  --t-a1d-rgb: 14 42 197;
+  --t-a2: #3df2a0;
+  --t-a2-rgb: 61 242 160;
+  --t-on-a1: #ffffff;
+
   --font-display: 'Raleway Variable', 'Raleway', system-ui, sans-serif;
   --font-body: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
@@ -50,7 +66,7 @@
 
   /* ===== Modo usuario: negro, azul cobalto, verde y blanco ===== */
   color-scheme: light;
-  --bg: #05080a;
+  --bg: var(--t-ink);
   --ink: #0a0f14;
   --ink-2: #26303a;
   --muted: #4a5663;

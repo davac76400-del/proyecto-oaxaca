@@ -34,3 +34,6 @@ export function on<K extends keyof HTMLElementEventMap>(
   root.addEventListener(type, handler);
   return () => root.removeEventListener(type, handler);
 }
+
+/** Marca las ideas clave: *texto* se ve de otro color (sin subrayar). */
+export const rich = (s: string) => s.replace(/\*(.+?)\*/g, '<strong class="k">$1</strong>');
