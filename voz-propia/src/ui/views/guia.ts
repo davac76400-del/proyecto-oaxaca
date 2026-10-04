@@ -16,7 +16,7 @@ const OPTIONS = ['Tengo sed', 'Tengo frío', 'Me duele'];
 const BARS: [string, number][] = [['Tengo sed', 92], ['Tengo frío', 5], ['Me duele', 3]];
 const PROMISES: [string, string, string][] = [
   ['wifi-off', 'Sin internet', 'Todo corre dentro del teléfono, *incluso en un cuarto sin señal*.'],
-  ['shield-check', 'Sin video guardado', 'Solo se guardan *números* con la forma de los labios.'],
+  ['shield-check', 'Sin video guardado', 'Nada se graba *ni se envía*.'],
   ['sparkles', 'Palabras preparadas', 'Nuestro equipo *prepara y cuida* cada palabra.'],
   ['volume', 'Tu voz, tu decisión', 'Suena con *la voz que tu familia eligió* para ti.'],
 ];
@@ -59,7 +59,7 @@ function chapter(i: number, text: 'l' | 'r' | 'c', kicker: string, title: string
 }
 
 function template() {
-  const stats = [['478', 'puntos de tu cara'], ['40', 'son de tu boca'], ['30', 'lecturas por segundo']]
+  const stats = [['0', 'videos guardados'], ['0', 'aparatos extra'], ['1', 'teléfono, nada más']]
     .map(([v, l], i) => `<li style="--i:${3 + i}"><b>${v}</b><span>${l}</span></li>`)
     .join('');
   const shapes = SHAPE_NAMES.map((n, i) => `<li data-shape="${i}" style="--i:${3 + i}"><i></i>${n}</li>`).join('');
@@ -95,7 +95,7 @@ function template() {
       </div>
     </section>
 
-    ${chapter(1, 'r', '01 · Mira', 'Mira tus<br>labios.', 'La cámara sigue *478 puntos* de tu cara. Se queda con *los 40 que dibujan la boca*, aunque te muevas o te alejes.', `<ul class="g-stats">${stats}</ul>`)}
+    ${chapter(1, 'r', '01 · Mira', 'Mira tus<br>labios.', 'La cámara de tu teléfono *mira cómo se mueven tus labios*, aunque te muevas un poco. *No graba video.*', `<ul class="g-stats">${stats}</ul>`)}
     ${chapter(2, 'l', '02 · Forma', 'Cada palabra<br>tiene una forma.', 'Los labios se cierran, se abren, se redondean y se estiran. *Esa secuencia es la huella de cada palabra.*', `<ol class="g-shapes" aria-label="Formas de los labios">${shapes}</ol>`)}
     ${chapter(3, 'r', '03 · Compara', 'La compara con<br>lo preparado.', 'Nuestro equipo prepara cada palabra con cuidado. Voz Propia compara tu movimiento con todas y *elige la más parecida*.', `<div class="g-bars" role="img" aria-label="Ejemplo: tengo sed 92 por ciento, tengo frío 5, me duele 3">${bars}</div><p class="g-note" style="--i:6">Ejemplo ilustrativo</p>`)}
     ${chapter(4, 'l', '04 · Duda', 'Si duda,<br>te pregunta.', 'Cuando dos palabras se parecen, *no adivina*. Te muestra las opciones y *tú eliges*.', `<div class="g-opts" role="group" aria-label="Opciones de ejemplo">${options}</div><p class="g-note" style="--i:6">Toca una opción. Ejemplo ilustrativo.</p>`)}

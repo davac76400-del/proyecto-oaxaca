@@ -119,7 +119,7 @@ function template() {
             <p class="l-p" data-reveal style="--d:.2s">Una traqueostomía, una cirugía de garganta o días en terapia intensiva. Las palabras siguen ahí, pero el sonido ya no sale. Desliza y mira cómo cada una cae al suelo, sin que nadie la escuche.</p>
           </div>
           <div class="l-grid__side l-cards" data-reveal style="--d:.25s">
-            ${card('01', 'Visión', '478 puntos', 'De tu cara, leídos hasta 30 veces por segundo')}
+            ${card('01', 'Visión', 'Tus labios', 'Los mira la cámara de tu teléfono')}
             ${card('02', 'Privacidad', '0 videos', 'Nada sale de tu teléfono, ni una imagen')}
           </div>
         </div>
@@ -157,25 +157,25 @@ function template() {
           <div class="l-head">
             <p class="l-eye" data-reveal>Así funciona</p>
             <h2 data-reveal style="--d:.08s">Una voz que vive en tu teléfono</h2>
-            <p data-reveal style="--d:.16s">Sin servidores ni esperas. Voz Propia mira tus labios, los compara con las palabras que preparamos y habla en milisegundos.</p>
+            <p data-reveal style="--d:.16s">Sin servidores ni esperas. Voz Propia mira tus labios, reconoce la palabra y habla al instante.</p>
           </div>
           <div class="l-features">
-            ${feature('scan-face', 'Mira tus labios', 'Sigue 478 puntos de tu cara y se queda con los 40 de la boca, aunque te muevas o te alejes.', 0)}
+            ${feature('scan-face', 'Mira tus labios', 'La cámara de tu teléfono mira cómo se mueven tus labios, aunque te muevas un poco.', 0)}
             ${feature('sparkles', 'Palabras preparadas', 'Nuestro equipo prepara cada palabra con cuidado, para que se reconozca bien desde el primer día.', 1)}
             ${feature('volume', 'Habla por ti', 'Con la voz del teléfono, la que tu familia elija para ti.', 2)}
             ${feature('wifi-off', 'Funciona en modo avión', 'Todo corre dentro del teléfono. Ideal para un cuarto de hospital sin señal.', 3)}
-            ${feature('shield-check', 'Tus datos, tuyos', 'No se graba ni se envía video. Solo números con la forma de tus labios.', 4)}
+            ${feature('shield-check', 'Tus datos, tuyos', 'No se graba ni se envía video. Nada sale de tu teléfono.', 4)}
             ${feature('layout-grid', 'Respuestas rápidas', 'Sí, no, escala de dolor y frases por tema, a un toque y sin cámara.', 5)}
           </div>
           <div class="l-big" data-reveal>
             <i class="l-big__glow" aria-hidden="true"></i>
             <p class="l-eye">Por qué importa</p>
-            <h2 class="l-big__title"><b data-count-to="945">945</b> mil personas<br>en México casi no pueden hablar.<span class="l-script l-script--big" aria-hidden="true">y tienen mucho que decir</span></h2>
+            <h2 class="l-big__title"><b data-count-to="742">742</b> mil personas<br>en México casi no pueden hablar.<span class="l-script l-script--big" aria-hidden="true">y tienen mucho que decir</span></h2>
             <p class="l-big__p">Tienen mucha dificultad para hablar o comunicarse, o no pueden hacerlo. Para quienes todavía mueven los labios, Voz Propia puede ser su voz.</p>
-            <p class="l-big__src">Fuente: INEGI, Censo 2020</p>
+            <p class="l-big__src">Fuente: INEGI, Encuesta Intercensal 2025 (publicada en 2026)</p>
           </div>
           <div class="l-stats">
-            ${[['478', 'Puntos de tu cara'], ['30', 'Cuadros por segundo'], ['~6 ms', 'Para reconocer una frase'], ['0', 'Videos guardados']]
+            ${[['0', 'Videos guardados'], ['0', 'Aparatos extra'], ['100%', 'Dentro de tu teléfono'], ['11', 'Niveles de dolor']]
               .map(([v, l], i) => `<div class="l-stat" data-reveal style="--d:${i * 0.08}s"><p class="l-stat__v">${v}</p><p class="l-stat__l">${l}</p></div>`)
               .join('')}
           </div>
@@ -307,7 +307,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   const orb = root.querySelector<HTMLElement>('[data-loader-orb]')!;
   const count = root.querySelector<HTMLElement>('[data-loader-count]')!;
   const status = root.querySelector<HTMLElement>('[data-loader-status]')!;
-  const PHASES = ['Calibrando lectura de labios', 'Ubicando 478 puntos de tu cara', 'Preparando las esferas', 'Afinando tu voz'];
+  const PHASES = ['Calibrando lectura de labios', 'Preparando tu cámara', 'Preparando las esferas', 'Afinando tu voz'];
   const MIN_MS = 2600;
   const t0 = performance.now();
   let value = 0;

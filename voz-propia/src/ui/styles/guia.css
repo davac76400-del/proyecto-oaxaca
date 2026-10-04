@@ -279,13 +279,13 @@
 
 .g-skip {
   position: fixed;
-  top: 82px;
+  top: calc(env(safe-area-inset-top, 0px) + 82px);
   right: 14px;
   z-index: 40;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  max-width: calc(100vw - 28px);
+  max-width: calc(100vw - 86px);
   min-height: 44px;
   padding: 0 18px 0 14px;
   border: 1.5px solid rgb(255 255 255 / 0.4);
@@ -560,7 +560,7 @@
 /* ---------- Teléfono: texto abajo sobre un degradado, escena arriba ---------- */
 
 @media (max-width: 820px) {
-  .g-ch__stick { align-items: end; padding: 84px 20px calc(28px + env(safe-area-inset-bottom)); }
+  .g-ch__stick { align-items: end; padding: calc(env(safe-area-inset-top, 0px) + 84px) 20px calc(28px + env(safe-area-inset-bottom)); }
   .g-copy, [data-text='r'] .g-copy, [data-text='c'] .g-copy {
     justify-self: stretch;
     max-width: none;
@@ -597,7 +597,7 @@
 
 .pal-btn {
   position: fixed;
-  top: 82px;
+  top: calc(env(safe-area-inset-top, 0px) + 82px);
   left: 14px;
   z-index: 45;
   display: inline-flex;
@@ -625,13 +625,13 @@
 
 .pal-menu {
   position: fixed;
-  top: 134px;
+  top: calc(env(safe-area-inset-top, 0px) + 134px);
   left: 14px;
   z-index: 46;
   display: grid;
   gap: 4px;
   width: min(280px, calc(100vw - 28px));
-  max-height: calc(100svh - 150px);
+  max-height: calc(100svh - env(safe-area-inset-top, 0px) - 150px);
   overflow: auto;
   padding: 14px;
   border: 1px solid rgb(255 255 255 / 0.16);

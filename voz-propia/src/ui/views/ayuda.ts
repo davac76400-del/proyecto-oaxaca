@@ -16,12 +16,12 @@ const S = {
   lips: sh({ draw: 'lips' }),
   voz: sh({ text: 'VOZ' }),
   datos: sh({ text: 'DATOS' }),
-  mx: sh({ text: '945 MIL' }),
-  mundo: sh({ text: '189 MIL' }),
+  mx: sh({ text: '742 MIL' }),
+  mundo: sh({ text: '200 MIL' }),
   traqueo: sh({ text: '198 MIL' }),
   ela: sh({ text: 'ELA' }),
-  uci: sh({ text: '54%' }),
-  dolor: sh({ text: '1 DE 3' }),
+  uci: sh({ text: 'SIN VOZ' }),
+  dolor: sh({ text: '9 DE 10' }),
   corazon: sh({ draw: 'heart' }),
   onda: sh({ draw: 'wave' }),
   hola: sh({ text: 'HOLA' }),
@@ -42,16 +42,15 @@ interface Source {
 }
 
 const SOURCES: Source[] = [
-  { id: 'inegi25', short: 'INEGI 2025', name: 'INEGI (1 de diciembre de 2025). Estadísticas a propósito del Día Internacional de las Personas con Discapacidad, con datos de la ENADID 2023.', url: 'https://www.inegi.org.mx/contenidos/saladeprensa/aproposito/2025/EAP_PersDiscap_25.pdf' },
-  { id: 'inegi', short: 'INEGI, Censo 2020', name: 'INEGI. Estadísticas a propósito del Día Internacional de las Personas con Discapacidad (Censo 2020), comunicado 713/21. Es la cifra más reciente que detalla «hablar o comunicarse».', url: 'https://www.inegi.org.mx/contenidos/saladeprensa/aproposito/2021/EAP_PersDiscap21.pdf' },
-  { id: 'globocan', short: 'GLOBOCAN (OMS)', name: 'GLOBOCAN 2022, Agencia Internacional para la Investigación del Cáncer (OMS). Ficha de cáncer de laringe. Es la edición más reciente de GLOBOCAN.', url: 'https://gco.iarc.who.int/media/globocan/factsheets/cancers/14-larynx-fact-sheet.pdf' },
-  { id: 'lac', short: 'Estudio 2026', name: 'Estadísticas mundiales de cáncer de laringe en 2022: un estudio poblacional (resumen del Instituto Nacional del Cáncer de Francia, boletín de marzo de 2026).', url: 'https://en-www.cancer.fr/professionnels-de-sante/veille/nota-bene-cancer/bulletin-n-676-du-2-mars-2026/global-laryngeal-cancer-statistics-in-2022-a-population-based-study' },
+  { id: 'eic25', short: 'INEGI, Intercensal 2025', name: 'INEGI (22 de septiembre de 2026). Encuesta Intercensal 2025, comunicado de prensa 54/26: 130.9 millones de habitantes y 6.4 millones de personas con discapacidad.', url: 'https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2026/ei/EIC2025-def_CP.pdf' },
+  { id: 'eic25r', short: 'INEGI 2026', name: 'INEGI (2026). Encuesta Intercensal 2025, reporte de resultados 37/26: el 11.6% de las personas con discapacidad tiene dificultad para hablar o comunicarse.', url: 'https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2026/ei/EIC2025-def_RR.pdf' },
+  { id: 'gbd25', short: 'Estudio 2025', name: 'Carga mundial del cáncer de laringe de 1990 a 2021, con datos del Estudio de Carga Global de Enfermedad. Frontiers in Oncology, 2025.', url: 'https://www.frontiersin.org/articles/10.3389/fonc.2025.1617613/full' },
+  { id: 'acs26', short: 'Sociedad Americana del Cáncer, 2026', name: 'American Cancer Society. Estadísticas clave del cáncer de laringe: estimaciones para 2026 (12,290 casos nuevos en Estados Unidos).', url: 'https://www.cancer.org/cancer/types/laryngeal-and-hypopharyngeal-cancer/about/key-statistics.html' },
   { id: 'traqueo', short: 'Estudio 2024', name: 'Incidencia y complicaciones de la traqueostomía: análisis de una base de datos nacional de seguros de Estados Unidos, 2010 a 2021 (publicado en 2024).', url: 'https://profiles.wustl.edu/en/publications/tracheostomy-incidence-and-complications-a-national-database-anal/' },
   { id: 'ela25', short: 'Revisión 2025', name: 'Whelan y colaboradores. Tratamiento del habla para la disartria en la esclerosis lateral amiotrófica: una revisión. Healthcare, 2025.', url: 'https://doi.org/10.3390/healthcare13192434' },
-  { id: 'ela', short: 'Estudio en ELA (2020)', name: 'Factores demográficos y disfunción de los órganos del habla en pacientes con ELA esporádica.', url: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7466202/' },
   { id: 'uci25', short: 'Brambilla y cols., 2025', name: 'Brambilla y colaboradores. Dificultades de comunicación en pacientes sin voz con ventilación mecánica en terapia intensiva. Nursing in Critical Care, 2025.', url: 'https://iris.unitn.it/handle/11572/478710' },
-  { id: 'happ15', short: 'Happ y cols., 2015', name: 'Happ y colaboradores. Pacientes con ventilador que pueden comunicarse, 2,671 pacientes. Heart & Lung, 2015.', url: 'https://healthmanagement.org/s/over-half-of-icu-patients-on-ventilators-able-to-communicate' },
-  { id: 'happ11', short: 'Happ y cols.', name: 'Happ y colaboradores. Comunicación entre enfermería y pacientes intubados en terapia intensiva.', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3222584/' },
+  { id: 'dolor24', short: 'Hospital Chợ Rẫy, 2024', name: 'Evaluación del dolor durante los cuidados de pacientes con ventilación mecánica en la terapia intensiva de neurocirugía del Hospital Chợ Rẫy (Vietnam): 295 pacientes, de noviembre de 2023 a junio de 2024.', url: 'https://vnras.com/danh-gia-muc-do-dau-khi-thuc-hien-thu-thuat-cua-nguoi-benh-tho-may-tai-khoa-hoi-suc-ngoai-than-kinh-benh-vien-cho-ray/' },
+  { id: 'happ15', short: 'Happ y cols.', name: 'Happ y colaboradores. Pacientes con ventilador que pueden comunicarse, 2,671 pacientes. Heart & Lung.', url: 'https://healthmanagement.org/s/over-half-of-icu-patients-on-ventilators-able-to-communicate' },
 ];
 
 const srcLinks = (ids: string[]) =>
@@ -82,26 +81,26 @@ interface Fact {
 const FACTS: Fact[] = [
   {
     shape: S.mx,
-    over: 'México',
-    count: 945,
+    over: 'México, 2025',
+    count: 742,
     unit: 'mil personas',
-    title: 'no pueden hablar, o les cuesta muchísimo.',
-    body: 'Es lo que contó el Censo 2020: personas con *mucha dificultad* para hablar o comunicarse, o que *no pueden hacerlo*. Detrás de cada número hay alguien que sí tiene qué decir.',
-    extra: 'En 2023, de más de 129 millones de habitantes, *8.9 millones (6.8%)* reportaron alguna discapacidad (ENADID 2023, publicada por INEGI en 2025). La cifra de «hablar o comunicarse» es del Censo 2020.',
-    sources: ['inegi25', 'inegi'],
+    title: 'tienen mucha dificultad para hablar o comunicarse, o no pueden hacerlo.',
+    body: 'Es lo que encontró la *Encuesta Intercensal 2025* de INEGI, publicada en *septiembre de 2026*: de *6.4 millones* de personas con discapacidad, el *11.6%* tiene dificultad para hablar o comunicarse. Detrás de cada número hay alguien que sí tiene qué decir.',
+    extra: 'México tiene *130.9 millones* de habitantes. La encuesta se hizo del 6 de octubre al 14 de noviembre de 2025. Las 742 mil personas salen del 11.6% de 6.4 millones.',
+    sources: ['eic25', 'eic25r'],
     gu: 'mil',
-    gl: 'personas en México no pueden hablar o les cuesta muchísimo',
+    gl: 'personas en México tienen mucha dificultad para hablar o no pueden (2025)',
   },
   {
     shape: S.mundo,
     over: 'El mundo',
-    count: 189,
+    count: 200,
     unit: 'mil casos nuevos',
-    title: 'de cáncer de laringe en un solo año.',
-    body: 'Son datos de 2022, la edición más reciente de GLOBOCAN. Más de *17 mil* fueron en *América Latina y el Caribe*. La cirugía de laringe puede quitar la voz, pero *los labios se siguen moviendo*.',
-    sources: ['globocan', 'lac'],
+    title: 'de cáncer de laringe cada año.',
+    body: 'Así lo calcula un estudio publicado en *2025*: más de *200 mil personas* al año reciben este diagnóstico. Solo en Estados Unidos se esperan *12,290 casos nuevos en 2026*. La cirugía de laringe puede quitar la voz, pero *los labios se siguen moviendo*.',
+    sources: ['gbd25', 'acs26'],
     gu: 'mil',
-    gl: 'casos nuevos de cáncer de laringe en el mundo, en 2022',
+    gl: 'casos nuevos de cáncer de laringe al año en el mundo',
   },
   {
     shape: S.traqueo,
@@ -118,50 +117,51 @@ const FACTS: Fact[] = [
     shape: S.ela,
     over: 'ELA',
     count: null,
-    big: 'La mayoría',
+    big: '80 a 95%',
     unit: '',
-    title: 'de las personas con ELA pierde el habla con el avance de la enfermedad.',
-    body: 'La esclerosis lateral amiotrófica debilita poco a poco los músculos. En un estudio con pacientes con ELA esporádica, *alrededor de 3 de cada 10* ya tenían problemas del habla al ser diagnosticados.',
+    title: 'de las personas con ELA llega a no poder comunicarse solo con su voz.',
+    body: 'Lo recoge una revisión científica de *2025*. La esclerosis lateral amiotrófica debilita poco a poco los músculos, *también los del habla*.',
     extra: 'Mientras *los labios todavía se muevan*, Voz Propia puede acompañar esa etapa.',
-    sources: ['ela25', 'ela'],
+    sources: ['ela25'],
     gu: '',
-    gl: 'de las personas con ELA pierde el habla con la enfermedad',
+    gl: 'de las personas con ELA llega a no poder comunicarse con su voz',
   },
   {
     shape: S.uci,
     over: 'Terapia intensiva',
-    count: 54,
-    unit: 'por ciento',
-    title: 'de los pacientes con ventilador están despiertos y podrían comunicarse.',
-    body: 'Un estudio con 2,671 pacientes encontró que *más de la mitad* estaba alerta y respondía. Pero *el tubo no les deja hablar*. Un estudio de 2025 en terapia intensiva lo confirma: con menos sedación, *muchos pacientes están conscientes pero sin voz*.',
+    count: null,
+    big: 'Cada vez más',
+    unit: '',
+    title: 'pacientes con ventilador están despiertos, pero sin voz.',
+    body: 'Un estudio de *2025* lo explica: hoy en terapia intensiva se usa *menos sedación*, así que muchos pacientes están *conscientes* mientras el tubo les impide hablar. En un estudio grande, *más de la mitad* (54% de 2,671 pacientes) podía comunicarse.',
     sources: ['uci25', 'happ15'],
-    gu: '%',
-    gl: 'de los pacientes con ventilador están despiertos y podrían comunicarse',
+    gu: '',
+    gl: 'pacientes con ventilador están despiertos, pero sin voz',
   },
   {
     shape: S.dolor,
     over: 'El dolor',
-    count: 1,
-    unit: 'de cada 3',
-    title: 'conversaciones sobre el dolor no se entienden.',
-    body: 'En terapia intensiva, el *37.7%* de los intentos de un paciente intubado por explicar su dolor fallaron. Decir «me duele» *a tiempo lo cambia todo*.',
-    sources: ['happ11'],
-    gu: 'de cada 3',
-    gl: 'intentos de explicar el dolor fallan en terapia intensiva',
+    count: 9,
+    unit: 'de cada 10',
+    title: 'pacientes con ventilador sintieron dolor moderado o fuerte en un cuidado de rutina.',
+    body: 'Un estudio con *295 pacientes* con ventilador, de 2023 a 2024, midió el dolor al aspirarles las secreciones: el *88.5%* tuvo dolor moderado o fuerte. Con el tubo, *no lo pueden decir*. Decir «me duele» *a tiempo lo cambia todo*.',
+    sources: ['dolor24'],
+    gu: 'de cada 10',
+    gl: 'pacientes con ventilador sintieron dolor moderado o fuerte en un cuidado de rutina',
   },
 ];
 
 const SUMMARY: [string, string, string][] = [
   ['Problema', 'help', 'Muchas personas *pierden la voz* por una traqueostomía, una cirugía de laringe, una intubación o una enfermedad. Pero *siguen moviendo los labios*.'],
   ['Solución', 'sparkles', '*Voz Propia* lee ese movimiento con la cámara del teléfono y *lo dice en voz alta*.'],
-  ['Cómo', 'scan-face', 'Sigue *478 puntos* de la cara, usa los *40 de la boca* y los compara con *palabras preparadas*.'],
+  ['Cómo', 'scan-face', 'Mira *cómo se mueven tus labios* y reconoce la palabra entre las que *prepara nuestro equipo*.'],
   ['Privacidad', 'shield-check', '*No graba ni envía video.* Funciona *sin internet*, dentro del teléfono.'],
   ['Hoy', 'check', 'Guía, página de datos y *modo programador* para preparar palabras. Las *primeras palabras están en preparación*.'],
   ['Sigue', 'arrow-right', '*Iniciar a utilizar* con la cámara, más palabras preparadas y cuentas para guardar tu perfil.'],
 ];
 
 const PILLARS: [string, string, string][] = [
-  ['scan-face', 'Lee tus labios', 'Sigue *478 puntos* de tu cara y se queda con los *40 de la boca*.'],
+  ['scan-face', 'Lee tus labios', 'Con la cámara del teléfono, *mira cómo se mueven*.'],
   ['sparkles', 'Palabras preparadas', 'Las prepara *nuestro equipo*, con cuidado.'],
   ['volume', 'Habla en voz alta', 'La palabra suena al instante, con *la voz de tu teléfono*.'],
   ['wifi-off', 'Sin internet', 'Todo corre dentro del teléfono, *incluso sin señal*.'],
@@ -207,7 +207,7 @@ const WHO: Who[] = [
     icon: 'bed',
     title: 'Despierto, con tubo y sin poder decir «me duele».',
     body: 'En un cuarto de hospital sin señal, Voz Propia funciona igual: *todo corre dentro del teléfono*, sin internet.',
-    before: 'El *37.7%* de los intentos de explicar el dolor fallan.',
+    before: 'Casi *9 de cada 10* sienten dolor en cuidados de rutina, sin poder decirlo.',
     after: 'Dices «Me duele» y *el equipo lo escucha*.',
     points: ['Funciona sin internet', 'Sí, no y dolor', 'Pregunta si duda'],
   },
@@ -250,24 +250,23 @@ interface Step {
   icon: string;
   title: string;
   body: string;
-  tech: string;
 }
 
 const STEPS: Step[] = [
-  { name: 'Mira', icon: 'scan-face', title: 'La cámara sigue tu cara.', body: 'Sigue *478 puntos* de tu cara, hasta *30 veces por segundo*. *No graba video.*', tech: 'Detector de rostro MediaPipe, dentro del teléfono.' },
-  { name: 'Boca', icon: 'activity', title: 'Se queda con tus labios.', body: 'De esos puntos usa *los 40 que dibujan la boca*. Aunque te muevas o te alejes, la forma se mide igual.', tech: 'Los números se ajustan al tamaño de tu cara.' },
-  { name: 'Compara', icon: 'brain', title: 'Compara con lo preparado.', body: 'Pone la *secuencia de formas* de tus labios junto a cada palabra que preparó nuestro equipo.', tech: 'Alineación en el tiempo (DTW): da igual si hablas más rápido o más lento.' },
-  { name: 'Elige', icon: 'help', title: 'Elige, o te pregunta.', body: 'Si una palabra gana con claridad, la elige. *Si dos se parecen, te muestra las opciones* y tú eliges.', tech: 'Con poca seguridad, pide confirmar antes de hablar.' },
-  { name: 'Habla', icon: 'volume', title: 'Suena al instante.', body: 'La palabra se dice *en voz alta* con la voz de tu teléfono, la que tu familia eligió.', tech: 'Voz del dispositivo. No necesita internet.' },
+  { name: 'Mira', icon: 'scan-face', title: 'Pones tu cara frente al teléfono.', body: 'La cámara te ve *solo mientras hablas*. *No graba video.*' },
+  { name: 'Labios', icon: 'activity', title: 'Mueves los labios.', body: 'Dices la palabra *como siempre*, aunque no salga la voz. No hace falta exagerar.' },
+  { name: 'Reconoce', icon: 'sparkles', title: 'Reconoce tu palabra.', body: 'Voz Propia *entiende qué dijiste* entre las palabras que preparó nuestro equipo.' },
+  { name: 'Confirma', icon: 'help', title: 'Si duda, te pregunta.', body: 'Si dos palabras se parecen, *te muestra las opciones* y tú eliges. No adivina.' },
+  { name: 'Voz', icon: 'volume', title: 'Suena al instante.', body: 'La palabra se dice *en voz alta* con la voz de tu teléfono, la que tu familia eligió.' },
 ];
 
 const TAGS: [string, string][] = [
-  ['scan-face', 'Detección de rostro (MediaPipe)'],
-  ['brain', 'Comparación en el tiempo (DTW)'],
-  ['download', 'App web instalable (PWA)'],
   ['wifi-off', 'Funciona sin internet'],
-  ['volume', 'Voz del dispositivo'],
-  ['lock', 'Datos solo en tu dispositivo'],
+  ['shield-check', 'No graba video'],
+  ['lock', 'Tus datos, solo en tu teléfono'],
+  ['volume', 'Habla con la voz del teléfono'],
+  ['download', 'Se instala como una app'],
+  ['message-circle', 'Todo en español'],
 ];
 
 const DEMO = ['Tengo sed', 'Me duele', 'Tengo frío', 'Llama a mi familia'];
@@ -275,30 +274,24 @@ const DEMO = ['Tengo sed', 'Me duele', 'Tengo frío', 'Llama a mi familia'];
 const RATES: [string, number][] = [['Lenta', 0.8], ['Normal', 1], ['Rápida', 1.25]];
 const PAIN = ['Sin dolor', 'Muy leve', 'Leve', 'Molesto', 'Molesto', 'Moderado', 'Moderado', 'Fuerte', 'Muy fuerte', 'Intenso', 'El peor dolor'];
 
-const PREP: [string, string, string][] = [
-  ['Grabamos', 'camera', 'De *1 a 5 ejemplos* de la palabra, con la cámara.'],
-  ['Convertimos', 'cpu', 'Cada ejemplo se vuelve *números* con la forma de los labios.'],
-  ['Probamos', 'activity', 'Revisamos que *no se confunda* con otras palabras.'],
-  ['Publicamos', 'sparkles', 'La palabra aparece en la guía, *lista para escucharse*.'],
-];
-
 interface Layer {
   name: string;
   icon: string;
+  badge: string;
   saved: boolean;
   text: string;
 }
 
 const LAYERS: Layer[] = [
-  { name: 'La cámara', icon: 'camera', saved: false, text: 'Ve tu cara solo mientras hablas. *El video no se graba ni se envía* a ningún lado.' },
-  { name: '478 puntos', icon: 'scan-face', saved: false, text: 'Tu cara se convierte en puntos al momento. Los puntos *se usan y se descartan*.' },
-  { name: '40 de la boca', icon: 'activity', saved: false, text: 'Se queda solo con los puntos de tus labios para medir su forma.' },
-  { name: 'Números', icon: 'cpu', saved: true, text: 'La forma de los labios en números. *Es lo único que se guarda*, y vive solo en el dispositivo.' },
+  { name: 'La cámara', icon: 'camera', badge: 'No se graba', saved: false, text: 'Ve tus labios solo mientras hablas. *El video no se graba ni se envía* a ningún lado.' },
+  { name: 'Tu imagen', icon: 'scan-face', badge: 'No se guarda', saved: false, text: 'Se usa al momento para reconocer la palabra y *se descarta*.' },
+  { name: 'Internet', icon: 'wifi-off', badge: 'No se envía', saved: false, text: 'Nada sale de tu teléfono. *Todo pasa ahí mismo*, incluso sin señal.' },
+  { name: 'Tu teléfono', icon: 'lock', badge: 'Solo en tu dispositivo', saved: true, text: 'Lo que la app necesita para funcionar *vive solo en tu teléfono*.' },
 ];
 
 const PROMISES: [string, string, string][] = [
   ['wifi-off', 'Sin internet', 'Todo corre dentro del teléfono.'],
-  ['shield-check', 'Sin video guardado', 'Solo números con la forma de los labios.'],
+  ['shield-check', 'Sin video guardado', 'Nada se graba ni se envía.'],
   ['sparkles', 'Palabras preparadas', 'Nuestro equipo cuida cada palabra.'],
   ['volume', 'Tu voz, tu decisión', 'Suena con la voz que tu familia eligió.'],
 ];
@@ -312,7 +305,7 @@ const MOMENTS: { tab: string; icon: string; before: string; after: string }[] = 
 const COMPARE: [string, string][] = [
   ['Escribir en un papel, con las manos cansadas', 'Mover los labios, como siempre'],
   ['Señas que se malentienden', 'La palabra exacta, en voz alta'],
-  ['Esperar a que alguien adivine', 'Al instante, en milisegundos'],
+  ['Esperar a que alguien adivine', 'Al instante, sin adivinar'],
   ['Apps que necesitan internet', 'Funciona en modo avión'],
 ];
 
@@ -352,13 +345,13 @@ const EASY: [string, string][] = [
 
 const FAQ: [string, string][] = [
   ['¿Necesita internet?', '*No.* Después de abrirla por primera vez con internet, todo corre dentro del teléfono, incluso en un cuarto de hospital sin señal.'],
-  ['¿Guarda mi video?', '*No.* La cámara no graba ni envía video. Solo trabaja con números de la forma de tus labios.'],
+  ['¿Guarda mi video?', '*No.* La cámara no graba ni envía video. Tu imagen se usa al momento y se descarta.'],
   ['¿Qué pasa si se equivoca?', 'Si no está segura, *te muestra las opciones y tú eliges*. Con poca seguridad, te pide confirmar antes de hablar.'],
   ['¿Cuántas palabras entiende?', 'Las que prepara nuestro equipo. *Las primeras están en preparación* y se irán sumando.'],
-  ['¿Quién prepara las palabras?', '*Nuestro equipo.* Graba varios ejemplos de cada palabra y los convierte en números. La persona usuaria no tiene que crear nada.'],
+  ['¿Quién prepara las palabras?', '*Nuestro equipo.* Prepara y revisa cada palabra con cuidado. La persona usuaria no tiene que crear nada.'],
   ['¿Funciona con cubrebocas o con la mano en la boca?', '*No.* Necesita ver tus labios. Sin cubrebocas y sin tapar la boca.'],
   ['¿Qué luz necesita?', 'Mejor con *buena luz de frente*, no por detrás. El teléfono a la altura de tu cara, a un brazo de distancia.'],
-  ['¿Qué tan rápido es?', 'Compara en *milisegundos*. La palabra suena casi al mismo tiempo que terminas de decirla.'],
+  ['¿Qué tan rápido es?', '*Casi al instante.* La palabra suena en cuanto terminas de decirla.'],
   ['¿Se puede instalar en el teléfono?', '*Sí.* Es una app web: se puede instalar desde el navegador y abrirse como cualquier app.'],
   ['¿Es un dispositivo médico?', '*No.* Es una ayuda para comunicarse. No reemplaza la atención del personal de salud.'],
 ];
@@ -445,10 +438,6 @@ function template() {
     .map((c, i) => `<button class="a-tab a-tab--sm" type="button" role="tab" id="a-cat-${c}" aria-controls="a-cat-panel" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}" data-cat="${i}"><span>${CATEGORY_LABEL[c]}</span></button>`)
     .join('');
 
-  const prep = PREP.map(
-    ([t, ic, d], i) => `<li class="a-prep__i"><span class="a-prep__n">${i + 1}</span><span class="a-prep__ic">${icon(ic, 20)}</span><div><h4>${t}</h4><p>${rich(d)}</p></div></li>`,
-  ).join('');
-
   const layerTabs = LAYERS.map(
     (l, i) => `<button class="a-layer" type="button" role="tab" id="a-ly-${i}" aria-controls="a-layer-panel" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}" data-layer="${i}"><span class="a-layer__ic">${icon(l.icon, 20)}</span><span>${l.name}</span>${i < LAYERS.length - 1 ? `<i class="a-layer__arrow" aria-hidden="true">${icon('chevron-right', 16)}</i>` : ''}</button>`,
   ).join('');
@@ -466,10 +455,10 @@ function template() {
   ).join('');
 
   const stats = [
-    ['478', 'puntos de tu cara'],
-    ['40', 'puntos de tu boca'],
-    ['30', 'lecturas por segundo'],
     ['0', 'videos guardados'],
+    ['0', 'aparatos extra'],
+    ['1', 'teléfono, nada más'],
+    ['11', 'niveles de dolor para elegir'],
   ]
     .map(([v, l]) => `<li><b data-count="${v}">0</b><span>${l}</span></li>`)
     .join('');
@@ -504,7 +493,7 @@ function template() {
       <div class="a-copy">
         <p class="a-over">[ Cómo funciona y cómo te ayuda ]</p>
         <h1 class="a-h1" id="a-hero-t">Perdieron la voz.<br><em>No las palabras.</em></h1>
-        <p class="a-body a-body--lead">Datos reales, a quién ayuda Voz Propia y cómo lee tus labios, paso a paso.</p>
+        <p class="a-body a-body--lead">Datos reales, a quién ayuda Voz Propia y cómo puede cambiar su día a día.</p>
         <div class="a-actions">
           <button class="a-btn a-btn--main" type="button" data-jump="a-datos">${icon('arrow-down', 18, 2.4)}<span>Ver los datos</span></button>
           <button class="a-btn" type="button" data-jump="a-demo">${icon('play', 18, 2.2)}<span>Probar la demo</span></button>
@@ -564,7 +553,7 @@ function template() {
             <button class="a-round" type="button" data-step-next aria-label="Paso siguiente">${icon('chevron-right', 20, 2.4)}</button>
           </div>
         </div>
-        <h3 class="a-h3">Hecha con</h3>
+        <h3 class="a-h3">Lo que la hace distinta</h3>
         <ul class="a-tags">${tags}</ul>
       </div>
     </section>
@@ -598,8 +587,6 @@ function template() {
         <p class="a-pain__out" data-pain-out aria-live="polite">Elige un número.</p>
         <h3 class="a-h3">Velocidad de la voz</h3>
         <div class="a-tabs" role="group" aria-label="Velocidad de la voz">${RATES.map(([t], i) => `<button class="a-tab a-tab--sm" type="button" data-rate="${i}" aria-pressed="${i === 1}">${icon('volume', 16)}<span>${t}</span></button>`).join('')}</div>
-        <h3 class="a-h3">Cómo preparamos cada palabra</h3>
-        <ol class="a-prep">${prep}</ol>
       </div>
     </section>
 
@@ -842,8 +829,7 @@ export function ayudaView(root: HTMLElement) {
       <span class="a-panel__ic a-panel__ic--lg">${icon(s.icon, 34, 1.8)}</span>
       <p class="a-panel__n">Paso ${i + 1} de ${STEPS.length}</p>
       <h3>${s.title}</h3>
-      <p>${rich(s.body)}</p>
-      <p class="a-tech">${icon('cpu', 16)}<span>${s.tech}</span></p>`;
+      <p>${rich(s.body)}</p>`;
     stepBar.style.setProperty('--p', String((i + 1) / STEPS.length));
     swap(stepPanel);
   });
@@ -893,7 +879,7 @@ export function ayudaView(root: HTMLElement) {
     const l = LAYERS[i];
     layerPanel.setAttribute('aria-labelledby', `a-ly-${i}`);
     layerPanel.innerHTML = `
-      <span class="a-badge ${l.saved ? 'a-badge--on' : ''}">${icon(l.saved ? 'cpu' : 'shield-check', 16, 2.2)}${l.saved ? 'Solo números, en tu dispositivo' : 'No se guarda'}</span>
+      <span class="a-badge ${l.saved ? 'a-badge--on' : ''}">${icon(l.saved ? 'lock' : 'shield-check', 16, 2.2)}${l.badge}</span>
       <h3>${l.name}</h3>
       <p>${rich(l.text)}</p>`;
     swap(layerPanel);
