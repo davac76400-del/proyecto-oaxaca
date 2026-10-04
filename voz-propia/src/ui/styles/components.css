@@ -1369,3 +1369,13 @@ select.input {
   font-weight: 700;
   text-align: right;
 }
+
+/* Botón de cuenta dentro de la app */
+.app-acct { gap: 6px; border: 0; background: #fff; color: #05080a; font-weight: 700; box-shadow: 0 6px 20px -8px rgb(0 0 0 / 0.5); }
+.topbar > .app-acct { margin-right: auto; margin-left: 10px; }
+.app-acct:hover { background: #f1f6ff; }
+@media (max-width: 520px) {
+  .topbar > .app-acct { margin-left: 6px; }
+  .topbar:has(.app-acct) .water-back { min-width: 0; padding: 0 14px 0 10px; }
+  .topbar:has(.app-acct) .water-back__text small { font-size: 12px; }
+}

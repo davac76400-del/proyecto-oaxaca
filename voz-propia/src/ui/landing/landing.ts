@@ -15,6 +15,9 @@ import type { FieldControl, GravityField, Pointer } from './scene';
 
 interface Options {
   jumpToRoles: boolean;
+  /** Se abrió desde la app (botón Cuenta): sin cargador, abre la cuenta y al terminar regresa a la app. */
+  account?: boolean;
+  onReturn?: () => void;
   onChoose: (role: Role, page?: 'ayuda' | 'consejos') => void;
 }
 
@@ -42,7 +45,12 @@ const LD_MOUTH: Record<string, string> = {
   m: '<svg viewBox="0 0 60 44"><path d="M5 22Q17 8 30 16Q43 8 55 22Q43 38 30 38Q17 38 5 22Z"/><path d="M5 22H55"/></svg>',
 };
 /** Línea por donde se parte la pantalla (x, y en %). */
-const CRACK: [number, number][] = [[50, 0], [53, 9], [47, 19], [54, 31], [46, 42], [53, 53], [47, 64], [54, 75], [48, 87], [51, 100]];
+const CRACK: [number, number][] = [[50, 0], [55, 6], [46, 13], [56, 21], [45, 29], [54, 37], [44, 46], [55, 54], [46, 62], [56, 70], [47, 78], [55, 86], [48, 93], [51, 100]];
+/** Grietas que parten cada mitad en dos pedazos (desde el punto K de la grieta principal) y ramas cortas. */
+const CRACK_K = 7;
+const CUT_L: [number, number][] = [[23, 55], [14, 59], [0, 66]];
+const CUT_R: [number, number][] = [[76, 47], [88, 42], [100, 34]];
+const BRANCH: [number, number][][] = [[[46, 13], [36, 16], [31, 24]], [[56, 21], [66, 25], [70, 33]], [[44, 46], [34, 44], [28, 38]], [[55, 54], [64, 60], [71, 58]], [[46, 62], [38, 70], [34, 80]], [[56, 70], [66, 77], [68, 86]]];
 
 const BAND = ['Sí', 'No', 'Tengo sed', 'Me duele', 'Tengo frío', 'Llama a mi familia', 'Tengo miedo', 'Gracias'];
 const MARQUEE = ['Menos silencio', 'Más voz', 'Tus labios hablan', 'Sin internet'];
@@ -321,7 +329,7 @@ function template() {
           <h2>Tu cuenta</h2>
           <div class="l-gate__me"><span class="l-gate__avatar" data-me-initial>A</span><span><b data-me-name></b><small data-me-mail></small></span></div>
           <button class="l-gate__submit" type="button" data-gate-close><span>Seguir</span>${orbChevron()}</button>
-          <button class="l-gate__out" type="button" data-signout>${icon('log-in', 16, 2.2)}<span>Cerrar sesión</span></button>
+          <button class="l-gate__out" type="button" data-signout>${icon('log-in', 16, 2.2)}<span>Cambiar de cuenta</span></button>
         </div>
         <form class="l-gate__view" data-view="entrar" data-form="entrar" hidden novalidate>
           <button class="l-gate__back" type="button" data-go-view="elegir">${icon('arrow-left', 18, 2.4)}<span>Volver</span></button>
@@ -406,34 +414,57 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     if (opts.jumpToRoles) jumpTo('entrar', true);
   };
 
-  /** La pantalla se parte por una grieta con luz; detrás ya está la cuenta (o «Inicia a trabajar»). */
+  /** La pantalla se rompe en cuatro pedazos por una grieta de luz; detrás ya está la cuenta (o «Inicia a trabajar»). */
   const breakLoader = () => {
-    const pts = CRACK.map(([x, y]) => `${x}% ${y}%`);
-    const left = `polygon(0 0, ${pts.join(', ')}, 0 100%)`;
-    const right = `polygon(${[...pts].reverse().join(', ')}, 100% 100%, 100% 0)`;
-    const mk = (side: 'l' | 'r', clip: string) => {
+    const P = (pts: [number, number][]) => pts.map(([x, y]) => `${x}% ${y}%`);
+    const top = CRACK.slice(0, CRACK_K + 1);
+    const bot = CRACK.slice(CRACK_K);
+    const cl = CUT_L;
+    const cr = CUT_R;
+    const shards: [string, string][] = [
+      ['lt', `polygon(0 0, ${P(top).join(', ')}, ${P(cl).join(', ')})`],
+      ['lb', `polygon(${P([...cl].reverse()).join(', ')}, ${P(bot).join(', ')}, 0 100%)`],
+      ['rt', `polygon(${P(top).join(', ')}, ${P(cr).join(', ')}, 100% 0)`],
+      ['rb', `polygon(${P(bot).join(', ')}, 100% 100%, ${P([...cr].reverse()).join(', ')})`],
+    ];
+    const frag = document.createDocumentFragment();
+    for (const [side, clip] of shards) {
       const h = document.createElement('div');
       h.className = `l-loader__half l-loader__half--${side}`;
       h.setAttribute('aria-hidden', 'true');
       h.style.clipPath = clip;
       h.style.setProperty('-webkit-clip-path', clip);
       h.append(ld.cloneNode(true));
-      return h;
-    };
+      frag.append(h);
+    }
+    const W = innerWidth;
+    const H = innerHeight;
+    const line = (pts: [number, number][], cls: string) => `<polyline class="${cls}" pathLength="100" points="${pts.map(([x, y]) => `${((x * W) / 100).toFixed(1)},${((y * H) / 100).toFixed(1)}`).join(' ')}"/>`;
     const crack = document.createElement('div');
     crack.className = 'l-loader__crack';
     crack.setAttribute('aria-hidden', 'true');
-    crack.innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline pathLength="100" points="${CRACK.map(([x, y]) => `${x},${y}`).join(' ')}"/></svg><i class="l-loader__beam"></i>`;
-    loader.append(mk('l', left), mk('r', right), crack);
+    const sparks = Array.from({ length: 26 }, (_, i) => {
+      const y = 4 + Math.random() * 92;
+      const idx = Math.min(CRACK.length - 1, Math.floor(y / 7.2));
+      const x = CRACK[idx][0];
+      const dir = i % 2 ? 1 : -1;
+      return `<i style="left:${x}%;top:${y.toFixed(1)}%;--dx:${(dir * (40 + Math.random() * 260)).toFixed(0)}px;--dy:${(Math.random() * 200 - 100).toFixed(0)}px;--s:${(3 + Math.random() * 6).toFixed(1)}px;--d:${(Math.random() * 0.2).toFixed(2)}s"></i>`;
+    }).join('');
+    crack.innerHTML = `<svg viewBox="0 0 ${W} ${H}">
+      ${line(CRACK, 'l-loader__crack-glow')}${line(CRACK, 'l-loader__crack-core')}
+      ${line([CRACK[CRACK_K], ...CUT_L], 'l-loader__crack-sub')}${line([CRACK[CRACK_K], ...CUT_R], 'l-loader__crack-sub')}
+      ${BRANCH.map((b) => line(b, 'l-loader__crack-sub l-loader__crack-sub--thin')).join('')}
+    </svg><i class="l-loader__beam"></i><i class="l-loader__flash"></i><span class="l-loader__sparks">${sparks}</span>`;
+    loader.append(frag, crack);
     ld.style.visibility = 'hidden';
     void loader.offsetWidth;
     loader.classList.add('is-cracking');
-    wait.push(window.setTimeout(() => loader.classList.add('is-split'), 520));
+    wait.push(window.setTimeout(() => loader.classList.add('is-split'), 640));
     wait.push(
       window.setTimeout(() => {
         loader.hidden = true;
         releaseGate();
-      }, 1700),
+      }, 2000),
     );
   };
 
@@ -469,7 +500,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     loaderRaf = requestAnimationFrame(loaderTick);
   };
 
-  if (opts.jumpToRoles || !motionOk) {
+  if (opts.jumpToRoles || opts.account || !motionOk) {
     loader.hidden = true;
     requestAnimationFrame(reveal);
   } else {
@@ -619,11 +650,14 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   const acctLabel = root.querySelector<HTMLElement>('[data-acct-label]')!;
   const closeBtn = root.querySelector<HTMLElement>('.l-gate__close')!;
   let afterGate: (() => void) | null = null;
+  let gateTimer = 0;
+  let helloTimer = 0;
   const showAccount = () => {
     const s = session();
     acctLabel.textContent = !s ? 'Entrar' : s.kind === 'invitado' ? 'Invitado' : s.name.split(' ')[0];
   };
   const setView = (v: string) => {
+    if (v !== 'hola') clearTimeout(helloTimer);
     gate.querySelectorAll<HTMLElement>('[data-view]').forEach((el) => (el.hidden = el.dataset.view !== v));
     gate.querySelectorAll<HTMLElement>('[data-err]').forEach((el) => (el.textContent = ''));
     gate.dataset.view = v;
@@ -643,6 +677,8 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     gate.querySelector<HTMLElement>(`[data-view="${v}"] input, [data-view="${v}"] button:not([hidden])`)?.focus({ preventScroll: true });
   };
   const openGate = (view = 'elegir', solo = Boolean(loader.hidden)) => {
+    clearTimeout(gateTimer);
+    clearTimeout(helloTimer);
     control.paused = true;
     gate.classList.add('is-out');
     gate.hidden = false;
@@ -661,7 +697,8 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     control.paused = false;
     gate.classList.add('is-out');
     document.documentElement.classList.remove('gate-on');
-    wait.push(window.setTimeout(() => (gate.hidden = true), motionOk ? 420 : 0));
+    clearTimeout(gateTimer);
+    gateTimer = window.setTimeout(() => (gate.hidden = true), motionOk ? 420 : 0);
     showAccount();
     const next = afterGate;
     afterGate = null;
@@ -674,7 +711,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     root.querySelector<HTMLElement>('[data-hello-t]')!.textContent = s.kind === 'invitado' ? '¡Bienvenido!' : `¡Hola, ${s.name.split(' ')[0]}!`;
     root.querySelector<HTMLElement>('[data-hello-p]')!.textContent = s.kind === 'invitado' ? 'Entraste sin cuenta. Vamos.' : 'Qué gusto verte. Vamos.';
     setView('hola');
-    wait.push(window.setTimeout(closeGate, motionOk ? 1300 : 300));
+    helloTimer = window.setTimeout(closeGate, motionOk ? 1300 : 300);
   };
   // Círculo de «Inicia a trabajar»: se dibuja siguiendo el aro con el dedo o el mouse (o con la barra espaciadora).
   const pad = root.querySelector<HTMLElement>('[data-work]')!;
@@ -800,7 +837,10 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   };
   releaseGate = () => gate.classList.remove('is-under');
   showAccount();
-  if (loader.hidden && !session()) openGate();
+  if (opts.account) {
+    afterGate = opts.onReturn ?? null;
+    openGate(session() ? 'cuenta' : 'elegir', true);
+  } else if (loader.hidden && !session()) openGate();
 
   gate.addEventListener(
     'submit',
@@ -889,6 +929,8 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     offHold();
     offWork();
     cancelAnimationFrame(loaderRaf);
+    clearTimeout(gateTimer);
+    clearTimeout(helloTimer);
     wait.forEach(clearTimeout);
     cancelAnimationFrame(scrollRaf);
     field?.dispose();

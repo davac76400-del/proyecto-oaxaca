@@ -11,6 +11,7 @@ import './ui/styles/consejos.css';
 
 import { go, hashRoute, startRouter, type Route, type View } from './app/router';
 import { loadSettings, state, updateSettings } from './app/state';
+import { session } from './core/auth';
 import { engine } from './core/engine';
 import { db } from './core/storage/db';
 import type { Role } from './core/types';
@@ -90,6 +91,7 @@ function shell(role: Role) {
       <a class="brand" href="#/${m.home}" aria-label="Voz Propia, inicio de la sección">${brandMark()}<span class="brand__word">Voz Propia</span>${
         pro ? `<span class="mode-badge">${icon('code', 13, 2.4)}Programador</span>` : ''
       }</a>
+      ${pro ? '' : acctHTML()}
       ${pro ? `<nav class="topnav" aria-label="Secciones">${links}</nav>` : ''}
       <div class="topbar__right">
         <span class="chip chip--net" data-net hidden>${icon('wifi-off', 14)} Sin internet · todo funciona</span>
@@ -105,6 +107,13 @@ function shell(role: Role) {
     ${m.nav.length ? `<nav class="dock dock--${m.nav.length}" aria-label="Secciones">${links}</nav>` : ''}`;
 }
 
+/** Botón de cuenta dentro de la app: abre la cuenta (cambiar de cuenta, iniciar sesión o crear una). */
+function acctHTML() {
+  const s = session();
+  const name = !s ? 'Cuenta' : s.kind === 'invitado' ? 'Invitado' : s.name.split(' ')[0];
+  return `<a class="btn btn--ghost btn--sm app-acct" href="#/inicio/cuenta" data-app-acct aria-label="Cuenta: ${name}. Cambiar de cuenta">${icon('user', 16)}<span class="hide-sm">${name}</span></a>`;
+}
+
 function mountApp(role: Role) {
   shell(role);
   const ac = new AbortController();
@@ -118,6 +127,7 @@ function mountApp(role: Role) {
     'click',
     async (e) => {
       const t = e.target as Element;
+      if (t.closest('[data-app-acct]')) lastPage = hashRoute();
       if (t.closest('[data-install]')) {
         app.querySelectorAll<HTMLElement>('[data-install]').forEach((b) => (b.hidden = true));
         await installPrompt?.prompt();
@@ -146,6 +156,8 @@ function mountApp(role: Role) {
 
 /* ---------- Qué se muestra: el inicio o la app en su modo ---------- */
 
+let lastPage = '';
+
 async function chooseRole(role: Role, page?: Route) {
   await updateSettings({ role });
   history.replaceState(null, '', `#/${page ?? MODES[role].home}`);
@@ -171,7 +183,12 @@ async function route() {
   if (kind === 'inicio') {
     const { mountLanding } = await import('./ui/landing/landing');
     if (token !== routing) return;
-    mounted = { kind, unmount: mountLanding(app, { jumpToRoles: h === 'inicio/elegir', onChoose: (r, page) => void chooseRole(r, page) }) };
+    mounted = { kind, unmount: mountLanding(app, {
+        jumpToRoles: h === 'inicio/elegir',
+        account: h === 'inicio/cuenta',
+        onReturn: () => void chooseRole('usuario', (lastPage || undefined) as Route | undefined),
+        onChoose: (r, page) => void chooseRole(r, page),
+      }) };
   } else {
     mounted = { kind, unmount: mountApp(kind) };
   }

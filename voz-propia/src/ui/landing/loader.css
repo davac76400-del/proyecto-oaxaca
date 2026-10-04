@@ -157,41 +157,71 @@
   text-transform: uppercase;
 }
 
-/* La pantalla se parte por una grieta de luz */
-.l-loader__half { position: absolute; inset: 0; z-index: 1; will-change: transform; transition: transform 1s cubic-bezier(0.7, 0, 0.2, 1); }
-.l-loader__half--l { transform-origin: 0 100%; }
-.l-loader__half--r { transform-origin: 100% 100%; }
-.l-loader.is-split .l-loader__half--l { transform: translate3d(-58%, 0, 0) rotate(-1.4deg); }
-.l-loader.is-split .l-loader__half--r { transform: translate3d(58%, 0, 0) rotate(1.4deg); }
+/* La pantalla se rompe en cuatro pedazos por una grieta de luz */
+.l-loader.is-cracking { animation: ld-shake 0.5s 0.45s linear; }
+@keyframes ld-shake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  15% { transform: translate3d(-7px, 3px, 0); }
+  30% { transform: translate3d(6px, -4px, 0); }
+  45% { transform: translate3d(-5px, -2px, 0); }
+  60% { transform: translate3d(4px, 3px, 0); }
+  80% { transform: translate3d(-2px, 1px, 0); }
+}
+.l-loader__half { position: absolute; inset: 0; z-index: 1; will-change: transform; transition: transform 1.15s cubic-bezier(0.7, 0, 0.2, 1); }
+.l-loader__half--lt { transform-origin: 0 0; }
+.l-loader__half--lb { transform-origin: 0 100%; transition-delay: 0.06s; }
+.l-loader__half--rt { transform-origin: 100% 0; transition-delay: 0.03s; }
+.l-loader__half--rb { transform-origin: 100% 100%; transition-delay: 0.1s; }
+.l-loader.is-split .l-loader__half--lt { transform: translate3d(-64%, -7%, 0) rotate(-5deg); }
+.l-loader.is-split .l-loader__half--lb { transform: translate3d(-60%, 10%, 0) rotate(4deg); }
+.l-loader.is-split .l-loader__half--rt { transform: translate3d(62%, -9%, 0) rotate(5deg); }
+.l-loader.is-split .l-loader__half--rb { transform: translate3d(66%, 13%, 0) rotate(-4deg); }
 .l-loader__half .l-ld { visibility: visible; }
 
 .l-loader__crack { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 .l-loader__crack svg { width: 100%; height: 100%; overflow: visible; }
 .l-loader__crack polyline {
   fill: none;
-  stroke: #fff;
-  stroke-width: 3;
   stroke-linejoin: miter;
-  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
-  filter: drop-shadow(0 0 6px #3df2a0) drop-shadow(0 0 18px #4d7cff);
-  transition: stroke-dashoffset 0.5s cubic-bezier(0.5, 0, 0.3, 1), opacity 0.45s ease-out;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.5, 0, 0.3, 1), opacity 0.5s ease-out 0.1s;
 }
+.l-loader__crack-glow { stroke: #4d7cff; stroke-width: 22; opacity: 0.75; filter: blur(9px); }
+.l-loader__crack-core { stroke: #fff; stroke-width: 7; filter: drop-shadow(0 0 8px #3df2a0) drop-shadow(0 0 22px #4d7cff); }
+.l-loader__crack-sub { stroke: #fff; stroke-width: 4; filter: drop-shadow(0 0 7px #3df2a0); transition-delay: 0.22s; }
+.l-loader__crack-sub--thin { stroke-width: 2.5; transition-delay: 0.36s; }
 .l-loader.is-cracking .l-loader__crack polyline { stroke-dashoffset: 0; }
 .l-loader.is-split .l-loader__crack polyline { opacity: 0; }
+
 .l-loader__beam {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: calc(50% - 4px);
-  width: 8px;
+  left: calc(50% - 9px);
+  width: 18px;
   opacity: 0;
-  background: linear-gradient(180deg, transparent, #fff 20%, #9dffd2 50%, #fff 80%, transparent);
-  filter: blur(6px);
+  background: linear-gradient(180deg, transparent, #fff 18%, #9dffd2 50%, #fff 82%, transparent);
+  filter: blur(8px);
 }
-.l-loader.is-split .l-loader__beam { animation: ld-beam 1s ease-out forwards; }
-@keyframes ld-beam { 0% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(34); } }
+.l-loader.is-split .l-loader__beam { animation: ld-beam 1.1s ease-out forwards; }
+@keyframes ld-beam { 0% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(40); } }
+.l-loader__flash { position: absolute; inset: 0; opacity: 0; background: radial-gradient(60% 70% at 50% 50%, #fff, rgb(157 255 210 / 0.55) 45%, transparent 75%); }
+.l-loader.is-split .l-loader__flash { animation: ld-flash 0.7s ease-out forwards; }
+@keyframes ld-flash { 0% { opacity: 0.95; } 100% { opacity: 0; } }
+.l-loader__sparks i {
+  position: absolute;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px 2px #3df2a0;
+  opacity: 0;
+}
+.l-loader.is-split .l-loader__sparks i { animation: ld-spark 1s var(--d) cubic-bezier(0.1, 0.7, 0.3, 1) forwards; }
+@keyframes ld-spark { 0% { opacity: 1; transform: translate3d(0, 0, 0); } 100% { opacity: 0; transform: translate3d(var(--dx), var(--dy), 0) scale(0.3); } }
+
 
 /* ---------- Inicia a trabajar: círculo que se rellena manteniendo presionado ---------- */
 
@@ -290,4 +320,5 @@
   .l-ld__bar, .l-ld__wave, .l-ld__it > *, .l-work__core .mark, .l-work__demo, .l-flood i, .l-flood svg { animation: none !important; }
   .l-flood i { clip-path: none; }
   .l-loader__half, .l-loader__crack polyline { transition: none; }
+  .l-loader.is-cracking { animation: none; }
 }
