@@ -17,7 +17,7 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 ## Cuenta
 
-Al abrir la app, cuando el cargador llega al 100 %, aparece sobre él la pantalla de entrada (obligatoria): **Iniciar sesión**, **Crear cuenta** (nombre, correo y contraseña) o **Entrar sin correo** (invitado: no se guarda nada al salir). Por ahora las cuentas viven en el dispositivo (`src/core/auth.ts`, contraseña guardada como huella PBKDF2); para usarlas en varios dispositivos hace falta un servidor (por ejemplo Supabase). Al entrar sale un saludo animado y se abren las cortinas. La sesión con cuenta se recuerda. Arriba, siempre visibles, están **Consejos** y **Cuenta** (ver tu cuenta, cerrar sesión o iniciar sesión si entraste sin correo). Mientras la pantalla de cuenta está abierta, la escena 3D se pausa.
+Al abrir la app, cuando la barra del cargador se llena, la pantalla se parte en dos y aparece la entrada (obligatoria): **Iniciar sesión**, **Crear cuenta** (nombre, correo y contraseña) o **Entrar sin cuenta** (invitado: no se guarda nada al salir). Por ahora las cuentas viven en el dispositivo (`src/core/auth.ts`, contraseña guardada como huella PBKDF2); para usarlas en varios dispositivos hace falta un servidor (por ejemplo Supabase). Al entrar sale **Inicia a trabajar**: hay que mantener presionado (mouse o dedo) hasta rellenar el círculo, y entonces se abre el inicio. La sesión con cuenta se recuerda. Arriba, siempre visibles, están **Consejos** y **Cuenta** (ver tu cuenta, cerrar sesión o iniciar sesión si entraste sin correo). Mientras la pantalla de cuenta está abierta, la escena 3D se pausa.
 
 ## Dos modos
 
@@ -30,7 +30,7 @@ La primera vez se abre el **inicio**; ahí se elige «Iniciar a usar» o se abre
 
 En la guía y en la página de ayuda hay un selector de **colores** (arriba a la izquierda): seis paletas oscuras (negro y azul, océano, bosque, vino, violeta y ámbar). Cambian el fondo, las tarjetas, los puntos y esferas 3D, y se recuerdan. Las ideas clave del texto van en otro color (`*así*` en el código, `src/ui/dom.ts › rich`), sin subrayar.
 
-Siempre se abre en el **inicio**, con un cargador: una esfera de cristal que se llena de agua con el porcentaje, y al llegar a 100 % se abren las cortinas (mínimo ~2.6 s). Solo el modo programador conserva su dirección (`#/panel`, etc.). En vista previa (la app dentro de otra página, como un Artifact) **se reinicia sola al cerrarla y volverla a abrir**, para empezar siempre desde el cargador. «Regresar al inicio» (mantener 2 s) salpica con ondas verde, blanca, azul y negra.
+Siempre se abre en el **inicio**, con un cargador: una barra de colores fosforescentes que se llena mientras arriba aparecen labios y palabras, y al llenarse la pantalla se parte en dos (mínimo ~3 s). Solo el modo programador conserva su dirección (`#/panel`, etc.). En vista previa (la app dentro de otra página, como un Artifact) **se reinicia sola al cerrarla y volverla a abrir**, para empezar siempre desde el cargador. «Regresar al inicio» (mantener 2 s) salpica con ondas verde, blanca, azul y negra.
 
 Las palabras las prepara el equipo (modo programador › Entrenar); la persona usuaria no crea palabras. En la guía, el botón **«Pasar directamente a la aplicación»** salta al final, y desde el final **«Volver al inicio de la guía»** regresa arriba.
 

@@ -1,6 +1,7 @@
 import '@fontsource/anton/latin-400.css';
 import '@fontsource/sacramento/latin-400.css';
 import './landing.css';
+import './loader.css';
 
 import { state } from '../../app/state';
 import type { Role } from '../../core/types';
@@ -19,6 +20,29 @@ interface Options {
 
 const BALL_COLOR = '#2F69FF';
 const HERO_BG = 'radial-gradient(circle at center, #ffffff 0%, #ecefff 35%, #c2d1ff 100%)';
+
+/** Cosas que aparecen arriba mientras carga: [tipo, texto o forma, x %, y %, color, % en que aparece]. */
+const LD_ITEMS: [string, string, number, number, string, number][] = [
+  ['w', 'Hola', 17, 10, '#3df2a0', 8],
+  ['w', 'Agua', 83, 20, '#00e5ff', 18],
+  ['m', 'o', 36, 26, '#ff3df0', 24],
+  ['w', 'Gracias', 16, 34, '#ff3df0', 30],
+  ['m', 'smile', 66, 8, '#f7ff3d', 36],
+  ['w', 'Te quiero', 84, 48, '#f7ff3d', 42],
+  ['w', 'Familia', 17, 58, '#b04dff', 54],
+  ['m', 'm', 70, 82, '#00e5ff', 60],
+  ['w', 'Tengo sed', 83, 72, '#3df2a0', 66],
+  ['w', 'Estoy aquí', 19, 82, '#00e5ff', 78],
+  ['m', 'o', 32, 90, '#3df2a0', 86],
+  ['w', 'Sí', 84, 92, '#ff3df0', 92],
+];
+const LD_MOUTH: Record<string, string> = {
+  o: '<svg viewBox="0 0 60 44"><ellipse cx="30" cy="22" rx="13" ry="17"/><ellipse cx="30" cy="22" rx="5.5" ry="9"/></svg>',
+  smile: '<svg viewBox="0 0 60 44"><path d="M5 12Q30 50 55 12Q30 26 5 12Z"/></svg>',
+  m: '<svg viewBox="0 0 60 44"><path d="M5 22Q17 8 30 16Q43 8 55 22Q43 38 30 38Q17 38 5 22Z"/><path d="M5 22H55"/></svg>',
+};
+/** Línea por donde se parte la pantalla (x, y en %). */
+const CRACK: [number, number][] = [[50, 0], [53, 9], [47, 19], [54, 31], [46, 42], [53, 53], [47, 64], [54, 75], [48, 87], [51, 100]];
 
 const BAND = ['Sí', 'No', 'Tengo sed', 'Me duele', 'Tengo frío', 'Llama a mi familia', 'Tengo miedo', 'Gracias'];
 const MARQUEE = ['Menos silencio', 'Más voz', 'Tus labios hablan', 'Sin internet'];
@@ -58,28 +82,26 @@ function template() {
     </div>
 
     <div class="l-loader" data-loader role="status" aria-live="polite">
-      <i class="l-loader__curtain l-loader__curtain--t" aria-hidden="true"></i>
-      <i class="l-loader__curtain l-loader__curtain--b" aria-hidden="true"></i>
-      <div class="l-loader__core">
-        <p class="l-loader__brand" aria-hidden="true">${brandMark()}<span>Voz Propia</span></p>
-        <div class="l-loader__stage" aria-hidden="true">
-          <i class="l-loader__ring l-loader__ring--1"></i>
-          <i class="l-loader__ring l-loader__ring--2"></i>
-          <i class="l-loader__burst"></i>
-          <div class="l-loader__orbit">
-            <i style="--a:0deg;--s:12px;--c:#3df2a0"></i><i style="--a:60deg;--s:7px;--c:#f4f7fa"></i><i style="--a:120deg;--s:10px;--c:#5d80ff"></i>
-            <i style="--a:180deg;--s:12px;--c:#3df2a0"></i><i style="--a:240deg;--s:7px;--c:#f4f7fa"></i><i style="--a:300deg;--s:10px;--c:#5d80ff"></i>
+      <div class="l-ld" data-ld>
+        <p class="l-ld__brand" aria-hidden="true">${brandMark()}<span>Voz Propia</span></p>
+        <div class="l-ld__field" aria-hidden="true">
+          <div class="l-ld__hero" data-ld-hero>
+            <i class="l-ld__wave"></i><i class="l-ld__wave l-ld__wave--2"></i>
+            <svg viewBox="0 0 120 76"><defs><linearGradient id="ld-lips" x1="0" x2="1"><stop offset="0" stop-color="#3df2a0"/><stop offset=".5" stop-color="#4d7cff"/><stop offset="1" stop-color="#ff3df0"/></linearGradient></defs><path class="l-ld__lip" d="M6 38C24 30 36 14 49 14C55 14 58 19 60 21C62 19 65 14 71 14C84 14 96 30 114 38C98 41 78 43 60 41C42 43 22 41 6 38Z"/><path class="l-ld__lip l-ld__lip--low" d="M6 39C22 43 42 45 60 44C78 45 98 43 114 39C100 58 82 66 60 66C38 66 20 58 6 39Z"/></svg>
           </div>
-          <div class="l-loader__orb" data-loader-orb>
-            <div class="l-loader__water">
-              <svg class="l-loader__wave l-loader__wave--b" viewBox="0 0 240 16" preserveAspectRatio="none"><path d="M0 8 Q30 0 60 8 T120 8 T180 8 T240 8 V16 H0Z"/></svg>
-              <svg class="l-loader__wave" viewBox="0 0 240 16" preserveAspectRatio="none"><path d="M0 8 Q30 16 60 8 T120 8 T180 8 T240 8 V16 H0Z"/></svg>
-              <span class="l-loader__body"></span>
-            </div>
-            <span class="l-loader__num"><b data-loader-count>0</b><small>%</small></span>
-          </div>
+          ${LD_ITEMS.map(
+            ([kind, v, x, y, c, at]) =>
+              `<span class="l-ld__it l-ld__it--${kind}" data-at="${at}" style="--x:${x}%;--y:${y}%;--c:${c}">${kind === 'w' ? `<b>${v}</b>` : LD_MOUTH[v]}</span>`,
+          ).join('')}
         </div>
-        <p class="l-loader__status" data-loader-status>Calibrando lectura de labios</p>
+        <div class="l-ld__meter" aria-hidden="true">
+          <div class="l-ld__track">
+            <i class="l-ld__bar l-ld__bar--glow"></i>
+            <i class="l-ld__bar"></i>
+            <i class="l-ld__spark"></i>
+          </div>
+          <p class="l-ld__status" data-loader-status>Calibrando lectura de labios</p>
+        </div>
       </div>
     </div>
 
@@ -265,7 +287,7 @@ function template() {
             <span class="l-gate__ic">${icon('user-plus', 20)}</span><span><b>Crear cuenta</b><small>Con tu correo, en un minuto.</small></span>${orbChevron()}
           </button>
           <button class="l-gate__opt" type="button" data-guest>
-            <span class="l-gate__ic">${icon('user', 20)}</span><span><b>Entrar sin correo</b><small>Rápido. Al salir no se guarda nada.</small></span>${orbChevron()}
+            <span class="l-gate__ic">${icon('user', 20)}</span><span><b>Entrar sin cuenta</b><small>Rápido. Al salir no se guarda nada.</small></span>${orbChevron()}
           </button>
           <p class="l-gate__fine">${icon('lock', 14)} Tu cuenta se guarda en este dispositivo. Nadie más la ve.</p>
         </div>
@@ -273,6 +295,22 @@ function template() {
           <svg class="l-gate__check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M15 27 l8 8 l15 -17"/></svg>
           <h2 data-hello-t>¡Hola!</h2>
           <p class="l-gate__p" data-hello-p>Todo listo.</p>
+        </div>
+        <div class="l-gate__view l-work" data-view="trabajar" hidden>
+          <p class="l-work__hi" data-work-hi>¡Hola!</p>
+          <h2 class="l-work__t" data-work-t>Inicia a trabajar</h2>
+          <button class="l-work__btn" type="button" data-work aria-label="Mantén presionado hasta llenar el círculo para iniciar a trabajar">
+            <svg class="l-work__svg" viewBox="0 0 240 240" aria-hidden="true">
+              <defs><linearGradient id="wk-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3df2a0"/><stop offset=".35" stop-color="#00e5ff"/><stop offset=".65" stop-color="#4d7cff"/><stop offset="1" stop-color="#ff3df0"/></linearGradient><radialGradient id="wk-f"><stop offset="0" stop-color="#4d7cff" stop-opacity=".7"/><stop offset="1" stop-color="#3df2a0" stop-opacity=".25"/></radialGradient></defs>
+              <circle class="l-work__ticks" cx="120" cy="120" r="108" pathLength="108"/>
+              <circle class="l-work__fill" cx="120" cy="120" r="82"/>
+              <circle class="l-work__track" cx="120" cy="120" r="92"/>
+              <circle class="l-work__arc" cx="120" cy="120" r="92" pathLength="100"/>
+            </svg>
+            <i class="l-work__burst" aria-hidden="true"></i>
+            <span class="l-work__core">${brandMark('md')}<small data-work-label>Mantén presionado</small></span>
+          </button>
+          <p class="l-gate__p l-work__p">Rellena el círculo para entrar a la aplicación.</p>
         </div>
         <div class="l-gate__view" data-view="cuenta" hidden>
           <h2>Tu cuenta</h2>
@@ -340,13 +378,13 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   };
   void buildScene();
 
-  /* ---------- Cargador: la esfera se llena de agua; al llegar a 100 % se abren las cortinas ---------- */
+  /* ---------- Cargador: barra de colores; al llenarse la pantalla se parte en dos y aparece la cuenta ---------- */
 
-  const orb = root.querySelector<HTMLElement>('[data-loader-orb]')!;
-  const count = root.querySelector<HTMLElement>('[data-loader-count]')!;
+  const ld = root.querySelector<HTMLElement>('[data-ld]')!;
   const status = root.querySelector<HTMLElement>('[data-loader-status]')!;
-  const PHASES = ['Calibrando lectura de labios', 'Preparando tu cámara', 'Preparando las esferas', 'Afinando tu voz'];
-  const MIN_MS = 2600;
+  const items = Array.from(ld.querySelectorAll<HTMLElement>('.l-ld__it'));
+  const PHASES = ['Calibrando lectura de labios', 'Preparando tu cámara', 'Afinando tu voz', 'Casi lista'];
+  const MIN_MS = 3000;
   const t0 = performance.now();
   let value = 0;
   let phase = -1;
@@ -355,29 +393,52 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   const wait: number[] = [];
 
   // Se asignan más abajo, cuando la pantalla de cuenta ya está lista.
-  let needGate = () => false;
-  let gateFromLoader = (next: () => void) => next();
+  let gateFromLoader = () => {};
+  let releaseGate = () => {};
   const reveal = () => {
     control.started = true;
     root.classList.add('is-revealed');
     if (opts.jumpToRoles) jumpTo('entrar', true);
   };
 
-  const leaveLoader = () => {
-    loader.classList.remove('is-gate');
-    loader.classList.add('is-leaving');
-    wait.push(window.setTimeout(reveal, 380));
-    wait.push(window.setTimeout(() => (loader.hidden = true), 1300));
+  /** La pantalla se parte por una grieta con luz; detrás ya está la cuenta (o «Inicia a trabajar»). */
+  const breakLoader = () => {
+    const pts = CRACK.map(([x, y]) => `${x}% ${y}%`);
+    const left = `polygon(0 0, ${pts.join(', ')}, 0 100%)`;
+    const right = `polygon(${[...pts].reverse().join(', ')}, 100% 100%, 100% 0)`;
+    const mk = (side: 'l' | 'r', clip: string) => {
+      const h = document.createElement('div');
+      h.className = `l-loader__half l-loader__half--${side}`;
+      h.setAttribute('aria-hidden', 'true');
+      h.style.clipPath = clip;
+      h.style.setProperty('-webkit-clip-path', clip);
+      h.append(ld.cloneNode(true));
+      return h;
+    };
+    const crack = document.createElement('div');
+    crack.className = 'l-loader__crack';
+    crack.setAttribute('aria-hidden', 'true');
+    crack.innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline pathLength="100" points="${CRACK.map(([x, y]) => `${x},${y}`).join(' ')}"/></svg><i class="l-loader__beam"></i>`;
+    loader.append(mk('l', left), mk('r', right), crack);
+    ld.style.visibility = 'hidden';
+    void loader.offsetWidth;
+    loader.classList.add('is-cracking');
+    wait.push(window.setTimeout(() => loader.classList.add('is-split'), 520));
+    wait.push(
+      window.setTimeout(() => {
+        loader.hidden = true;
+        releaseGate();
+      }, 1700),
+    );
   };
-  // Al 100 %: si no hay cuenta, la pantalla de entrada aparece sobre el cargador; después se abren las cortinas.
+
   const finishLoader = () => {
     loader.classList.add('is-full');
     status.textContent = 'Lista para escucharte';
     wait.push(
       window.setTimeout(() => {
-        if (!needGate()) return leaveLoader();
-        loader.classList.add('is-gate');
-        gateFromLoader(leaveLoader);
+        gateFromLoader();
+        breakLoader();
       }, 700),
     );
   };
@@ -386,14 +447,14 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     const elapsed = now - t0;
-    // El avance es parejo (mínimo ~2.6 s) para que se vea la animación, y espera a la escena si tarda más.
+    // El avance es parejo (mínimo ~3 s) para que se vea la animación, y espera a la escena si tarda más.
     const t = Math.min(1, elapsed / MIN_MS);
     const cap = 100 * (0.5 - Math.cos(Math.PI * t) / 2);
     const goal = Math.min(sceneReady ? 100 : 92, cap);
     value += (goal - value) * Math.min(1, 6 * dt);
     if (sceneReady && elapsed >= MIN_MS && value > 99.4) value = 100;
-    orb.style.setProperty('--p', (value / 100).toFixed(4));
-    count.textContent = String(value >= 100 ? 100 : Math.min(99, Math.floor(value)));
+    ld.style.setProperty('--p', (value / 100).toFixed(4));
+    for (const it of items) if (value >= Number(it.dataset.at)) it.classList.add('on');
     const ph = Math.min(PHASES.length - 1, Math.floor(value / 25));
     if (ph !== phase && value < 100) {
       phase = ph;
@@ -567,6 +628,13 @@ export function mountLanding(app: HTMLElement, opts: Options) {
       root.querySelector<HTMLElement>('[data-me-name]')!.textContent = s?.name ?? '';
       root.querySelector<HTMLElement>('[data-me-mail]')!.textContent = s?.kind === 'invitado' ? 'Sin correo: no se guarda nada.' : (s?.email ?? '');
     }
+    if (v === 'trabajar') {
+      const s = session();
+      root.querySelector<HTMLElement>('[data-work-hi]')!.textContent = !s || s.kind === 'invitado' ? '¡Bienvenido!' : `¡Hola, ${s.name.split(' ')[0]}!`;
+      root.querySelector<HTMLElement>('[data-work-t]')!.textContent = 'Inicia a trabajar';
+      root.querySelector<HTMLElement>('[data-work-label]')!.textContent = 'Mantén presionado';
+      gate.querySelector('.l-work')!.classList.remove('is-done');
+    }
     gate.querySelector<HTMLElement>(`[data-view="${v}"] input, [data-view="${v}"] button:not([hidden])`)?.focus({ preventScroll: true });
   };
   const openGate = (view = 'elegir', solo = Boolean(loader.hidden)) => {
@@ -594,19 +662,29 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     afterGate = null;
     next?.();
   };
-  /** Saludo de bienvenida y luego se abre el inicio. */
+  /** Después de entrar: en el arranque pide mantener presionado el círculo; si no, un saludo corto. */
   const welcome = () => {
+    if (afterGate) return setView('trabajar');
     const s = session()!;
     root.querySelector<HTMLElement>('[data-hello-t]')!.textContent = s.kind === 'invitado' ? '¡Bienvenido!' : `¡Hola, ${s.name.split(' ')[0]}!`;
-    root.querySelector<HTMLElement>('[data-hello-p]')!.textContent = s.kind === 'invitado' ? 'Entraste sin correo. Vamos.' : 'Qué gusto verte. Vamos.';
+    root.querySelector<HTMLElement>('[data-hello-p]')!.textContent = s.kind === 'invitado' ? 'Entraste sin cuenta. Vamos.' : 'Qué gusto verte. Vamos.';
     setView('hola');
     wait.push(window.setTimeout(closeGate, motionOk ? 1300 : 300));
   };
-  needGate = () => !session();
-  gateFromLoader = (next: () => void) => {
-    afterGate = next;
-    openGate('elegir', false);
+  // Círculo de «Inicia a trabajar»: se rellena manteniéndolo presionado.
+  const workBtn = root.querySelector<HTMLButtonElement>('[data-work]')!;
+  const offWork = bindHold(workBtn, 1500, () => {
+    gate.querySelector('.l-work')!.classList.add('is-done');
+    root.querySelector<HTMLElement>('[data-work-t]')!.textContent = '¡Adelante!';
+    root.querySelector<HTMLElement>('[data-work-label]')!.textContent = 'Listo';
+    wait.push(window.setTimeout(closeGate, motionOk ? 750 : 100));
+  });
+  gateFromLoader = () => {
+    afterGate = reveal;
+    openGate(session() ? 'trabajar' : 'elegir', true);
+    gate.classList.add('is-under');
   };
+  releaseGate = () => gate.classList.remove('is-under');
   showAccount();
   if (loader.hidden && !session()) openGate();
 
@@ -695,6 +773,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     ac.abort();
     io.disconnect();
     offHold();
+    offWork();
     cancelAnimationFrame(loaderRaf);
     wait.forEach(clearTimeout);
     cancelAnimationFrame(scrollRaf);
