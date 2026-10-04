@@ -7,7 +7,7 @@ import './ui/styles/components.css';
 import './ui/styles/views.css';
 import './ui/styles/guia.css';
 import './ui/styles/ayuda.css';
-import './ui/styles/jueces.css';
+import './ui/styles/herramientas.css';
 
 import { go, hashRoute, startRouter, type Route, type View } from './app/router';
 import { loadSettings, state, updateSettings } from './app/state';
@@ -26,7 +26,7 @@ import { ayudaView } from './ui/views/ayuda';
 import { entrenarView } from './ui/views/entrenar';
 import { guiaView } from './ui/views/guia';
 import { hablarView } from './ui/views/hablar';
-import { juecesView } from './ui/views/jueces';
+import { herramientasView } from './ui/views/herramientas';
 import { panelView } from './ui/views/panel';
 import { tableroView } from './ui/views/tablero';
 
@@ -41,7 +41,7 @@ interface Mode {
 const MODES: Record<Role, Mode> = {
   usuario: {
     home: 'guia',
-    views: { guia: guiaView, ayuda: ayudaView, jueces: juecesView },
+    views: { guia: guiaView, ayuda: ayudaView, herramientas: herramientasView },
     nav: [],
   },
   programador: {

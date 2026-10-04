@@ -498,7 +498,7 @@ function template() {
           <button class="a-btn a-btn--main" type="button" data-jump="a-datos">${icon('arrow-down', 18, 2.4)}<span>Ver los datos</span></button>
           <button class="a-btn" type="button" data-jump="a-demo">${icon('play', 18, 2.2)}<span>Probar la demo</span></button>
           <button class="a-btn" type="button" data-jump="a-faq">${icon('help', 18, 2.2)}<span>Preguntas</span></button>
-          <button class="a-btn" type="button" data-to-jueces>${icon('sparkles', 18, 2.2)}<span>Ficha para jueces</span></button>
+          <button class="a-btn" type="button" data-to-tools>${icon('layout-grid', 18, 2.2)}<span>Herramientas</span></button>
         </div>
         <p class="a-hint">${icon('pointer', 16)} Mueve el mouse o toca la pantalla: los puntos te siguen. Haz clic y suéltalo.</p>
       </div>
@@ -657,7 +657,7 @@ function template() {
         <p class="a-body">Entra como usuario para ver, pantalla por pantalla, cómo se usa.</p>
         <div class="a-actions">
           <button class="a-cta" type="button" data-to-guide>${icon('user', 20)}<span>Entrar como usuario</span>${icon('arrow-right', 20)}</button>
-          <button class="a-btn" type="button" data-to-jueces>${icon('sparkles', 18, 2.2)}<span>Ficha para jueces</span></button>
+          <button class="a-btn" type="button" data-to-tools>${icon('layout-grid', 18, 2.2)}<span>Herramientas</span></button>
           <button class="a-btn" type="button" data-jump="a-top">${icon('arrow-up', 18, 2.4)}<span>Volver arriba</span></button>
         </div>
       </div>
@@ -1006,7 +1006,7 @@ export function ayudaView(root: HTMLElement) {
       el.querySelector(`#${a.dataset.jump}`)?.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
     }),
     on(el, 'click', '[data-to-guide]', () => go('guia')),
-    on(el, 'click', '[data-to-jueces]', () => go('jueces')),
+    on(el, 'click', '[data-to-tools]', () => go('herramientas')),
   );
 
   return () => {
