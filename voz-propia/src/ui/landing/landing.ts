@@ -4,10 +4,11 @@ import './landing.css';
 
 import { state } from '../../app/state';
 import type { Role } from '../../core/types';
+import { guest, session, signIn, signOut, signUp } from '../../core/auth';
 import { speakText } from '../../core/voice/speaker';
 import { brandMark } from '../brand';
 import { bindHold, holdRing } from '../components/hold';
-import { reducedMotion, sleep } from '../dom';
+import { esc, reducedMotion, sleep } from '../dom';
 import { icon } from '../icons';
 import type { FieldControl, GravityField, Pointer } from './scene';
 
@@ -215,7 +216,7 @@ function template() {
               <span class="l-role__cta"><span>Ver los consejos</span>${orbChevron()}</span>
             </button>
           </div>
-          <p class="l-soon" data-reveal>${icon('lock', 15)} Muy pronto: inicia sesión o crea tu cuenta para guardar tu perfil.</p>
+          <p class="l-soon" data-reveal data-account></p>
         </div>
       </section>
     </main>
@@ -248,29 +249,44 @@ function template() {
       </div>
     </footer>
 
-    <dialog class="l-entry" aria-labelledby="entry-title">
-      <div class="l-entry__inner">
-        <div class="l-entry__head">
-          <div><p class="l-entry__kicker" data-entry-kicker></p><h2 id="entry-title">¿Cómo quieres entrar?</h2></div>
-          <button class="l-glass-btn l-glass-btn--plain" type="button" data-close-entry aria-label="Cerrar">${icon('x', 18)}</button>
+    <div class="l-gate" data-gate role="dialog" aria-modal="true" aria-labelledby="gate-t" hidden>
+      <div class="l-gate__card">
+        <p class="l-gate__brand">${brandMark()}<span>Voz Propia</span></p>
+        <div class="l-gate__view" data-view="elegir">
+          <h2 id="gate-t">Te damos la bienvenida.</h2>
+          <p class="l-gate__p">Elige cómo quieres entrar.</p>
+          <button class="l-gate__opt is-main" type="button" data-go-view="entrar">
+            <span class="l-gate__ic">${icon('log-in', 20)}</span><span><b>Iniciar sesión</b><small>Ya tengo cuenta.</small></span>${orbChevron()}
+          </button>
+          <button class="l-gate__opt" type="button" data-go-view="crear">
+            <span class="l-gate__ic">${icon('user-plus', 20)}</span><span><b>Crear cuenta</b><small>Con tu correo, en un minuto.</small></span>${orbChevron()}
+          </button>
+          <button class="l-gate__opt" type="button" data-guest>
+            <span class="l-gate__ic">${icon('user', 20)}</span><span><b>Entrar sin correo</b><small>Rápido. Al salir no se guarda nada.</small></span>${orbChevron()}
+          </button>
+          <p class="l-gate__fine">${icon('lock', 14)} Por ahora tu cuenta se guarda solo en este dispositivo.</p>
         </div>
-        <button class="l-entry__opt is-main" type="button" data-enter>
-          <span class="l-entry__ic">${icon('user', 20)}</span>
-          <span><b>Continuar sin cuenta</b><small>Todo se guarda solo en este dispositivo.</small></span>
-          ${orbChevron()}
-        </button>
-        <button class="l-entry__opt" type="button" disabled>
-          <span class="l-entry__ic">${icon('log-in', 20)}</span>
-          <span><b>Iniciar sesión</b><small>Para tener tu perfil en varios dispositivos.</small></span>
-          <em>Pronto</em>
-        </button>
-        <button class="l-entry__opt" type="button" disabled>
-          <span class="l-entry__ic">${icon('user-plus', 20)}</span>
-          <span><b>Crear cuenta</b><small>Guarda tu perfil y tus respaldos.</small></span>
-          <em>Pronto</em>
-        </button>
+        <form class="l-gate__view" data-view="entrar" data-form="entrar" hidden novalidate>
+          <button class="l-gate__back" type="button" data-go-view="elegir">${icon('arrow-left', 18, 2.4)}<span>Volver</span></button>
+          <h2>Iniciar sesión</h2>
+          <label class="l-gate__field"><span>Correo</span><input type="email" name="email" autocomplete="email" inputmode="email" required></label>
+          <label class="l-gate__field"><span>Contraseña</span><input type="password" name="password" autocomplete="current-password" required></label>
+          <p class="l-gate__err" data-err aria-live="polite"></p>
+          <button class="l-gate__submit" type="submit"><span>Entrar</span>${orbChevron()}</button>
+          <p class="l-gate__switch">¿No tienes cuenta? <button type="button" data-go-view="crear">Crear cuenta</button></p>
+        </form>
+        <form class="l-gate__view" data-view="crear" data-form="crear" hidden novalidate>
+          <button class="l-gate__back" type="button" data-go-view="elegir">${icon('arrow-left', 18, 2.4)}<span>Volver</span></button>
+          <h2>Crear cuenta</h2>
+          <label class="l-gate__field"><span>Tu nombre</span><input type="text" name="name" autocomplete="name" required></label>
+          <label class="l-gate__field"><span>Correo</span><input type="email" name="email" autocomplete="email" inputmode="email" required></label>
+          <label class="l-gate__field"><span>Contraseña <small>(mínimo 6)</small></span><input type="password" name="password" autocomplete="new-password" minlength="6" required></label>
+          <p class="l-gate__err" data-err aria-live="polite"></p>
+          <button class="l-gate__submit" type="submit"><span>Crear y entrar</span>${orbChevron()}</button>
+          <p class="l-gate__switch">¿Ya tienes cuenta? <button type="button" data-go-view="entrar">Iniciar sesión</button></p>
+        </form>
       </div>
-    </dialog>
+    </div>
   </div>`;
 }
 
@@ -280,7 +296,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   const root = app.querySelector<HTMLElement>('.landing')!;
   const canvasBox = root.querySelector<HTMLElement>('.l-canvas')!;
   const loader = root.querySelector<HTMLElement>('[data-loader]')!;
-  const entry = root.querySelector<HTMLDialogElement>('.l-entry')!;
+  const gate = root.querySelector<HTMLElement>('[data-gate]')!;
   const ac = new AbortController();
   const { signal } = ac;
 
@@ -324,9 +340,12 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   let loaderRaf = 0;
   const wait: number[] = [];
 
+  // Se asigna más abajo, cuando el formulario de cuenta ya está listo.
+  let gateCheck = () => {};
   const reveal = () => {
     control.started = true;
     root.classList.add('is-revealed');
+    gateCheck();
     if (opts.jumpToRoles) jumpTo('entrar', true);
   };
 
@@ -427,7 +446,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     addEventListener(
       'wheel',
       (e) => {
-        if (e.ctrlKey || entry.open) return;
+        if (e.ctrlKey || !gate.hidden) return;
         e.preventDefault();
         const delta = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
         if (!gliding) target = scrollY;
@@ -510,16 +529,63 @@ export function mountLanding(app: HTMLElement, opts: Options) {
 
   /* ---------- Elegir modo ---------- */
 
-  let chosen: Role = 'usuario';
-  const openEntry = (role: Role) => {
-    chosen = role;
-    root.querySelector<HTMLElement>('[data-entry-kicker]')!.textContent = role === 'usuario' ? '[ Modo usuario ]' : '[ Modo programador ]';
-    entry.dataset.for = role;
-    entry.showModal();
+  /* ---------- Cuenta: se pide al abrir la app, una sola vez ---------- */
+
+  const account = root.querySelector<HTMLElement>('[data-account]')!;
+  const showAccount = () => {
+    const s = session();
+    account.innerHTML = s
+      ? `${icon('user', 15)} ${s.kind === 'invitado' ? 'Entraste sin correo: no se guarda nada.' : `Hola, ${esc(s.name)}.`} <button type="button" data-signout>${s.kind === 'invitado' ? 'Iniciar sesión' : 'Cerrar sesión'}</button>`
+      : '';
   };
+  const setView = (v: string) => {
+    gate.querySelectorAll<HTMLElement>('[data-view]').forEach((el) => (el.hidden = el.dataset.view !== v));
+    gate.querySelectorAll<HTMLElement>('[data-err]').forEach((el) => (el.textContent = ''));
+    gate.querySelector<HTMLElement>(`[data-view="${v}"] input, [data-view="${v}"] .l-gate__opt`)?.focus();
+  };
+  const openGate = () => {
+    gate.hidden = false;
+    document.documentElement.classList.add('gate-on');
+    setView('elegir');
+  };
+  const closeGate = () => {
+    gate.hidden = true;
+    document.documentElement.classList.remove('gate-on');
+    showAccount();
+  };
+  gateCheck = () => (session() ? showAccount() : openGate());
+
+  gate.addEventListener(
+    'submit',
+    async (e) => {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const err = form.querySelector<HTMLElement>('[data-err]')!;
+      const btn = form.querySelector<HTMLButtonElement>('[type="submit"]')!;
+      const data = new FormData(form);
+      const v = (k: string) => String(data.get(k) ?? '');
+      btn.disabled = true;
+      err.textContent = '';
+      try {
+        if (form.dataset.form === 'crear') await signUp(v('name'), v('email'), v('password'));
+        else await signIn(v('email'), v('password'));
+        form.reset();
+        closeGate();
+      } catch (x) {
+        err.textContent = x instanceof Error ? x.message : 'No se pudo entrar. Intenta otra vez.';
+      } finally {
+        btn.disabled = false;
+      }
+    },
+    { signal },
+  );
+
+  /* ---------- Elegir modo ---------- */
+
+  let chosen: Role = 'usuario';
 
   const enter = async (page?: 'ayuda' | 'consejos') => {
-    entry.close();
+    if (!session()) return openGate();
     root.classList.add('is-leaving');
     await sleep(motionOk ? 420 : 0);
     opts.onChoose(chosen, page);
@@ -529,6 +595,16 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     'click',
     (e) => {
       const t = e.target as HTMLElement;
+      const goView = t.closest<HTMLElement>('[data-go-view]');
+      if (goView) return setView(goView.dataset.goView!);
+      if (t.closest('[data-guest]')) {
+        guest();
+        return closeGate();
+      }
+      if (t.closest('[data-signout]')) {
+        signOut();
+        return openGate();
+      }
       const scroll = t.closest<HTMLElement>('[data-scroll]');
       if (scroll) {
         e.preventDefault();
@@ -536,7 +612,10 @@ export function mountLanding(app: HTMLElement, opts: Options) {
         return;
       }
       const role = t.closest<HTMLElement>('[data-role]');
-      if (role) return openEntry(role.dataset.role as Role);
+      if (role) {
+        chosen = role.dataset.role as Role;
+        return void enter();
+      }
       if (t.closest('[data-ayuda]')) {
         chosen = 'usuario';
         return void enter('ayuda');
@@ -545,8 +624,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
         chosen = 'usuario';
         return void enter('consejos');
       }
-      if (t.closest('[data-enter]')) return void enter();
-      if (t.closest('[data-close-entry]') || t === entry) entry.close();
     },
     { signal },
   );
@@ -560,7 +637,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     wait.forEach(clearTimeout);
     cancelAnimationFrame(scrollRaf);
     field?.dispose();
-    if (entry.open) entry.close();
+    document.documentElement.classList.remove('gate-on');
     app.innerHTML = '';
   };
 }

@@ -143,21 +143,6 @@
 .hz-card--card { background: #fffdf8; color: var(--ink0); }
 .hz-card--mint { background: var(--mint); color: var(--ink0); }
 
-/* ---------- ¿Dónde te duele? ---------- */
-
-.hz-pain { display: grid; gap: 28px; }
-@media (min-width: 900px) { .hz-pain { grid-template-columns: 0.75fr 1.25fr; align-items: start; } }
-.hz-body { justify-self: center; width: min(100%, 300px); padding: 20px; border: 2px solid var(--ink0); border-radius: 28px; background: var(--card); box-shadow: var(--shadow); text-align: center; }
-.hz-body svg { width: 100%; height: auto; overflow: visible; }
-.hz-part { fill: #e7dccb; stroke: var(--ink0); stroke-width: 2.5; cursor: pointer; transition: fill 0.2s; outline: none; }
-@media (hover: hover) { .hz-part:hover { fill: #ffc2b2; } }
-.hz-part:focus-visible { stroke: var(--cobalt); stroke-width: 5; }
-.hz-part.is-on { fill: var(--coral); }
-
-.hz-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.hz-chip { min-height: 46px; padding: 0 16px; border: 2px solid var(--ink0); border-radius: 999px; background: var(--card); font: 800 0.98rem/1.1 var(--font-display); }
-.hz-chip[aria-pressed='true'] { background: var(--coral); }
-
 /* ---------- Consejos ---------- */
 
 .hz-tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
@@ -171,7 +156,6 @@
 @media (max-width: 640px) {
   .hz-hero { padding-top: calc(env(safe-area-inset-top, 0px) + 140px); }
   .hz-card { min-height: 0; }
-  .hz-body { width: min(66%, 220px); padding: 14px; }
   .hz-btn { flex: 1 1 auto; justify-content: center; }
 }
 .hz.is-static [data-rv] { opacity: 1; transform: none; transition: none; }
@@ -224,14 +208,39 @@
 .cs-lips h3 { font-size: 1.3rem; font-weight: 800; }
 .cs-lips p { font-size: 1.04rem; line-height: 1.5; color: var(--fg2); }
 
-/* ---------- Consejos: dónde duele ---------- */
+/* ---------- Consejos: letras que se ven igual ---------- */
 
-.cs-say { margin-top: 18px; padding: 18px 20px; border-radius: 20px; background: var(--ink0); color: var(--paper); }
-.cs-say small { font: 700 0.85rem/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--lime); }
-.cs-say p { margin-top: 8px; font: 800 clamp(1.4rem, 3.4vw, 2rem)/1.2 var(--font-display); }
-.cs-scale { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 4px; max-width: 620px; }
-.cs-scale i { --h: calc(140 - var(--k) * 140); display: grid; place-items: center; min-height: 40px; border-radius: 10px; background: hsl(var(--h) 72% 58%); font: 400 1.15rem/1 'Anton', sans-serif; font-style: normal; color: var(--ink0); }
-.cs-scale__lab { display: flex; justify-content: space-between; max-width: 620px; margin-top: 6px; font: 700 0.9rem/1 var(--font-mono); color: #4a4036; }
+.cs-shapes { display: grid; gap: 18px; }
+@media (min-width: 900px) { .cs-shapes { grid-template-columns: 0.8fr 1.2fr; align-items: start; } }
+.cs-shtabs { display: grid; gap: 10px; }
+.cs-shtab {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 10px 18px;
+  border: 2px solid var(--ink0);
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--ink0);
+  text-align: left;
+  transition: transform 0.2s var(--ease-out), background 0.2s;
+}
+.cs-shtab b { min-width: 5.5ch; font: 400 1.5rem/1 'Anton', sans-serif; }
+.cs-shtab span { font: 800 1.05rem/1.2 var(--font-display); }
+.cs-shtab[aria-selected='true'] { background: var(--ink0); color: var(--lime); box-shadow: 4px 4px 0 var(--coral); }
+.cs-shape { display: grid; gap: 22px; align-items: center; padding: clamp(20px, 3vw, 34px); border: 2px solid var(--ink0); border-radius: 28px; background: var(--card); box-shadow: var(--shadow); }
+@media (min-width: 640px) { .cs-shape { grid-template-columns: 0.9fr 1.1fr; } }
+.cs-shape.is-swap { animation: hz-swap 0.35s var(--ease-out); }
+.cs-mouth { width: 100%; max-width: 300px; justify-self: center; padding: 18px; border-radius: 50%; background: #ffe3d8; aspect-ratio: 1; }
+.cs-lip { fill: #e24a5a; stroke: #7a1f2a; stroke-width: 3; stroke-linejoin: round; }
+.cs-line { fill: none; stroke: #7a1f2a; stroke-width: 3; stroke-linecap: round; }
+.cs-in { fill: #4a1018; }
+.cs-teeth { fill: #fff; stroke: #c9c1b6; stroke-width: 2; }
+.cs-shape__l { font: 400 clamp(2.6rem, 6vw, 3.6rem)/1 'Anton', sans-serif; color: var(--coral); }
+.cs-shape h3 { margin: 6px 0 8px; font-size: 1.6rem; font-weight: 800; }
+.cs-shape p { font-size: 1.08rem; line-height: 1.5; color: var(--fg2); }
+.cs-shape__w { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 14px; border-radius: 14px; background: var(--lime); color: var(--ink0) !important; font-weight: 700; }
 
 /* ---------- Consejos: si duda ---------- */
 

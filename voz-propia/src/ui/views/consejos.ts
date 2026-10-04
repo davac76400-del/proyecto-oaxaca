@@ -29,25 +29,48 @@ const LIPS: Record<'si' | 'no', [string, string][]> = {
   ],
 };
 
-const PARTS: [string, string, string][] = [
-  ['cabeza', 'Cabeza', 'Me duele la cabeza'],
-  ['garganta', 'Garganta o cánula', 'Me duele la garganta'],
-  ['pecho', 'Pecho', 'Me duele el pecho'],
-  ['estomago', 'Estómago', 'Me duele el estómago'],
-  ['brazo-d', 'Brazo derecho', 'Me duele el brazo'],
-  ['brazo-i', 'Brazo izquierdo', 'Me duele el brazo'],
-  ['pierna-d', 'Pierna derecha', 'Me duele la pierna'],
-  ['pierna-i', 'Pierna izquierda', 'Me duele la pierna'],
-];
-const BODY: [string, string][] = [
-  ['cabeza', '<circle cx="100" cy="44" r="30"/>'],
-  ['garganta', '<rect x="86" y="74" width="28" height="22" rx="8"/>'],
-  ['pecho', '<rect x="60" y="98" width="80" height="66" rx="20"/>'],
-  ['estomago', '<rect x="64" y="166" width="72" height="62" rx="18"/>'],
-  ['brazo-d', '<rect x="28" y="102" width="28" height="126" rx="14"/>'],
-  ['brazo-i', '<rect x="144" y="102" width="28" height="126" rx="14"/>'],
-  ['pierna-d', '<rect x="66" y="232" width="31" height="150" rx="15"/>'],
-  ['pierna-i', '<rect x="103" y="232" width="31" height="150" rx="15"/>'],
+/** Letras que se ven igual en los labios: por eso a veces la app pregunta. */
+const SHAPES: { k: string; letters: string; name: string; text: string; words: string; mouth: string }[] = [
+  {
+    k: 'cerrados',
+    letters: 'P · B · V · M',
+    name: 'Labios cerrados',
+    text: 'Se dicen *juntando los labios*. En español la «V» suena como la «B», así que sin sonido las cuatro se ven idénticas.',
+    words: '«pala», «bala» y «mala» se ven igual',
+    mouth: '<path class="cs-lip" d="M20 60 C60 30 85 34 100 44 C115 34 140 30 180 60 C140 74 120 78 100 78 C80 78 60 74 20 60 Z"/><path class="cs-line" d="M28 60 C70 62 130 62 172 60"/>',
+  },
+  {
+    k: 'dientes',
+    letters: 'F',
+    name: 'Labio con dientes',
+    text: 'El labio de abajo *toca los dientes de arriba*. Es una de las letras que mejor se ven.',
+    words: '«frío», «café», «familia»',
+    mouth: '<path class="cs-lip" d="M20 56 C60 24 85 28 100 38 C115 28 140 24 180 56 C150 54 125 52 100 52 C75 52 50 54 20 56 Z"/><rect class="cs-teeth" x="62" y="52" width="76" height="12" rx="3"/><path class="cs-lip" d="M30 66 C70 64 130 64 170 66 C140 86 120 90 100 90 C80 90 60 86 30 66 Z"/>',
+  },
+  {
+    k: 'abierta',
+    letters: 'A',
+    name: 'Boca abierta',
+    text: 'La boca *se abre hacia abajo*. Es de las formas más fáciles de ver.',
+    words: '«agua», «cama», «mamá»',
+    mouth: '<path class="cs-lip" d="M24 46 C60 22 86 26 100 34 C114 26 140 22 176 46 C150 42 125 40 100 40 C75 40 50 42 24 46 Z"/><ellipse class="cs-in" cx="100" cy="64" rx="66" ry="24"/><path class="cs-lip" d="M24 46 C40 96 70 106 100 106 C130 106 160 96 176 46 C160 86 130 92 100 92 C70 92 40 86 24 46 Z"/>',
+  },
+  {
+    k: 'redondos',
+    letters: 'O · U',
+    name: 'Labios redondos',
+    text: 'Los labios *se juntan en círculo*. La «O» abre más que la «U».',
+    words: '«oso», «uno», «sueño»',
+    mouth: '<circle class="cs-lip" cx="100" cy="60" r="42"/><ellipse class="cs-in" cx="100" cy="60" rx="20" ry="24"/>',
+  },
+  {
+    k: 'estirados',
+    letters: 'E · I',
+    name: 'Labios estirados',
+    text: 'La boca *se estira a los lados*, como al sonreír.',
+    words: '«té», «sí», «quiero»',
+    mouth: '<path class="cs-lip" d="M10 58 C60 36 86 40 100 46 C114 40 140 36 190 58 C150 56 125 54 100 54 C75 54 50 56 10 58 Z"/><ellipse class="cs-in" cx="100" cy="62" rx="74" ry="8"/><path class="cs-lip" d="M10 62 C50 64 150 64 190 62 C150 84 125 88 100 88 C75 88 50 84 10 62 Z"/>',
+  },
 ];
 
 const DOUBT: [string, string][] = [
@@ -79,7 +102,7 @@ const NAV: [string, string][] = [
   ['cs-top', 'Inicio'],
   ['cs-listo', '¿Todo listo?'],
   ['cs-labios', 'Cómo mover los labios'],
-  ['cs-dolor', 'Decir dónde duele'],
+  ['cs-formas', 'Letras que se ven igual'],
   ['cs-duda', 'Si la app duda'],
   ['cs-telefono', 'Cuida tu teléfono'],
   ['cs-familia', 'Para la familia'],
@@ -91,8 +114,9 @@ function template() {
   const ready = READY.map(
     ([ic, t, d], i) => `<li><button class="cs-check" type="button" data-ready="${i}" aria-pressed="false"><span class="cs-check__box">${icon('check', 20, 3)}</span><span class="cs-check__ic">${icon(ic, 22, 2)}</span><span><b>${t}</b><small>${d}</small></span></button></li>`,
   ).join('');
-  const body = BODY.map(([id, shape]) => `<g class="hz-part" data-part="${id}" role="button" tabindex="0" aria-label="${PARTS.find((p) => p[0] === id)![1]}">${shape}</g>`).join('');
-  const partBtns = PARTS.map(([id, name]) => `<button class="hz-chip" type="button" data-part="${id}" aria-pressed="false">${name}</button>`).join('');
+  const shapeTabs = SHAPES.map(
+    (sh, i) => `<button class="cs-shtab" type="button" role="tab" id="cs-sh-${i}" aria-controls="cs-shape-panel" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}" data-shape="${i}"><b>${sh.letters}</b><span>${sh.name}</span></button>`,
+  ).join('');
   const doubt = DOUBT.map(([t, d], i) => `<li class="cs-step" data-rv style="--d:${i * 0.08}s"><b>${i + 1}</b><h3>${t}</h3><p>${rich(d)}</p></li>`).join('');
   const opts = OPTS.map((t, i) => `<button class="cs-opt" type="button" data-opt="${i}" aria-pressed="false">${t}</button>`).join('');
   const cards = (list: [string, string, string][]) => list.map(([ic, t, d], i) => `<li class="hz-tip" data-rv style="--d:${i * 0.06}s"><span>${icon(ic, 22, 2)}</span><h3>${t}</h3><p>${rich(d)}</p></li>`).join('');
@@ -111,7 +135,7 @@ function template() {
       <div class="hz-grid">
         <button class="hz-card hz-card--lime" type="button" data-jump="cs-listo">${icon('check', 26, 2.6)}<b>¿Todo listo?</b><span>Revisa antes de empezar</span></button>
         <button class="hz-card hz-card--ink" type="button" data-jump="cs-labios">${icon('scan-face', 26, 2.2)}<b>Cómo mover los labios</b><span>Así sí, y así no</span></button>
-        <button class="hz-card hz-card--coral" type="button" data-jump="cs-dolor">${icon('activity', 26, 2.2)}<b>Decir dónde duele</b><span>Qué frase usar</span></button>
+        <button class="hz-card hz-card--coral" type="button" data-jump="cs-formas">${icon('scan-face', 26, 2.2)}<b>Letras que se ven igual</b><span>Por qué a veces pregunta</span></button>
         <button class="hz-card hz-card--cobalt" type="button" data-jump="cs-duda">${icon('help', 26, 2.2)}<b>Si la app duda</b><span>Te pregunta, no adivina</span></button>
         <button class="hz-card hz-card--mint" type="button" data-jump="cs-telefono">${icon('phone', 26, 2.2)}<b>Cuida tu teléfono</b><span>Cargado, quieto y limpio</span></button>
         <button class="hz-card hz-card--card" type="button" data-jump="cs-familia">${icon('hand-heart', 26, 2.2)}<b>Para la familia</b><span>Cómo hablar sin voz</span></button>
@@ -136,25 +160,13 @@ function template() {
       <ul class="cs-lips" data-lips-panel aria-live="polite"></ul>
     </section>
 
-    <section class="hz-sec" id="cs-dolor" data-tone="paper" aria-labelledby="cs-pain-t">
-      <p class="hz-over" data-rv>[ 03 · Decir dónde duele ]</p>
-      <h2 class="hz-h2" id="cs-pain-t" data-rv>Toca dónde, y te decimos qué frase usar.</h2>
-      <div class="hz-pain">
-        <div class="hz-body">
-          <svg viewBox="0 0 200 390" aria-label="Cuerpo de frente. Tu derecha queda a la izquierda.">${body}</svg>
-          <p class="hz-note">Tu derecha queda a la izquierda, como en un espejo.</p>
-        </div>
-        <div>
-          <div class="hz-chips" role="group" aria-label="Partes del cuerpo">${partBtns}</div>
-          <div class="cs-say" aria-live="polite">
-            <small>Mueve los labios y di:</small>
-            <p data-pain-out>Toca una parte del cuerpo.</p>
-          </div>
-          <h3 class="hz-h3">Si te preguntan cuánto duele</h3>
-          <p class="hz-p">${rich('Di un número del *0 al 10*: 0 es sin dolor y 10 el peor dolor.')}</p>
-          <div class="cs-scale" aria-hidden="true">${Array.from({ length: 11 }, (_, n) => `<i style="--k:${n / 10}">${n}</i>`).join('')}</div>
-          <div class="cs-scale__lab"><span>Sin dolor</span><span>El peor dolor</span></div>
-        </div>
+    <section class="hz-sec" id="cs-formas" data-tone="paper" aria-labelledby="cs-shape-t">
+      <p class="hz-over" data-rv>[ 03 · Letras que se ven igual ]</p>
+      <h2 class="hz-h2" id="cs-shape-t" data-rv>Algunas palabras se ven igual en los labios.</h2>
+      <p class="hz-p" data-rv>${rich('Sin sonido, varias letras forman *la misma figura con la boca*. Por eso Voz Propia a veces pregunta, y por eso ayuda *decir frases completas*: el resto de la frase despeja la duda.')}</p>
+      <div class="cs-shapes">
+        <div class="cs-shtabs" role="tablist" aria-label="Formas de la boca">${shapeTabs}</div>
+        <div class="cs-shape" id="cs-shape-panel" role="tabpanel" aria-labelledby="cs-sh-0" data-shape-panel></div>
       </div>
     </section>
 
@@ -271,19 +283,30 @@ export function consejosView(root: HTMLElement) {
   };
   setLips('si');
 
-  /* Dónde duele */
-  let part = '';
-  const painOut = el.querySelector<HTMLElement>('[data-pain-out]')!;
-  const pickPart = (id: string) => {
-    part = part === id ? '' : id;
-    el.querySelectorAll<HTMLElement>('[data-part]').forEach((b) => {
-      const sel = b.dataset.part === part;
-      if (b.tagName === 'BUTTON') b.setAttribute('aria-pressed', String(sel));
-      else b.classList.toggle('is-on', sel);
+  /* Letras que se ven igual */
+  const shapePanel = el.querySelector<HTMLElement>('[data-shape-panel]')!;
+  const shapeBtns = Array.from(el.querySelectorAll<HTMLElement>('[data-shape]'));
+  const setShape = (i: number, focus = false) => {
+    shapeBtns.forEach((b, n) => {
+      b.setAttribute('aria-selected', String(n === i));
+      b.tabIndex = n === i ? 0 : -1;
     });
-    const p = PARTS.find((x) => x[0] === part);
-    painOut.textContent = p ? `«${p[2]}»` : 'Toca una parte del cuerpo.';
+    if (focus) shapeBtns[i].focus();
+    const sh = SHAPES[i];
+    shapePanel.setAttribute('aria-labelledby', `cs-sh-${i}`);
+    shapePanel.innerHTML = `
+      <svg class="cs-mouth" viewBox="0 0 200 120" aria-hidden="true">${sh.mouth}</svg>
+      <div>
+        <p class="cs-shape__l">${sh.letters}</p>
+        <h3>${sh.name}</h3>
+        <p>${rich(sh.text)}</p>
+        <p class="cs-shape__w">${icon('eye', 18)}<span>${sh.words}</span></p>
+      </div>`;
+    shapePanel.classList.remove('is-swap');
+    void shapePanel.offsetWidth;
+    shapePanel.classList.add('is-swap');
   };
+  setShape(0);
 
   const offs = [
     on(el, 'click', '[data-idx]', () => openIdx(Boolean(idx.hidden))),
@@ -297,11 +320,14 @@ export function consejosView(root: HTMLElement) {
       updateReady();
     }),
     on(el, 'click', '[data-lips]', (_, b) => setLips(b.dataset.lips as 'si' | 'no')),
-    on(el, 'click', '[data-part]', (_, b) => pickPart(b.dataset.part!)),
-    on(el, 'keydown', 'g[data-part]', (e, b) => {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
+    on(el, 'click', '[data-shape]', (_, b) => setShape(Number(b.dataset.shape))),
+    on(el, 'keydown', '[data-shape]', (e, b) => {
+      const n = SHAPES.length;
+      const i = Number(b.dataset.shape);
+      const next = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? (i + 1) % n : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? (i - 1 + n) % n : -1;
+      if (next < 0) return;
       e.preventDefault();
-      pickPart(b.dataset.part!);
+      setShape(next, true);
     }),
     on(el, 'click', '[data-opt]', (_, b) => {
       el.querySelectorAll<HTMLElement>('[data-opt]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));

@@ -26,20 +26,21 @@ export function startRouter(outlet: HTMLElement, views: Partial<Record<Route, Vi
     if (r === current) return;
     const swap = () => {
       cleanup?.();
+      document.documentElement.classList.remove('snap-guide');
+      scrollTo({ top: 0, behavior: 'instant' });
       current = r;
       outlet.innerHTML = '';
       outlet.dataset.route = r;
       cleanup = views[r]!(outlet);
       outlet.focus({ preventScroll: true });
-      scrollTo({ top: 0 });
+      scrollTo({ top: 0, behavior: 'instant' });
       for (const a of $$<HTMLAnchorElement>('[data-route]')) {
         if (a.dataset.route === r) a.setAttribute('aria-current', 'page');
         else a.removeAttribute('aria-current');
       }
     };
-    // Transición nativa entre vistas cuando el navegador la soporta.
-    if ('startViewTransition' in document && current !== null) document.startViewTransition(swap);
-    else swap();
+    // Sin transición animada: capturar una página larga (con 3D) tardaba y la nueva aparecía abajo.
+    swap();
   };
 
   addEventListener('hashchange', render);

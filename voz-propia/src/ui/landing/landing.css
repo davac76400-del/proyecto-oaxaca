@@ -1648,179 +1648,80 @@
   text-align: center;
 }
 
-/* ---------- Diálogo: cómo entrar ---------- */
+/* ---------- Cuenta: se pide al abrir la app ---------- */
 
-.l-entry {
-  width: min(480px, calc(100% - 24px));
-  margin: auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--l-ink);
-  font-family: var(--l-raleway, 'Raleway Variable', sans-serif);
-}
-
-.l-entry::backdrop {
-  background: rgb(4 6 15 / 0.55);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-}
-
-.l-entry__inner {
+html.gate-on { overflow: hidden; }
+.l-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
   display: grid;
-  gap: 12px;
-  padding: 24px;
-  border-radius: 28px;
-  background: radial-gradient(130% 100% at 0% 0%, #ffffff 0%, #f1f4ff 60%, #e1e8ff 100%);
-  box-shadow: 0 40px 100px -30px rgb(0 0 0 / 0.6);
-  animation: l-pop 0.45s var(--l-ease);
+  place-items: center;
+  overflow-y: auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 20px) 16px calc(env(safe-area-inset-bottom, 0px) + 20px);
+  background:
+    radial-gradient(60% 50% at 80% 10%, rgb(47 105 255 / 0.35), transparent 70%),
+    radial-gradient(50% 40% at 0% 100%, rgb(93 240 168 / 0.3), transparent 70%),
+    radial-gradient(circle at center, #ffffff 0%, #ecefff 45%, #c2d1ff 100%);
+  animation: l-gate-in 0.45s var(--l-ease);
 }
-
-.l-entry[data-for='programador'] {
-  color: var(--l-night-ink);
+@keyframes l-gate-in { from { opacity: 0; } }
+.l-gate__card {
+  display: grid;
+  gap: 14px;
+  width: min(460px, 100%);
+  padding: clamp(24px, 5vw, 36px);
+  border: 1px solid rgb(255 255 255 / 0.9);
+  border-radius: 32px;
+  background: rgb(255 255 255 / 0.82);
+  box-shadow: 0 40px 90px -40px rgb(14 42 197 / 0.55), inset 0 2px 0 #fff;
+  color: var(--l-ink);
+  font-family: var(--l-raleway);
+  animation: l-gate-up 0.55s var(--l-ease);
 }
-
-.l-entry[data-for='programador'] .l-entry__inner {
-  background: radial-gradient(120% 120% at 100% 0%, rgb(93 240 168 / 0.14), transparent 55%), #0b1124;
-  border: 1px solid var(--l-night-line-2);
-}
-
-@keyframes l-pop {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.97);
-  }
-}
-
-.l-entry__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 6px;
-}
-
-.l-entry__kicker {
-  margin: 0 0 8px;
-  font: 500 14px/1 var(--l-mono, monospace);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--l-blue);
-}
-
-.l-entry[data-for='programador'] .l-entry__kicker {
-  color: var(--l-mint);
-}
-
-.l-entry h2 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-}
-
-.l-entry[data-for='programador'] .l-glass-btn--plain {
-  color: var(--l-night-ink);
-  border-color: var(--l-night-line-2);
-  background: rgb(255 255 255 / 0.05);
-}
-
-.l-entry__opt {
+@keyframes l-gate-up { from { opacity: 0; transform: translate3d(0, 24px, 0) scale(0.98); } }
+.l-gate__brand { display: flex; align-items: center; gap: 10px; margin: 0; font: 700 14px/1 var(--l-mono); letter-spacing: 0.22em; text-transform: uppercase; color: var(--l-blue); }
+.l-gate__view { display: grid; gap: 12px; }
+.l-gate h2 { margin: 6px 0 0; font-size: clamp(1.9rem, 6vw, 2.4rem); font-weight: 700; line-height: 1.02; letter-spacing: -0.035em; }
+.l-gate__p { margin: 0 0 6px; font-size: 17px; color: var(--l-ink-2); }
+.l-gate__opt {
   display: flex;
   align-items: center;
   gap: 14px;
+  width: 100%;
   min-height: 72px;
-  padding: 12px 12px 12px 14px;
-  border-radius: 18px;
-  border: 1px solid rgb(14 42 197 / 0.1);
-  background: rgb(255 255 255 / 0.65);
-  color: inherit;
-  text-align: left;
-  font: inherit;
-  transition: transform 0.15s var(--l-ease), background-color 0.2s;
-}
-
-.l-entry__opt > span:nth-child(2) {
-  flex: 1;
-  display: grid;
-  gap: 2px;
-}
-
-.l-entry__opt b {
-  font-size: 16px;
-}
-
-.l-entry__opt small {
-  font-size: 15px;
-  color: var(--l-muted);
-}
-
-.l-entry__opt em {
-  font: 600 14px/1 var(--l-mono, monospace);
-  font-style: normal;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 7px 10px;
-  border-radius: 999px;
-  background: rgb(11 13 23 / 0.06);
-  color: var(--l-muted);
-}
-
-.l-entry__opt:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.l-entry__opt.is-main {
-  border-color: #fff;
+  padding: 10px 10px 10px 14px;
+  border: 1.5px solid rgb(14 42 197 / 0.14);
+  border-radius: 22px;
   background: #fff;
-  box-shadow: 0 16px 34px -18px rgb(14 42 197 / 0.6);
+  color: var(--l-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.25s var(--l-ease), border-color 0.25s, box-shadow 0.25s;
 }
-
-.l-entry__opt.is-main:active {
-  transform: scale(0.985);
-}
-
-.l-entry__ic {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  flex: none;
-  border-radius: 14px;
-  color: var(--l-blue);
-  background: #e8edff;
-}
-
-.l-entry[data-for='programador'] .l-entry__opt {
-  border-color: var(--l-night-line);
-  background: rgb(255 255 255 / 0.03);
-}
-
-.l-entry[data-for='programador'] .l-entry__opt small,
-.l-entry[data-for='programador'] .l-entry__opt em {
-  color: var(--l-night-muted);
-}
-
-.l-entry[data-for='programador'] .l-entry__opt em {
-  background: rgb(255 255 255 / 0.06);
-}
-
-.l-entry[data-for='programador'] .l-entry__opt.is-main {
-  border-color: rgb(93 240 168 / 0.35);
-  background: rgb(93 240 168 / 0.08);
-  box-shadow: none;
-}
-
-.l-entry[data-for='programador'] .l-entry__ic {
-  color: var(--l-mint);
-  background: rgb(93 240 168 / 0.1);
-}
-
-.l-entry[data-for='programador'] .l-orb {
-  color: #032018;
-  background: linear-gradient(180deg, var(--l-mint), var(--l-mint-2));
-}
+.l-gate__opt > span:nth-child(2) { display: grid; flex: 1; gap: 3px; }
+.l-gate__opt b { font-size: 17px; font-weight: 700; }
+.l-gate__opt small { font-size: 14.5px; color: var(--l-muted); }
+.l-gate__opt:active { transform: scale(0.985); }
+@media (hover: hover) { .l-gate__opt:hover { border-color: var(--l-blue-2); box-shadow: 0 14px 30px -18px rgb(14 42 197 / 0.6); } }
+.l-gate__opt.is-main { border-color: transparent; background: linear-gradient(180deg, #3a72ff, #0e2ac5); color: #fff; box-shadow: 0 16px 34px -16px rgb(14 42 197 / 0.8); }
+.l-gate__opt.is-main small { color: #dbe4ff; }
+.l-gate__ic { display: grid; flex: none; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: #ecefff; color: var(--l-blue); }
+.l-gate__opt.is-main .l-gate__ic { background: rgb(255 255 255 / 0.18); color: #fff; }
+.l-gate__fine { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0 0; font-size: 14px; color: var(--l-muted); text-align: center; }
+.l-gate__back { display: inline-flex; align-items: center; gap: 6px; justify-self: start; min-height: 44px; padding: 0 14px 0 10px; border: 1.5px solid rgb(14 42 197 / 0.16); border-radius: 999px; background: #fff; color: var(--l-ink); font: 700 15px/1 var(--l-raleway); cursor: pointer; }
+.l-gate__field { display: grid; gap: 6px; font-size: 15px; font-weight: 700; }
+.l-gate__field small { font-weight: 500; color: var(--l-muted); }
+.l-gate__field input { width: 100%; min-height: 54px; padding: 0 16px; border: 1.5px solid rgb(14 42 197 / 0.2); border-radius: 16px; background: #fff; color: var(--l-ink); font: 600 17px/1 var(--l-raleway); }
+.l-gate__field input:focus-visible { outline: 3px solid var(--l-blue-2); outline-offset: 1px; border-color: transparent; }
+.l-gate__err { min-height: 1.3em; margin: 0; font-size: 15px; font-weight: 700; color: #c4122f; }
+.l-gate__submit { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; padding: 6px 6px 6px 22px; border: 0; border-radius: 999px; background: var(--l-ink); color: #fff; font: 700 16px/1 var(--l-raleway); cursor: pointer; transition: transform 0.2s var(--l-ease); }
+.l-gate__submit:disabled { opacity: 0.6; cursor: progress; }
+.l-gate__submit:active { transform: scale(0.98); }
+.l-gate__switch { margin: 0; font-size: 15px; color: var(--l-ink-2); text-align: center; }
+.l-gate__switch button { padding: 6px 4px; border: 0; background: none; color: var(--l-blue); font: 700 15px/1 var(--l-raleway); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.l-soon button { margin-left: 6px; padding: 8px 12px; border: 1px solid var(--l-night-line-2); border-radius: 999px; background: none; color: var(--l-night-ink); font: 700 13px/1 var(--l-raleway); cursor: pointer; }
+.l-soon:empty { display: none; }
 
 /* ---------- Pie ---------- */
 
