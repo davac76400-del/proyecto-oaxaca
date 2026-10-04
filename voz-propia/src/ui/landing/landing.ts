@@ -54,7 +54,7 @@ const CUT_R: [number, number][] = [[76, 47], [88, 42], [100, 34]];
 const BRANCH: [number, number][][] = [[[46, 13], [36, 16], [31, 24]], [[56, 21], [66, 25], [70, 33]], [[44, 46], [34, 44], [28, 38]], [[55, 54], [64, 60], [71, 58]], [[46, 62], [38, 70], [34, 80]], [[56, 70], [66, 77], [68, 86]]];
 
 const soundBtn = (cls = '') =>
-  `<button class="l-snd ${cls}" type="button" data-sound aria-pressed="true"><span class="l-snd__on">${icon('volume', 18, 2.2)}</span><span class="l-snd__off">${icon('volume-x', 18, 2.2)}</span><span class="l-snd__tap">Toca para activar el sonido</span></button>`;
+  `<button class="l-snd ${cls}" type="button" data-sound aria-pressed="true"><span class="l-snd__on">${icon('volume', 18, 2.2)}</span><span class="l-snd__off">${icon('volume-x', 18, 2.2)}</span></button>`;
 
 const BAND = ['Sí', 'No', 'Tengo sed', 'Me duele', 'Tengo frío', 'Llama a mi familia', 'Tengo miedo', 'Gracias'];
 const MARQUEE = ['Menos silencio', 'Más voz', 'Tus labios hablan', 'Sin internet'];
@@ -878,13 +878,13 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     root.querySelectorAll<HTMLElement>('[data-sound]').forEach((b) => {
       b.setAttribute('aria-pressed', String(sfx.enabled));
       b.classList.toggle('is-off', !sfx.enabled);
-      b.classList.toggle('needs-tap', sfx.enabled && !sfx.running);
       b.setAttribute('aria-label', sfx.enabled ? 'Sonido activado. Tocar para silenciar' : 'Sonido silenciado. Tocar para activar');
     });
   };
   const unlock = () => sfx.unlock();
-  addEventListener('pointerdown', unlock, { signal, capture: true });
-  addEventListener('keydown', unlock, { signal, capture: true });
+  // El sonido está activo desde el inicio; los navegadores lo liberan con el primer toque (iOS: al soltar).
+  for (const ev of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown']) addEventListener(ev, unlock, { signal, capture: true, passive: true });
+  unlock();
   const offSound = sfx.onChange(syncSound);
   syncSound();
   showAccount();
@@ -892,6 +892,21 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     afterGate = opts.onReturn ?? null;
     openGate(session() ? 'cuenta' : 'elegir', true);
   } else if (loader.hidden && !session()) openGate();
+
+  // En el teléfono, arrastrar la pantalla de cuenta no debe mover la página de atrás ni rebotar al llegar al borde.
+  let touchY = 0;
+  gate.addEventListener('touchstart', (e) => (touchY = e.touches[0].clientY), { signal, passive: true });
+  gate.addEventListener(
+    'touchmove',
+    (e) => {
+      const dy = e.touches[0].clientY - touchY;
+      const fits = gate.scrollHeight <= gate.clientHeight + 1;
+      const atTop = gate.scrollTop <= 0;
+      const atBottom = gate.scrollTop + gate.clientHeight >= gate.scrollHeight - 1;
+      if (fits || (dy > 0 && atTop) || (dy < 0 && atBottom)) e.preventDefault();
+    },
+    { signal, passive: false },
+  );
 
   gate.addEventListener(
     'submit',

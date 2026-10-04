@@ -194,7 +194,7 @@ export function createGravityField(
   };
   updateFrustumBounds();
 
-  const ballCount = isMobile ? 54 : 96;
+  const ballCount = isMobile ? 70 : 96;
 
   const palette = getDynamicColors(ballColor);
   // Paletas del scroll: color del inicio → lima (caída) → rosa (labios).
@@ -270,6 +270,7 @@ export function createGravityField(
   const meanRadius = balls.reduce((sum, b) => sum + b.radius, 0) / balls.length;
   let shapeScale = 1;
   let shapeS = 1;
+  let portraitShape = false;
 
   /**
    * Reparte un punto por esfera dentro de los labios: muestreo por rechazo, unas pasadas de relajación para
@@ -279,8 +280,11 @@ export function createGravityField(
     // En vertical (teléfono) los labios suben un poco para no quedar bajo el texto de abajo.
     const portrait = viewportWidth < viewportHeight * 0.8;
     const S = Math.min(viewportWidth * (portrait ? 0.34 : 0.28), viewportHeight * 0.42);
-    shapeS = S;
-    const baseCY = viewportHeight * (portrait ? 0.04 : -0.03);
+    // En vertical los labios se hacen más altos que anchos de lo normal para que se lean bien en el teléfono.
+    const SY = portrait ? Math.min(viewportWidth * 0.5, viewportHeight * 0.34) : S;
+    portraitShape = portrait;
+    shapeS = SY;
+    const baseCY = viewportHeight * (portrait ? 0.09 : -0.03);
     const area = 1.26 * STRETCH;
     const rt = Math.sqrt((area * 0.95) / (balls.length * Math.PI));
     const pts: { x: number; y: number; side: number }[] = [];
@@ -314,12 +318,12 @@ export function createGravityField(
     }
     const byDepth = pts.map((p) => ({ ...p, depth: edgeDistance(p.x, p.y) })).sort((a, b) => b.depth - a.depth);
     const byRadius = [...balls].sort((a, b) => b.radius - a.radius);
-    shapeScale = Math.max(0.12, Math.min(1, (rt * S) / meanRadius));
+    shapeScale = Math.max(0.12, Math.min(1, (rt * Math.sqrt(S * SY)) / meanRadius));
     byRadius.forEach((b, i) => {
       const p = byDepth[i];
       b.side = p.side;
       b.lipX = p.x;
-      b.shapeTarget.set(p.x * S * STRETCH, p.y * S + baseCY, (Math.random() - 0.5) * 0.2);
+      b.shapeTarget.set(p.x * S * STRETCH, p.y * SY + baseCY, (Math.random() - 0.5) * 0.2);
     });
   };
   assignLipTargets();
@@ -392,7 +396,7 @@ export function createGravityField(
     const heroF = 1 - smoothstep(0.3, 0.8, progress);
     const dropRaw = smoothstep(0.4, 0.95, progress);
     const flyF = smoothstep(2.7, 3.45, progress);
-    const shapeF = smoothstep(1.4, 2.05, progress) * (1 - smoothstep(2.55, 3.0, progress));
+    const shapeF = smoothstep(1.4, 2.05, progress) * (1 - (portraitShape ? smoothstep(2.8, 3.1, progress) : smoothstep(2.55, 3.0, progress)));
     const dropF = dropRaw * (1 - smoothstep(1.25, 1.75, progress));
 
     // Los labios «hablan»: se abren y cierran en sílabas mientras suena la voz.

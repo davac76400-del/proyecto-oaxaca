@@ -1476,9 +1476,10 @@ html.gate-on { overflow: hidden; }
   position: fixed;
   inset: 0;
   z-index: 30;
-  display: grid;
-  place-items: center;
+  display: flex;
   overflow-y: auto;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
   padding: calc(env(safe-area-inset-top, 0px) + 20px) 16px calc(env(safe-area-inset-bottom, 0px) + 20px);
   background: radial-gradient(70% 55% at 50% 45%, rgb(47 105 255 / 0.22), transparent 70%), rgb(4 6 15 / 0.45);
   transition: opacity 0.4s var(--l-ease);
@@ -1487,6 +1488,7 @@ html.gate-on { overflow: hidden; }
 .l-gate.is-out { opacity: 0; pointer-events: none; }
 
 .l-gate__card {
+  margin: auto;
   position: relative;
   display: grid;
   gap: 14px;

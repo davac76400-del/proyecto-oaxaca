@@ -339,14 +339,10 @@
   cursor: pointer;
   justify-content: center;
 }
-.l-snd__off, .l-snd__tap { display: none; }
+.l-snd__off { display: none; }
 .l-snd.is-off .l-snd__on { display: none; }
 .l-snd.is-off .l-snd__off { display: inline-flex; }
-.l-snd.needs-tap { border-color: #3df2a0; box-shadow: 0 0 18px -4px #3df2a0; animation: snd-pulse 1.6s ease-in-out infinite; }
-.l-snd.needs-tap .l-snd__tap { display: inline; }
-@keyframes snd-pulse { 50% { box-shadow: 0 0 26px 0 rgb(61 242 160 / 0.7); } }
 .l-snd--ld { position: absolute; z-index: 3; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
 .l-gate__tools { display: flex; align-items: center; gap: 8px; }
 .l-gate[data-view='trabajar'] .l-gate__top { display: flex; position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); right: 14px; left: auto; }
 .l-gate[data-view='trabajar'] .l-gate__brand, .l-gate[data-view='trabajar'] .l-gate__close { display: none; }
-@media (prefers-reduced-motion: reduce) { .l-snd.needs-tap { animation: none; } }

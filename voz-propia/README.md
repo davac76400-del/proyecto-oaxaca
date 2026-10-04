@@ -17,7 +17,7 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 ## Sonido de la entrada
 
-La entrada tiene efectos de sonido sintetizados en el momento (no hay archivos de audio, así que funcionan sin internet): campanitas que suenan cuando aparece cada palabra, un tono que sube mientras carga la barra, un rayo con trueno cuando la pantalla se rompe, un tono que sube mientras se dibuja el círculo y un arpegio al cerrarlo. Los navegadores solo dejan sonar después de un toque, así que hay un botón de sonido (en el cargador y en la pantalla de cuenta) que avisa cuando falta ese toque y sirve para silenciar. La preferencia se recuerda.
+La entrada tiene efectos de sonido sintetizados en el momento (no hay archivos de audio, así que funcionan sin internet): campanitas que suenan cuando aparece cada palabra, un tono que sube mientras carga la barra, un rayo con trueno cuando la pantalla se rompe, un tono que sube mientras se dibuja el círculo y un arpegio al cerrarlo. El sonido está activo desde el inicio (el navegador lo libera con el primer toque o clic, sin botones extra); hay un botón de bocina (en el cargador y en la pantalla de cuenta) para silenciarlo. La preferencia se recuerda.
 
 ## Cuenta
 
