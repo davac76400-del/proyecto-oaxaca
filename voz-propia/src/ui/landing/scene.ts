@@ -25,6 +25,8 @@ export interface FieldControl {
   /** Índice de sección en flotante: 0 inicio, 1 caída, 2 labios, 3 despegue. */
   progress: number;
   started: boolean;
+  /** Mientras está tapada (pantalla de cuenta), la escena no dibuja. */
+  paused?: boolean;
 }
 
 export interface Pointer {
@@ -529,6 +531,10 @@ export function createGravityField(
 
   const simulateAndRender = (now: number) => {
     animationFrameId = requestAnimationFrame(simulateAndRender);
+    if (control.paused && reportedReady) {
+      lastNow = now;
+      return;
+    }
     const dt = Math.min(0.25, Math.max(0, (now - lastNow) / 1000));
     lastNow = now;
     updateMouse3D();

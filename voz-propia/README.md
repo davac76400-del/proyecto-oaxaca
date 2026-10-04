@@ -17,7 +17,7 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 ## Cuenta
 
-Al abrir la app, después del cargador, se pide entrar: **Iniciar sesión**, **Crear cuenta** (nombre, correo y contraseña) o **Entrar sin correo** (invitado: no se guarda nada al salir). Por ahora las cuentas viven en el dispositivo (`src/core/auth.ts`, contraseña guardada como huella PBKDF2); para usarlas en varios dispositivos hace falta un servidor (por ejemplo Supabase). La sesión con cuenta se recuerda; «Cerrar sesión» está en la sección «Entrar» del inicio.
+Al abrir la app, cuando el cargador llega al 100 %, aparece sobre él la pantalla de entrada (obligatoria): **Iniciar sesión**, **Crear cuenta** (nombre, correo y contraseña) o **Entrar sin correo** (invitado: no se guarda nada al salir). Por ahora las cuentas viven en el dispositivo (`src/core/auth.ts`, contraseña guardada como huella PBKDF2); para usarlas en varios dispositivos hace falta un servidor (por ejemplo Supabase). Al entrar sale un saludo animado y se abren las cortinas. La sesión con cuenta se recuerda. Arriba, siempre visibles, están **Consejos** y **Cuenta** (ver tu cuenta, cerrar sesión o iniciar sesión si entraste sin correo). Mientras la pantalla de cuenta está abierta, la escena 3D se pausa.
 
 ## Dos modos
 
