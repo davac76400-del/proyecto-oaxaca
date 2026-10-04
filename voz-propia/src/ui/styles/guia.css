@@ -675,3 +675,37 @@
 .pal-sw i + i { background: var(--c2); }
 
 .g-more { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.g-again--start { justify-self: start; margin-top: 8px; }
+
+/* ---------- Lo que más se pide en un hospital (información) ---------- */
+
+.g-hosp { display: grid; gap: 18px; }
+.g-htabs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.g-htab { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 18px; border: 1.5px solid var(--line); border-radius: 999px; background: none; color: #fff; font: 800 1rem/1 var(--font-display); }
+.g-htab .ic { color: var(--green); }
+.g-htab[aria-selected='true'] { border-color: var(--green); background: var(--green); color: var(--ink); }
+.g-htab[aria-selected='true'] .ic { color: inherit; }
+.g-hlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.g-hlist li { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 16px 10px 10px; border: 1px solid var(--line); border-radius: 18px; background: rgb(var(--t-card-rgb) / 0.8); font: 700 1.08rem/1.25 var(--font-display); color: #fff; }
+.g-hlist li > span { display: grid; flex: none; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: rgb(var(--t-a1-rgb) / 0.22); color: var(--t-a1l); }
+
+/* ---------- Pedir ayuda ---------- */
+
+.g-help { display: grid; gap: 24px; align-items: center; padding: clamp(24px, 4vw, 48px); border: 1px solid rgb(255 91 58 / 0.45); border-radius: 32px; background: radial-gradient(60% 90% at 100% 0%, rgb(255 91 58 / 0.25), transparent 70%), var(--t-card); }
+@media (min-width: 860px) { .g-help { grid-template-columns: 1.2fr 0.8fr; } }
+.g-alarm { display: grid; justify-items: center; gap: 8px; padding: 30px 20px; border: 0; border-radius: 28px; background: #ff3b1f; color: #fff; box-shadow: 0 20px 50px -18px rgb(255 59 31 / 0.8); touch-action: manipulation; transition: transform 0.2s var(--ease-out); }
+.g-alarm b { font: 800 clamp(1.8rem, 5vw, 2.6rem)/1 var(--font-display); }
+.g-alarm small { font: 700 0.9rem/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; }
+.g-alarm .ic { animation: g-ring 2.4s ease-in-out infinite; }
+.g-alarm:active { transform: scale(0.97); }
+@keyframes g-ring { 0%, 70%, 100% { transform: rotate(0); } 75% { transform: rotate(14deg); } 82% { transform: rotate(-12deg); } 89% { transform: rotate(8deg); } }
+.is-static .g-alarm .ic { animation: none; }
+
+.alarm { position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; align-content: center; gap: 24px; padding: 24px; background: #ff3b1f; color: #fff; text-align: center; cursor: pointer; }
+.alarm.is-flash { animation: alarm-flash 0.9s steps(1) infinite; }
+@keyframes alarm-flash { 50% { background: #fff; color: #d32f12; } }
+.alarm__in { display: grid; justify-items: center; gap: 16px; }
+.alarm__in b { font: 400 clamp(4rem, 20vw, 11rem)/0.95 'Anton', sans-serif; }
+.alarm__hint { font: 700 0.95rem/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; }
+html.alarm-on { overflow: hidden; }

@@ -4,6 +4,8 @@ import { state } from '../../app/state';
 import { engine } from '../../core/engine';
 import { speakPhrase, speakText } from '../../core/voice/speaker';
 import { CATEGORY_LABEL } from '../../data/default-phrases';
+import { HOSPITAL } from '../../data/hospital-phrases';
+import { startAlarm } from '../components/alarm';
 import type { Category } from '../../core/types';
 import { esc, on, reducedMotion, rich, sleep } from '../dom';
 import { icon } from '../icons';
@@ -74,6 +76,9 @@ function template() {
   const tips = TIPS.map(
     ([ic, t, d], i) => `<li class="g-tip" data-reveal style="transition-delay:${i * 80}ms"><span class="g-tip__ic">${icon(ic, 22, 1.9)}</span><h3>${t}</h3><p>${d}</p></li>`,
   ).join('');
+  const hospTabs = HOSPITAL.map(
+    (g, i) => `<button class="g-htab" type="button" role="tab" id="g-ht-${i}" aria-controls="g-hosp-panel" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}" data-hosp="${i}">${icon(g.icon, 16, 2.2)}<span>${g.tab}</span></button>`,
+  ).join('');
   const rail = CHAPTERS.map((c, i) => `<button type="button" data-go="${i}" aria-label="Ir a: ${c.name}"><i></i><span>${c.name}</span></button>`).join('');
 
   return `
@@ -112,10 +117,28 @@ function template() {
           <div data-words></div>
         </div>
 
+        <div class="g-hosp" data-reveal>
+          <p class="g-over">[ En preparación ]</p>
+          <h2 class="g-h2">Lo que más se pide<br>en un hospital.</h2>
+          <p class="g-sub">${rich('Nuestro equipo prepara estas frases una por una. Cuando estén listas, *las dirás moviendo los labios* y Voz Propia pondrá la voz.')}</p>
+          <div class="g-htabs" role="tablist" aria-label="Temas">${hospTabs}</div>
+          <ul class="g-hlist" id="g-hosp-panel" role="tabpanel" aria-labelledby="g-ht-0" data-hosp-panel></ul>
+        </div>
+
         <div class="g-tipsbox">
           <p class="g-over" data-reveal>[ Antes de empezar ]</p>
           <h2 class="g-h2" data-reveal>Para que te entienda mejor.</h2>
           <ul class="g-tips">${tips}</ul>
+          <button class="g-again g-again--start" type="button" data-go-page="consejos" data-reveal>${icon('lightbulb', 18, 2.4)}<span>Ver todos los consejos de uso</span></button>
+        </div>
+
+        <div class="g-help" data-reveal>
+          <div>
+            <p class="g-over">[ Si necesitas ayuda ya ]</p>
+            <h2 class="g-h2">Pide ayuda<br>con un toque.</h2>
+            <p class="g-sub">${rich('Suena una alarma y la pantalla parpadea con *«Necesito ayuda»* hasta que alguien la toque. Se apaga sola en un minuto.')}</p>
+          </div>
+          <button class="g-alarm" type="button" data-alarm>${icon('bell', 40, 2.4)}<b>Necesito ayuda</b><small>Toca para pedir ayuda</small></button>
         </div>
 
         <div class="g-start" data-reveal>
@@ -132,7 +155,7 @@ function template() {
           <div class="g-more">
             <button class="g-again" type="button" data-top>${icon('arrow-up', 18, 2.4)}<span>Ver la guía otra vez desde el inicio</span></button>
             <button class="g-again" type="button" data-go-page="ayuda">${icon('info', 18, 2.4)}<span>Datos y cómo te ayuda</span></button>
-            <button class="g-again" type="button" data-go-page="herramientas">${icon('layout-grid', 18, 2.4)}<span>Herramientas para hablar hoy</span></button>
+            <button class="g-again" type="button" data-go-page="consejos">${icon('lightbulb', 18, 2.4)}<span>Consejos de uso</span></button>
           </div>
           <p class="g-start__hint">Para salir, mantén presionado <b>Regresar al inicio</b> arriba a la derecha.</p>
         </div>
@@ -338,6 +361,21 @@ export function guiaView(root: HTMLElement) {
   };
   renderWords();
 
+  /* ---------- Lo que más se pide en un hospital (solo información, sin sonido) ---------- */
+
+  const hospPanel = el.querySelector<HTMLElement>('[data-hosp-panel]')!;
+  const hospBtns = Array.from(el.querySelectorAll<HTMLElement>('[data-hosp]'));
+  const setHosp = (i: number, focus = false) => {
+    hospBtns.forEach((b, n) => {
+      b.setAttribute('aria-selected', String(n === i));
+      b.tabIndex = n === i ? 0 : -1;
+    });
+    if (focus) hospBtns[i].focus();
+    hospPanel.setAttribute('aria-labelledby', `g-ht-${i}`);
+    hospPanel.innerHTML = HOSPITAL[i].items.map(([ic, t]) => `<li><span>${icon(ic, 22, 2)}</span>${t}</li>`).join('');
+  };
+  setHosp(0);
+
   /* ---------- Interacciones ---------- */
 
   const offs = [
@@ -358,7 +396,17 @@ export function guiaView(root: HTMLElement) {
     }),
     on(el, 'click', '[data-skip]', () => pageTo(Math.round(endTop))),
     on(el, 'click', '[data-top]', () => pageTo(0)),
-    on(el, 'click', '[data-go-page]', (_, b) => go(b.dataset.goPage as 'ayuda' | 'herramientas')),
+    on(el, 'click', '[data-alarm]', () => void startAlarm()),
+    on(el, 'click', '[data-hosp]', (_, b) => setHosp(Number(b.dataset.hosp))),
+    on(el, 'keydown', '[data-hosp]', (e, b) => {
+      const n = HOSPITAL.length;
+      const i = Number(b.dataset.hosp);
+      const next = e.key === 'ArrowRight' ? (i + 1) % n : e.key === 'ArrowLeft' ? (i - 1 + n) % n : -1;
+      if (next < 0) return;
+      e.preventDefault();
+      setHosp(next, true);
+    }),
+    on(el, 'click', '[data-go-page]', (_, b) => go(b.dataset.goPage as 'ayuda' | 'consejos')),
     on(el, 'click', '[data-go]', (_, b) => {
       const c = chapters[Number(b.dataset.go)];
       if (c) pageTo(Math.round(c.getBoundingClientRect().top + scrollY));

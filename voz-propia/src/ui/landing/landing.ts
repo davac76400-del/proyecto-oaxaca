@@ -13,7 +13,7 @@ import type { FieldControl, GravityField, Pointer } from './scene';
 
 interface Options {
   jumpToRoles: boolean;
-  onChoose: (role: Role, page?: 'ayuda' | 'herramientas') => void;
+  onChoose: (role: Role, page?: 'ayuda' | 'consejos') => void;
 }
 
 const BALL_COLOR = '#2F69FF';
@@ -88,7 +88,7 @@ function template() {
         <a href="#historia" data-scroll="historia">Historia</a>
         <a href="#labios" data-scroll="labios">Labios</a>
         <a href="#entrar" data-scroll="entrar">Entrar</a>
-        <button class="l-nav__btn" type="button" data-tools>Herramientas</button>
+        <button class="l-nav__btn" type="button" data-tools>Consejos</button>
       </nav>
       <div class="l-header__right">
         <a class="l-pill" href="#entrar" data-scroll="entrar"><span>Comenzar</span>${orbChevron()}</a>
@@ -208,11 +208,11 @@ function template() {
               <span class="l-role__cta"><span>Ver cómo ayuda</span>${orbChevron()}</span>
             </button>
             <button class="l-role l-role--jz" type="button" data-tools data-reveal style="--d:.18s">
-              <span class="l-jz__stickers" aria-hidden="true"><i>Sí · No</i><i>¿Dónde duele?</i><i>Pedir ayuda</i></span>
-              <span class="l-role__tag">${icon('layout-grid', 15)} Funciona hoy, sin cámara</span>
-              <span class="l-role__title">Herramientas para comunicarte</span>
-              <span class="l-role__desc">Pedir ayuda, decir dónde duele, sí y no gigantes, escribir y que se escuche, y tu ficha para el personal de salud.</span>
-              <span class="l-role__cta"><span>Abrir herramientas</span>${orbChevron()}</span>
+              <span class="l-jz__stickers" aria-hidden="true"><i>Buena luz</i><i>De frente</i><i>Con calma</i></span>
+              <span class="l-role__tag">${icon('lightbulb', 15)} Manual de uso</span>
+              <span class="l-role__title">Consejos para usar Voz Propia</span>
+              <span class="l-role__desc">Cómo ponerte frente a la cámara, cómo mover los labios, qué hacer si duda y cómo puede ayudar tu familia.</span>
+              <span class="l-role__cta"><span>Ver los consejos</span>${orbChevron()}</span>
             </button>
           </div>
           <p class="l-soon" data-reveal>${icon('lock', 15)} Muy pronto: inicia sesión o crea tu cuenta para guardar tu perfil.</p>
@@ -518,7 +518,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     entry.showModal();
   };
 
-  const enter = async (page?: 'ayuda' | 'herramientas') => {
+  const enter = async (page?: 'ayuda' | 'consejos') => {
     entry.close();
     root.classList.add('is-leaving');
     await sleep(motionOk ? 420 : 0);
@@ -543,7 +543,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
       }
       if (t.closest('[data-tools]')) {
         chosen = 'usuario';
-        return void enter('herramientas');
+        return void enter('consejos');
       }
       if (t.closest('[data-enter]')) return void enter();
       if (t.closest('[data-close-entry]') || t === entry) entry.close();
