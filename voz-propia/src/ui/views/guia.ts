@@ -229,7 +229,13 @@ export function guiaView(root: HTMLElement) {
     if (atEnd && !el.classList.contains('is-end')) sfx.ok();
     el.classList.toggle('is-end', atEnd);
   }
+  let lastY = scrollY;
+  let lastT = performance.now();
   const onScroll = () => {
+    const now = performance.now();
+    sfx.flow((Math.abs(scrollY - lastY) / Math.max(8, now - lastT)) * 1.2);
+    lastY = scrollY;
+    lastT = now;
     if (!raf) raf = requestAnimationFrame(update);
   };
   addEventListener('scroll', onScroll, { passive: true, signal });

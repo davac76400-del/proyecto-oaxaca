@@ -130,7 +130,14 @@ function mountApp(role: Role) {
     async (e) => {
       const t = e.target as Element;
       if (t.closest('[data-app-acct]')) lastPage = hashRoute();
-      if (t.closest('button, [role="button"], a.btn, .nav__item, summary, [data-go]') && !t.closest('[data-sound], [data-water-back], [data-install]')) sfx.tick();
+      if (t.closest('button, [role="button"], a.btn, .nav__item, summary, [data-go], a[href]') && !t.closest('[data-sound], [data-water-back], [data-install]')) {
+        if (t.closest('.btn--primary, [data-start], .g-start button, [data-go-page]')) sfx.tap('primary');
+        else if (t.closest('.nav__item, [data-route], .topnav a')) sfx.tap('nav');
+        else if (t.closest('[role="tab"], .g-htab, [data-hosp], [data-go]')) sfx.tap('tab');
+        else if (t.closest('[aria-pressed], [aria-expanded], summary, input[type="checkbox"]')) sfx.tap('toggle');
+        else if (t.closest('.g-card, .hz-card, .cs-card, article, li')) sfx.tap('card');
+        else sfx.tap('plain');
+      }
       if (t.closest('[data-install]')) {
         app.querySelectorAll<HTMLElement>('[data-install]').forEach((b) => (b.hidden = true));
         await installPrompt?.prompt();

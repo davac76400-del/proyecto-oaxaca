@@ -51,7 +51,7 @@ const CRACK: [number, number][] = [[50, 0], [55, 6], [46, 13], [56, 21], [45, 29
 const CRACK_K = 7;
 const CUT_L: [number, number][] = [[23, 55], [14, 59], [0, 66]];
 const CUT_R: [number, number][] = [[76, 47], [88, 42], [100, 34]];
-const BRANCH: [number, number][][] = [[[46, 13], [36, 16], [31, 24]], [[56, 21], [66, 25], [70, 33]], [[44, 46], [34, 44], [28, 38]], [[55, 54], [64, 60], [71, 58]], [[46, 62], [38, 70], [34, 80]], [[56, 70], [66, 77], [68, 86]]];
+const BRANCH: [number, number][][] = [[[46, 13], [36, 16], [30, 25], [24, 28]], [[56, 21], [67, 24], [72, 34], [80, 37]], [[44, 46], [33, 44], [27, 37], [18, 36]], [[55, 54], [65, 60], [72, 58], [84, 64]], [[46, 62], [38, 70], [33, 81], [27, 88]], [[56, 70], [66, 77], [69, 87], [76, 95]], [[54, 37], [63, 32], [66, 22]], [[47, 78], [40, 84], [43, 94]], [[45, 29], [37, 33], [35, 42]]];
 
 const soundBtn = (cls = '') =>
   `<button class="l-snd ${cls}" type="button" data-sound aria-pressed="true"><span class="l-snd__on">${icon('volume', 18, 2.2)}</span><span class="l-snd__off">${icon('volume-x', 18, 2.2)}</span></button>`;
@@ -485,12 +485,29 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     sfx.full();
     loader.classList.add('is-full');
     status.textContent = 'Lista para escucharte';
-    wait.push(
-      window.setTimeout(() => {
-        gateFromLoader();
-        breakLoader();
-      }, 700),
-    );
+    const strike = () => {
+      gateFromLoader();
+      breakLoader();
+    };
+    // Si el navegador aún no libera el sonido, se espera un momento un toque para que el rayo truene.
+    if (sfx.enabled && !sfx.running) {
+      loader.classList.add('is-wait');
+      status.textContent = 'Toca para romper la pantalla';
+      let done = false;
+      const go = () => {
+        if (done) return;
+        done = true;
+        off();
+        loader.classList.remove('is-wait');
+        status.textContent = 'Lista para escucharte';
+        wait.push(window.setTimeout(strike, 200));
+      };
+      const off = sfx.onChange(() => sfx.running && go());
+      wait.push(window.setTimeout(go, 3200));
+      loader.addEventListener('pointerup', () => sfx.unlock(), { once: true, signal });
+      return;
+    }
+    wait.push(window.setTimeout(strike, 700));
   };
 
   const loaderTick = (now: number) => {
@@ -542,18 +559,24 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   };
 
   let scrollRaf = 0;
+  let lastY = scrollY;
+  let lastT = performance.now();
   const onScroll = () => {
     if (scrollRaf) return;
     scrollRaf = requestAnimationFrame(() => {
       scrollRaf = 0;
       const progress = progressAt(window.scrollY);
       control.progress = progress;
+      const now = performance.now();
+      if (root.classList.contains('is-revealed') && gate.hidden) sfx.flow((Math.abs(window.scrollY - lastY) / Math.max(8, now - lastT)) * 1.2);
+      lastY = window.scrollY;
+      lastT = now;
       // El lienzo 3D se apaga al entrar a la parte nocturna: ahí ya no hay esferas.
       canvasBox.style.opacity = String(1 - Math.min(1, Math.max(0, (progress - 3.5) / 0.5)));
       const stage = progress > 3.55 ? 4 : progress > 2.55 ? 3 : progress > 1.55 ? 2 : progress > 0.7 ? 1 : 0;
       if (root.dataset.stage !== String(stage)) {
         root.dataset.stage = String(stage);
-        if (root.classList.contains('is-revealed')) sfx.chapter(stage);
+        if (root.classList.contains('is-revealed')) sfx.stage(stage);
       }
     });
   };
@@ -928,6 +951,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
         form.reset();
         welcome();
       } catch (x) {
+        sfx.err();
         err.textContent = x instanceof Error ? x.message : 'No se pudo entrar. Intenta otra vez.';
         form.classList.remove('is-shake');
         void form.offsetWidth;
@@ -958,8 +982,10 @@ export function mountLanding(app: HTMLElement, opts: Options) {
       const goView = t.closest<HTMLElement>('[data-go-view]');
       const snd = t.closest('[data-sound]');
       if (snd) return sfx.setEnabled(!sfx.enabled);
-      if (t.closest('[data-role], [data-ayuda], [data-tools], [data-scroll], .l-chip')) sfx.tick();
-      if (t.closest('.l-gate__opt, .l-gate__submit, .l-gate__back, [data-guest], [data-signout]')) sfx.tick();
+      if (t.closest('[data-role], .l-gate__opt, .l-gate__submit, [data-guest]')) sfx.tap('primary');
+      else if (t.closest('[data-ayuda], [data-tools]')) sfx.tap('card');
+      else if (t.closest('[data-scroll], .l-chip')) sfx.tap('nav');
+      else if (t.closest('.l-gate__back, [data-signout], [data-go-view]')) sfx.tap('plain');
       if (goView) return setView(goView.dataset.goView!);
       if (t.closest('[data-guest]')) {
         guest();

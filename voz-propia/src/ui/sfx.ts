@@ -39,7 +39,7 @@ export function createSfx(inject?: BaseAudioContext) {
       comp.threshold.value = -14;
       comp.ratio.value = 5;
       const master = c.createGain();
-      master.gain.value = 0.8;
+      master.gain.value = 1.25;
       dry = c.createGain();
       send = c.createGain();
       send.gain.value = 0.34;
@@ -133,6 +133,92 @@ export function createSfx(inject?: BaseAudioContext) {
     s.stop(t + dur + 0.1);
   };
 
+  /* ---- Instrumentos: cada parte de la app suena distinto ---- */
+
+  const jit = (f: number, amt = 0.025) => f * (1 + (Math.random() * 2 - 1) * amt);
+  /** Kalimba: «tink» suave y limpio. */
+  const kalimba = (c: BaseAudioContext, f: number, t: number, v = 0.3, pan = 0) => {
+    const g = out(c, pan, 0.6);
+    env(g.gain, t, 0.003, v, 0.9);
+    osc(c, 'sine', f, t, 0.9).connect(g);
+    const h = withGain(c, 0.25, g);
+    osc(c, 'sine', f * 5.4, t, 0.12).connect(h);
+    burst(c, t, 0.03, 'bandpass', f * 3, v * 0.2, pan, undefined, 4);
+  };
+  /** Marimba: madera cálida. */
+  const marimba = (c: BaseAudioContext, f: number, t: number, v = 0.3, pan = 0) => {
+    const g = out(c, pan, 0.5);
+    env(g.gain, t, 0.004, v, 0.55);
+    osc(c, 'sine', f, t, 0.55).connect(g);
+    const h = withGain(c, 0.35, g);
+    const o = osc(c, 'sine', f * 4, t, 0.1);
+    o.connect(h);
+    const h2 = withGain(c, 0.12, g);
+    osc(c, 'triangle', f * 2, t, 0.3).connect(h2);
+  };
+  /** Cuerda pulsada: sierra que se cierra rápido. */
+  const pluck = (c: BaseAudioContext, f: number, t: number, v = 0.3, pan = 0) => {
+    const g = out(c, pan, 0.45);
+    env(g.gain, t, 0.002, v, 0.45);
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(4200, t);
+    lp.frequency.exponentialRampToValueAtTime(260, t + 0.3);
+    lp.connect(g);
+    osc(c, 'sawtooth', f, t, 0.5).connect(lp);
+    osc(c, 'square', f * 1.003, t, 0.5).connect(withGain(c, 0.4, lp));
+  };
+  /** Colchón de acorde: ataque lento, suena como aire. */
+  const pad = (c: BaseAudioContext, freqs: number[], t: number, dur = 1.8, v = 0.07, pan = 0) => {
+    const g = out(c, pan, 0.8);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(v, t + dur * 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(500, t);
+    lp.frequency.exponentialRampToValueAtTime(2400, t + dur * 0.4);
+    lp.connect(g);
+    for (const f of freqs) {
+      osc(c, 'sawtooth', f, t, dur).connect(withGain(c, 0.5, lp));
+      osc(c, 'triangle', f * 1.006, t, dur).connect(withGain(c, 0.7, lp));
+    }
+  };
+  /** Clic de madera. */
+  const wood = (c: BaseAudioContext, t: number, v = 0.4, f = 1700, pan = 0) => {
+    burst(c, t, 0.05, 'bandpass', f, v, pan, undefined, 9);
+    const g = out(c, pan, 0.2);
+    env(g.gain, t, 0.002, v * 0.5, 0.06);
+    osc(c, 'triangle', f * 0.6, t, 0.06, f * 0.4).connect(g);
+  };
+  /** Burbuja. */
+  const bloop = (c: BaseAudioContext, t: number, v = 0.35, f = 380, pan = 0) => {
+    const g = out(c, pan, 0.4);
+    env(g.gain, t, 0.006, v, 0.12);
+    osc(c, 'sine', f, t, 0.1, f * 2.3).connect(g);
+  };
+  /** Golpe sordo. */
+  const thud = (c: BaseAudioContext, t: number, v = 0.5, f = 150) => {
+    const g = out(c, 0, 0.15);
+    env(g.gain, t, 0.004, v, 0.22);
+    osc(c, 'sine', f, t, 0.2, f * 0.4).connect(g);
+  };
+  /** Chasquido de cristal que se rompe. */
+  const clink = (c: BaseAudioContext, t: number, v = 0.12, pan = 0) => {
+    const f = 2200 + Math.random() * 5200;
+    const g = out(c, pan, 0.6);
+    env(g.gain, t, 0.001, v, 0.05 + Math.random() * 0.12);
+    osc(c, 'sine', f, t, 0.2).connect(g);
+    osc(c, 'sine', f * 1.51, t, 0.2).connect(withGain(c, 0.5, g));
+  };
+  const CHORDS = [
+    [0, 4, 7, 11],
+    [-3, 0, 4, 9],
+    [-5, -1, 2, 7],
+    [2, 5, 9, 12],
+    [0, 7, 12, 16],
+  ];
+
   /* ---- Sonidos sueltos ---- */
 
   const word = (i: number, x: number) => {
@@ -140,17 +226,19 @@ export function createSfx(inject?: BaseAudioContext) {
     if (!c) return;
     const t = c.currentTime + 0.01;
     const f = hz(PENT[i % 5] + 12 * Math.floor(i / 5));
-    bell(c, f, t, 0.45, (x / 50 - 1) * 0.8, 0.85);
-    bell(c, f * 2, t + 0.05, 0.12, (x / 50 - 1) * 0.8, 0.5);
+    const pan = (x / 50 - 1) * 0.8;
+    const k = i % 3;
+    if (k === 0) kalimba(c, f, t, 0.5, pan);
+    else if (k === 1) marimba(c, f, t, 0.5, pan);
+    else bell(c, f, t, 0.42, pan, 0.85);
   };
   const mouth = (i: number, x: number) => {
     const c = live();
     if (!c) return;
     const t = c.currentTime + 0.01;
-    const g = out(c, (x / 50 - 1) * 0.8, 0.5);
-    env(g.gain, t, 0.01, 0.4, 0.22);
-    osc(c, 'sine', 280, t, 0.18, 760).connect(g);
-    bell(c, hz(PENT[(i + 2) % 5] + 12, 523.25), t + 0.08, 0.25, (x / 50 - 1) * 0.8, 0.6);
+    const pan = (x / 50 - 1) * 0.8;
+    bloop(c, t, 0.7, 260 + (i % 4) * 60, pan);
+    pluck(c, hz(PENT[(i + 2) % 5] + 12, 523.25), t + 0.07, 0.12, pan);
   };
   const full = () => {
     const c = live();
@@ -159,45 +247,56 @@ export function createSfx(inject?: BaseAudioContext) {
     [0, 4, 7, 12, 16].forEach((s, k) => bell(c, hz(s), t + k * 0.045, 0.2, (k - 2) * 0.3, 1.5));
     burst(c, t, 0.7, 'highpass', 6000, 0.05);
   };
-  /** Rayo: chasquido eléctrico, trueno grave y golpe de bajo. */
+  /** Se carga el rayo: chisporroteo que se hace más denso, zumbido que sube y un temblor grave. */
   const crack = () => {
     const c = live();
     if (!c) return;
     const t = c.currentTime + 0.02;
-    burst(c, t, 0.32, 'highpass', 1800, 0.9, 0, undefined, 0.7);
-    burst(c, t, 0.9, 'bandpass', 3200, 0.35, 0, 600, 2);
-    const z = out(c, 0, 0.4);
-    env(z.gain, t, 0.003, 0.28, 0.4);
-    const zap = osc(c, 'sawtooth', 2400, t, 0.38, 70);
+    for (let k = 0; k < 46; k++) {
+      const at = t + 0.62 * Math.sqrt(Math.random());
+      burst(c, at, 0.012 + Math.random() * 0.03, 'highpass', 2500 + Math.random() * 6000, 0.1 + Math.random() * 0.3, Math.random() * 1.6 - 0.8, undefined, 0.7);
+    }
+    const z = out(c, 0, 0.3);
+    env(z.gain, t, 0.35, 0.18, 0.3);
+    const whine = osc(c, 'sawtooth', 260, t, 0.65, 3600);
     const bp = c.createBiquadFilter();
     bp.type = 'bandpass';
-    bp.frequency.value = 1400;
-    bp.Q.value = 1.4;
-    zap.connect(bp);
+    bp.frequency.value = 1800;
+    bp.Q.value = 2;
+    whine.connect(bp);
     bp.connect(z);
-    const lfo = osc(c, 'square', 38, t, 0.4);
-    const lg = c.createGain();
-    lg.gain.value = 0.5;
-    lfo.connect(lg);
-    lg.connect(z.gain);
-    // Trueno
-    burst(c, t + 0.05, 1.9, 'lowpass', 280, 0.9, 0, 70, 0.8);
-    const sub = out(c, 0, 0.2);
-    env(sub.gain, t, 0.01, 0.9, 1.3);
-    osc(c, 'sine', 110, t, 1.3, 32).connect(sub);
+    const trem = osc(c, 'square', 55, t, 0.65);
+    const tg = c.createGain();
+    tg.gain.value = 0.6;
+    trem.connect(tg);
+    tg.connect(z.gain);
+    burst(c, t, 0.7, 'lowpass', 90, 0.5, 0, 160, 0.8);
   };
+  /** El rayo cae: estallido, trueno que rueda, golpe de bajo y cristales que se rompen. */
   const split = () => {
     const c = live();
     if (!c) return;
     const t = c.currentTime + 0.01;
-    burst(c, t, 1.0, 'bandpass', 500, 0.5, -0.9, 3200, 1.2);
-    burst(c, t, 1.0, 'bandpass', 500, 0.5, 0.9, 3200, 1.2);
-    const sub = out(c, 0, 0.3);
-    env(sub.gain, t, 0.01, 0.8, 1.0);
-    osc(c, 'sine', 70, t, 1.0, 28).connect(sub);
-    for (let k = 0; k < 12; k++) {
-      const at = t + 0.12 + Math.random() * 0.9;
-      bell(c, hz(PENT[k % 5] + 24 + (k % 2) * 12), at, 0.07, Math.random() * 1.6 - 0.8, 0.5);
+    // Estallido
+    burst(c, t, 0.14, 'highpass', 1400, 1.0, 0, undefined, 0.6);
+    burst(c, t, 0.4, 'bandpass', 2600, 0.5, 0, 500, 2.5);
+    thud(c, t, 0.9, 120);
+    const sub = out(c, 0, 0.15);
+    env(sub.gain, t, 0.008, 1.0, 1.7);
+    osc(c, 'sine', 92, t, 1.7, 26).connect(sub);
+    // Trueno que rueda
+    for (let k = 0; k < 6; k++) {
+      const at = t + 0.05 + k * 0.32 + Math.random() * 0.2;
+      burst(c, at, 0.9 + Math.random() * 0.9, 'lowpass', 420 - k * 35, 0.75 - k * 0.09, Math.random() * 1.2 - 0.6, 80, 0.9);
+    }
+    // Cristales
+    for (let k = 0; k < 26; k++) clink(c, t + 0.02 + Math.random() * 0.8, 0.07 + Math.random() * 0.1, Math.random() * 1.8 - 0.9);
+    // Pedazos que salen volando
+    burst(c, t + 0.05, 1.0, 'bandpass', 450, 0.45, -0.9, 3400, 1.2);
+    burst(c, t + 0.1, 1.0, 'bandpass', 450, 0.45, 0.9, 3400, 1.2);
+    for (let k = 0; k < 10; k++) {
+      const at = t + 0.25 + Math.random() * 0.9;
+      bell(c, hz(PENT[k % 5] + 24 + (k % 2) * 12), at, 0.06, Math.random() * 1.6 - 0.8, 0.5);
     }
   };
   const card = () => {
@@ -211,10 +310,80 @@ export function createSfx(inject?: BaseAudioContext) {
   const tick = () => {
     const c = live();
     if (!c) return;
+    wood(c, c.currentTime + 0.005, 0.8, jit(1500, 0.06));
+  };
+  let lastTap = 0;
+  /** Toque en la interfaz: cada tipo de elemento suena distinto y con una variación leve. */
+  const tap = (kind: 'primary' | 'nav' | 'tab' | 'toggle' | 'card' | 'plain' = 'plain') => {
+    const c = live();
+    if (!c) return;
+    const now = performance.now();
+    if (now - lastTap < 40) return;
+    lastTap = now;
     const t = c.currentTime + 0.005;
-    const g = out(c, 0, 0.25);
-    env(g.gain, t, 0.002, 0.5, 0.07);
-    osc(c, 'triangle', 1500, t, 0.07, 900).connect(g);
+    if (kind === 'primary') {
+      pluck(c, jit(hz(PENT[Math.floor(Math.random() * 5)], 330), 0.01), t, 0.4);
+      thud(c, t, 0.5, 180);
+    } else if (kind === 'nav') marimba(c, jit(hz(PENT[Math.floor(Math.random() * 5)] + 12, 523.25), 0.01), t, 0.7);
+    else if (kind === 'tab') {
+      wood(c, t, 0.8, jit(2100, 0.05));
+      kalimba(c, jit(hz(PENT[Math.floor(Math.random() * 5)] + 12, 659.25), 0.01), t + 0.02, 0.3);
+    } else if (kind === 'toggle') {
+      wood(c, t, 0.7, 1200);
+      wood(c, t + 0.05, 0.6, 1900);
+    } else if (kind === 'card') {
+      bloop(c, t, 0.6, jit(420, 0.08));
+      kalimba(c, jit(hz(7, 523.25), 0.01), t + 0.03, 0.3);
+    } else bloop(c, t, 0.6, jit(520, 0.1));
+  };
+  /** Algo salió mal: dos golpes graves. */
+  const err = () => {
+    const c = live();
+    if (!c) return;
+    const t = c.currentTime + 0.01;
+    thud(c, t, 0.6, 130);
+    thud(c, t + 0.11, 0.6, 105);
+    const g = out(c, 0, 0.2);
+    env(g.gain, t, 0.01, 0.14, 0.3);
+    osc(c, 'square', 196, t, 0.3, 150).connect(withGain(c, 0.6, g));
+  };
+  /** Etapa nueva del inicio al bajar: acorde suave distinto en cada una, con brisa. */
+  const stage = (n: number) => {
+    const c = live();
+    if (!c) return;
+    const t = c.currentTime + 0.01;
+    const ch = CHORDS[n % CHORDS.length].map((st) => hz(st - 12, 523.25));
+    pad(c, ch, t, 2.2, 0.08, 0);
+    burst(c, t, 0.5, 'bandpass', 400, 0.12, 0, 1800, 0.9);
+    if (n % 2) kalimba(c, hz(CHORDS[n % CHORDS.length][3], 523.25), t + 0.25, 0.22, 0.2);
+    else marimba(c, hz(CHORDS[n % CHORDS.length][2] + 12, 523.25), t + 0.25, 0.22, -0.2);
+  };
+  /** Brisa continua mientras se hace scroll: más fuerte si se baja rápido. */
+  let flowNodes: { g: GainNode; f: BiquadFilterNode } | null = null;
+  let flowOff = 0;
+  const flow = (speed: number) => {
+    const c = live();
+    if (!c) return;
+    if (!flowNodes) {
+      const s = c.createBufferSource();
+      s.buffer = noise(c);
+      s.loop = true;
+      const f = c.createBiquadFilter();
+      f.type = 'bandpass';
+      f.Q.value = 0.8;
+      const g = out(c, 0, 0.3);
+      g.gain.value = 0.0001;
+      s.connect(f);
+      f.connect(g);
+      s.start();
+      flowNodes = { g: g as GainNode, f };
+    }
+    const n = c.currentTime;
+    const v = Math.min(1, speed / 3);
+    flowNodes.g.gain.setTargetAtTime(0.0001 + v * 0.1, n, 0.08);
+    flowNodes.f.frequency.setTargetAtTime(350 + v * 1700, n, 0.1);
+    clearTimeout(flowOff);
+    flowOff = window.setTimeout(() => flowNodes?.g.gain.setTargetAtTime(0.0001, c.currentTime, 0.12), 140);
   };
   const hello = () => {
     const c = live();
@@ -238,22 +407,33 @@ export function createSfx(inject?: BaseAudioContext) {
 
   /* ---- Sonidos de la app ---- */
 
-  /** Cambio de página: brisa corta. */
-  const swipe = () => {
+  /** Cambio de página: brisa; hacia atrás suena al revés. */
+  const swipe = (back = false) => {
     const c = live();
     if (!c) return;
     const t = c.currentTime + 0.01;
-    burst(c, t, 0.34, 'bandpass', 500, 0.5, -0.3, 2600, 1.1);
-    bell(c, hz(7, 783.99), t + 0.14, 0.1, 0.2, 0.5);
+    if (back) burst(c, t, 0.34, 'bandpass', 2600, 0.4, 0.2, 450, 1.1);
+    else burst(c, t, 0.34, 'bandpass', 450, 0.4, -0.2, 2600, 1.1);
+    marimba(c, hz(back ? 0 : 7, 659.25), t + 0.12, 0.2, back ? -0.3 : 0.3);
   };
-  /** Capítulo nuevo de la guía: campanita cuya nota sube con cada capítulo. */
+  let lastChapter = 0;
+  /** Capítulo nuevo de la guía: cada capítulo tiene su instrumento y su acorde. */
   const chapter = (i: number) => {
     const c = live();
     if (!c) return;
+    const now = performance.now();
+    if (now - lastChapter < 420) return;
+    lastChapter = now;
     const t = c.currentTime + 0.01;
-    const f = hz(PENT[i % 5] + 12 * Math.floor(i / 5));
-    bell(c, f, t, 0.38, 0, 1.2);
-    bell(c, f * 1.5, t + 0.06, 0.14, 0.3, 0.8);
+    const ch = CHORDS[i % CHORDS.length];
+    const top = hz(ch[(i + 1) % 4] + 12, 523.25);
+    const kind = i % 4;
+    pad(c, ch.map((st) => hz(st - 12, 523.25)), t, 1.8, 0.06);
+    if (kind === 0) kalimba(c, top, t, 0.4, 0.1);
+    else if (kind === 1) marimba(c, top, t, 0.42, -0.1);
+    else if (kind === 2) bell(c, top, t, 0.3, 0, 1.1);
+    else pluck(c, top / 2, t, 0.2, 0);
+    kalimba(c, hz(ch[0] + 24, 523.25), t + 0.14, 0.14, 0.3);
   };
   /** Chapoteo: ruido de agua que sube, burbujas y un golpe grave. */
   const splash = () => {
@@ -396,6 +576,10 @@ export function createSfx(inject?: BaseAudioContext) {
     split,
     card,
     tick,
+    tap,
+    err,
+    stage,
+    flow,
     hello,
     success,
     swipe,
