@@ -15,6 +15,10 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 `npm run assets` (se ejecuta solo en dev y build) prepara en `public/` los recursos que la app necesita para la cámara.
 
+## Sonido de la entrada
+
+La entrada tiene efectos de sonido sintetizados en el momento (no hay archivos de audio, así que funcionan sin internet): campanitas que suenan cuando aparece cada palabra, un tono que sube mientras carga la barra, un rayo con trueno cuando la pantalla se rompe, un tono que sube mientras se dibuja el círculo y un arpegio al cerrarlo. Los navegadores solo dejan sonar después de un toque, así que hay un botón de sonido (en el cargador y en la pantalla de cuenta) que avisa cuando falta ese toque y sirve para silenciar. La preferencia se recuerda.
+
 ## Cuenta
 
 Al abrir la app, cuando la barra del cargador se llena, la pantalla se rompe en cuatro pedazos con una grieta de luz y aparece la entrada (obligatoria): **Iniciar sesión**, **Crear cuenta** (nombre, correo y contraseña) o **Entrar sin cuenta** (invitado: no se guarda nada al salir). Por ahora las cuentas viven en el dispositivo (`src/core/auth.ts`, contraseña guardada como huella PBKDF2); para usarlas en varios dispositivos hace falta un servidor (por ejemplo Supabase). Al entrar sale **Inicia a trabajar**: hay que dibujar un círculo siguiendo el aro con el dedo o el mouse (un trazo de pintura lo va rellenando; con teclado, mantener espacio). Al cerrarlo, el color inunda la pantalla y se abre el inicio. La sesión con cuenta se recuerda. Arriba, siempre visibles, están **Consejos** y **Cuenta** (ver tu cuenta, cambiar de cuenta o iniciar sesión si entraste sin cuenta; también hay un botón de cuenta arriba dentro de la app, que al terminar te regresa a donde estabas). Mientras la pantalla de cuenta está abierta, la escena 3D se pausa.

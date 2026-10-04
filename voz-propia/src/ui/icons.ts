@@ -4,7 +4,7 @@ import {
   GlassWater, Hand, HandHeart, Heart, House, Info, LayoutDashboard, LayoutGrid, Lightbulb, Lock, LogIn,
   MessageCircle, Mic, Moon, MousePointer2, Music, Palette, Pencil, Phone, Pill, Play, Plus, RefreshCcw, RotateCcw, ScanFace,
   Settings, ShieldCheck, SlidersHorizontal, Smile, Snowflake, Sparkles, Square, Stethoscope, Sun, SwitchCamera,
-  Thermometer, Trash2, Tv, Type, Undo2, Upload, UserPlus, UserRound, Utensils, Volume2, Wind, WifiOff, X, Zap,
+  Thermometer, Trash2, Tv, Type, Undo2, Upload, UserPlus, UserRound, Utensils, Volume2, VolumeX, Wind, WifiOff, X, Zap,
   type IconNode,
 } from 'lucide';
 
@@ -21,7 +21,7 @@ const ICONS: Record<string, IconNode> = {
   sliders: SlidersHorizontal, smile: Smile, snowflake: Snowflake, sparkles: Sparkles, square: Square,
   stethoscope: Stethoscope, sun: Sun, 'switch-camera': SwitchCamera, thermometer: Thermometer, trash: Trash2,
   tv: Tv, type: Type, undo: Undo2, upload: Upload, 'user-plus': UserPlus, user: UserRound, utensils: Utensils,
-  volume: Volume2, wind: Wind, 'wifi-off': WifiOff, x: X, zap: Zap,
+  volume: Volume2, 'volume-x': VolumeX, wind: Wind, 'wifi-off': WifiOff, x: X, zap: Zap,
 };
 
 const attr = (o: Record<string, string | number | undefined>) =>
