@@ -13,13 +13,11 @@ export async function transcribeVideoAudio(file: File): Promise<Segment[]> {
 async function extractAudioFromVideo(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
 
     video.onloadedmetadata = () => {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const destination = audioContext.createMediaStreamDestination();
-      const source = audioContext.createMediaElementAudioSource(video);
+      const source = audioContext.createMediaElementSource(video);
       source.connect(destination);
 
       const mediaRecorder = new MediaRecorder(destination.stream);

@@ -7,7 +7,7 @@ import type { VideoClip } from '../../core/vision/segmenter';
 import { icon } from '../icons';
 import { toast } from './toast';
 
-export async function openVideoImporter(phraseId?: string) {
+export async function openVideoImporter() {
   const dlg = document.createElement('dialog');
   dlg.className = 'sheet';
   const uploadIcon = icon('upload', 18);
@@ -66,7 +66,7 @@ export async function openVideoImporter(phraseId?: string) {
       showClipsList(clips, clipsList, dlg);
       progressDiv.style.display = 'none';
     } catch (err) {
-      toast(`Error: ${(err as Error).message}`, { variant: 'error' });
+      toast(`Error: ${(err as Error).message}`, { tone: 'warn' });
       progressDiv.style.display = 'none';
       uploadBtn.style.display = 'block';
     }
@@ -130,7 +130,7 @@ async function saveClips(clipsToSave: VideoClip[], dlg: HTMLDialogElement) {
     const phrase = engine.phrases.find((p) => p.text.toLowerCase() === clip.text.toLowerCase());
 
     if (!phrase) {
-      toast(`No encontré la frase «${clip.text}». Créala primero.`, { variant: 'warn' });
+      toast(`No encontré la frase «${clip.text}». Créala primero.`, { tone: 'warn' });
       continue;
     }
 
