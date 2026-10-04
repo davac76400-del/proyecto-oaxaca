@@ -9,7 +9,7 @@ import { guest, session, signIn, signOut, signUp } from '../../core/auth';
 import { speakText } from '../../core/voice/speaker';
 import { brandMark } from '../brand';
 import { bindHold, holdRing } from '../components/hold';
-import { reducedMotion, sleep } from '../dom';
+import { reducedMotion, sleep, vibrate } from '../dom';
 import { icon } from '../icons';
 import type { FieldControl, GravityField, Pointer } from './scene';
 
@@ -299,18 +299,23 @@ function template() {
         <div class="l-gate__view l-work" data-view="trabajar" hidden>
           <p class="l-work__hi" data-work-hi>¡Hola!</p>
           <h2 class="l-work__t" data-work-t>Inicia a trabajar</h2>
-          <button class="l-work__btn" type="button" data-work aria-label="Mantén presionado hasta llenar el círculo para iniciar a trabajar">
+          <div class="l-work__pad" data-work role="button" tabindex="0" aria-label="Dibuja el círculo con el dedo o el mouse, o mantén presionada la barra espaciadora, para iniciar a trabajar">
             <svg class="l-work__svg" viewBox="0 0 240 240" aria-hidden="true">
-              <defs><linearGradient id="wk-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3df2a0"/><stop offset=".35" stop-color="#00e5ff"/><stop offset=".65" stop-color="#4d7cff"/><stop offset="1" stop-color="#ff3df0"/></linearGradient><radialGradient id="wk-f"><stop offset="0" stop-color="#4d7cff" stop-opacity=".7"/><stop offset="1" stop-color="#3df2a0" stop-opacity=".25"/></radialGradient></defs>
+              <defs>
+                <linearGradient id="wk-g" gradientUnits="userSpaceOnUse" x1="20" y1="20" x2="220" y2="220"><stop offset="0" stop-color="#3df2a0"/><stop offset=".35" stop-color="#00e5ff"/><stop offset=".65" stop-color="#4d7cff"/><stop offset="1" stop-color="#ff3df0"/></linearGradient>
+                <radialGradient id="wk-f"><stop offset="0" stop-color="#4d7cff" stop-opacity=".6"/><stop offset="1" stop-color="#3df2a0" stop-opacity=".2"/></radialGradient>
+                <filter id="wk-rough" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G"/></filter>
+              </defs>
               <circle class="l-work__ticks" cx="120" cy="120" r="108" pathLength="108"/>
-              <circle class="l-work__fill" cx="120" cy="120" r="82"/>
+              <circle class="l-work__fill" cx="120" cy="120" r="80"/>
               <circle class="l-work__track" cx="120" cy="120" r="92"/>
-              <circle class="l-work__arc" cx="120" cy="120" r="92" pathLength="100"/>
+              <g filter="url(#wk-rough)"><circle class="l-work__arc" cx="120" cy="120" r="92" pathLength="100"/></g>
             </svg>
-            <i class="l-work__burst" aria-hidden="true"></i>
-            <span class="l-work__core">${brandMark('md')}<small data-work-label>Mantén presionado</small></span>
-          </button>
-          <p class="l-gate__p l-work__p">Rellena el círculo para entrar a la aplicación.</p>
+            <i class="l-work__demo" aria-hidden="true"></i>
+            <i class="l-work__dot" aria-hidden="true"></i>
+            <span class="l-work__core">${brandMark('md')}<small data-work-label>Sigue el círculo</small></span>
+          </div>
+          <p class="l-gate__p l-work__p">Dibújalo con tu dedo o el mouse hasta cerrarlo.</p>
         </div>
         <div class="l-gate__view" data-view="cuenta" hidden>
           <h2>Tu cuenta</h2>
@@ -632,7 +637,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
       const s = session();
       root.querySelector<HTMLElement>('[data-work-hi]')!.textContent = !s || s.kind === 'invitado' ? '¡Bienvenido!' : `¡Hola, ${s.name.split(' ')[0]}!`;
       root.querySelector<HTMLElement>('[data-work-t]')!.textContent = 'Inicia a trabajar';
-      root.querySelector<HTMLElement>('[data-work-label]')!.textContent = 'Mantén presionado';
+      root.querySelector<HTMLElement>('[data-work-label]')!.textContent = 'Sigue el círculo';
       gate.querySelector('.l-work')!.classList.remove('is-done');
     }
     gate.querySelector<HTMLElement>(`[data-view="${v}"] input, [data-view="${v}"] button:not([hidden])`)?.focus({ preventScroll: true });
@@ -671,14 +676,123 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     setView('hola');
     wait.push(window.setTimeout(closeGate, motionOk ? 1300 : 300));
   };
-  // Círculo de «Inicia a trabajar»: se rellena manteniéndolo presionado.
-  const workBtn = root.querySelector<HTMLButtonElement>('[data-work]')!;
-  const offWork = bindHold(workBtn, 1500, () => {
+  // Círculo de «Inicia a trabajar»: se dibuja siguiendo el aro con el dedo o el mouse (o con la barra espaciadora).
+  const pad = root.querySelector<HTMLElement>('[data-work]')!;
+  const TAU = Math.PI * 2;
+  let drawing = false;
+  let finished = false;
+  let wLast = 0;
+  let wCum = 0;
+  let wDir = 0;
+  let keyRaf = 0;
+  const wSet = (p: number) => pad.style.setProperty('--hold', p.toFixed(4));
+  const wReset = () => {
+    wCum = 0;
+    wDir = 0;
+    wSet(0);
+  };
+  const flood = () => {
+    finished = true;
+    wSet(1);
     gate.querySelector('.l-work')!.classList.add('is-done');
     root.querySelector<HTMLElement>('[data-work-t]')!.textContent = '¡Adelante!';
     root.querySelector<HTMLElement>('[data-work-label]')!.textContent = 'Listo';
-    wait.push(window.setTimeout(closeGate, motionOk ? 750 : 100));
-  });
+    vibrate(30);
+    const f = document.createElement('div');
+    f.className = 'l-flood';
+    f.innerHTML = '<i></i><i></i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5C12.7 6.7 15.8 10.3 22.5 12C15.8 13.7 12.7 17.3 12 22.5C11.3 17.3 8.2 13.7 1.5 12C8.2 10.3 11.3 6.7 12 1.5Z"/></svg>';
+    gate.append(f);
+    wait.push(window.setTimeout(closeGate, motionOk ? 1250 : 100));
+  };
+  const geo = () => {
+    const r = pad.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2, R: (r.width * 92) / 240 };
+  };
+  const wDown = (e: PointerEvent) => {
+    if (finished || e.button > 0) return;
+    const g = geo();
+    drawing = true;
+    pad.setPointerCapture?.(e.pointerId);
+    pad.classList.add('is-drawing');
+    wLast = Math.atan2(e.clientY - g.y, e.clientX - g.x);
+    pad.style.setProperty('--a0', ((wLast * 180) / Math.PI).toFixed(1));
+    pad.style.setProperty('--dir', '1');
+    wReset();
+    wMove(e);
+  };
+  const wMove = (e: PointerEvent) => {
+    if (!drawing || finished) return;
+    const g = geo();
+    const dx = e.clientX - g.x;
+    const dy = e.clientY - g.y;
+    if (Math.hypot(dx, dy) < g.R * 0.3) return;
+    const a = Math.atan2(dy, dx);
+    let d = a - wLast;
+    if (d > Math.PI) d -= TAU;
+    else if (d < -Math.PI) d += TAU;
+    wLast = a;
+    wCum += d;
+    if (!wDir && Math.abs(wCum) > 0.06) {
+      wDir = Math.sign(wCum);
+      pad.style.setProperty('--dir', String(wDir));
+    }
+    if (wDir && wCum * wDir < -0.3) {
+      // Cambió de sentido: el trazo empieza de nuevo desde aquí.
+      pad.style.setProperty('--a0', ((a * 180) / Math.PI).toFixed(1));
+      wReset();
+    }
+    pad.style.setProperty('--ang', ((a * 180) / Math.PI).toFixed(1));
+    pad.style.setProperty('--r', `${g.R.toFixed(1)}px`);
+    const p = Math.max(0, Math.min(1, (wCum * (wDir || 1)) / TAU));
+    wSet(p);
+    if (p >= 0.97) flood();
+  };
+  const wUp = () => {
+    if (!drawing) return;
+    drawing = false;
+    pad.classList.remove('is-drawing');
+    if (!finished) wReset();
+  };
+  const wKey = (e: KeyboardEvent) => {
+    if (finished || (e.key !== ' ' && e.key !== 'Enter') || e.repeat) return;
+    e.preventDefault();
+    pad.classList.add('is-drawing', 'is-key');
+    pad.style.setProperty('--a0', '-90');
+    pad.style.setProperty('--dir', '1');
+    pad.style.setProperty('--ang', '-90');
+    pad.style.setProperty('--r', `${geo().R}px`);
+    const t = performance.now();
+    const step = () => {
+      const p = Math.min(1, (performance.now() - t) / 1500);
+      wSet(p);
+      pad.style.setProperty('--ang', (-90 + p * 360).toFixed(1));
+      if (p >= 1) return flood();
+      keyRaf = requestAnimationFrame(step);
+    };
+    keyRaf = requestAnimationFrame(step);
+  };
+  const wKeyUp = (e: KeyboardEvent) => {
+    if (e.key !== ' ' && e.key !== 'Enter') return;
+    cancelAnimationFrame(keyRaf);
+    pad.classList.remove('is-drawing', 'is-key');
+    if (!finished) wReset();
+  };
+  pad.addEventListener('pointerdown', wDown);
+  pad.addEventListener('pointermove', wMove);
+  pad.addEventListener('pointerup', wUp);
+  pad.addEventListener('pointercancel', wUp);
+  pad.addEventListener('keydown', wKey);
+  pad.addEventListener('keyup', wKeyUp);
+  pad.addEventListener('contextmenu', (e) => e.preventDefault());
+  const offWork = () => {
+    cancelAnimationFrame(keyRaf);
+    pad.removeEventListener('pointerdown', wDown);
+    pad.removeEventListener('pointermove', wMove);
+    pad.removeEventListener('pointerup', wUp);
+    pad.removeEventListener('pointercancel', wUp);
+    pad.removeEventListener('keydown', wKey);
+    pad.removeEventListener('keyup', wKeyUp);
+  };
   gateFromLoader = () => {
     afterGate = reveal;
     openGate(session() ? 'trabajar' : 'elegir', true);

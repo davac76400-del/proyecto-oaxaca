@@ -213,57 +213,81 @@
 .l-work__t { margin: 0; }
 .l-work__p { max-width: 26ch; margin: 4px 0 0; }
 
-.l-work__btn {
+.l-work__pad {
   --hold: 0;
+  --a0: -90;
+  --dir: 1;
+  --ang: -90;
+  --r: 92px;
   position: relative;
   display: grid;
   place-items: center;
   width: min(264px, 70vw);
   aspect-ratio: 1;
   margin: clamp(4px, 2vh, 14px) 0;
-  padding: 0;
-  border: 0;
   border-radius: 50%;
-  background: none;
   color: #fff;
-  cursor: pointer;
+  cursor: grab;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
 }
-.l-work__btn:focus-visible { outline: 3px solid #3df2a0; outline-offset: 6px; }
-.l-work__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transform: rotate(-90deg); pointer-events: none; }
-.l-work__ticks { fill: none; stroke: rgb(157 183 255 / 0.4); stroke-width: 9; stroke-dasharray: 0.5 1.3; transition: stroke 0.3s; }
-.l-work__track { fill: none; stroke: rgb(255 255 255 / 0.09); stroke-width: 14; }
+.l-work__pad.is-drawing { cursor: grabbing; }
+.l-work__pad:focus-visible { outline: 3px solid #3df2a0; outline-offset: 8px; }
+.l-work__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.l-work__ticks { fill: none; stroke: rgb(157 183 255 / 0.32); stroke-width: 9; stroke-dasharray: 0.5 1.3; transition: stroke 0.3s; }
+.l-work__track { fill: none; stroke: rgb(255 255 255 / 0.55); stroke-width: 1.6; }
 .l-work__arc {
   fill: none;
   stroke: url(#wk-g);
-  stroke-width: 14;
+  stroke-width: 22;
   stroke-linecap: round;
   stroke-dasharray: 100;
   stroke-dashoffset: calc(100 - var(--hold) * 100);
-  filter: drop-shadow(0 0 calc(3px + var(--hold) * 14px) rgb(61 242 160 / 0.9));
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(calc(var(--a0) * 1deg)) scaleY(var(--dir));
+  opacity: calc(var(--hold) * 40);
 }
-.l-work__fill { fill: url(#wk-f); transform-box: fill-box; transform-origin: center; transform: scale(calc(var(--hold) * 0.98)); opacity: calc(0.15 + var(--hold) * 0.85); }
-.l-work__btn:not(.is-holding) .l-work__arc,
-.l-work__btn:not(.is-holding) .l-work__fill { transition: stroke-dashoffset 0.4s var(--l-ease), transform 0.4s var(--l-ease), opacity 0.4s; }
-.l-work__btn.is-holding .l-work__ticks { stroke: rgb(61 242 160 / 0.7); }
-.l-work__core { position: relative; display: grid; justify-items: center; gap: 12px; transition: transform 0.25s var(--l-ease); transform: scale(calc(1 + var(--hold) * 0.12)); }
+.l-work__fill { fill: url(#wk-f); transform-box: fill-box; transform-origin: center; transform: scale(calc(var(--hold) * 0.98)); opacity: calc(0.1 + var(--hold) * 0.9); }
+.l-work__pad:not(.is-drawing) .l-work__arc,
+.l-work__pad:not(.is-drawing) .l-work__fill { transition: stroke-dashoffset 0.45s var(--l-ease), transform 0.45s var(--l-ease), opacity 0.45s; }
+.l-work__pad.is-drawing .l-work__ticks { stroke: rgb(61 242 160 / 0.7); }
+
+/* Punto que guía: da vueltas al aro hasta que empiezas; luego sigue tu dedo */
+.l-work__demo, .l-work__dot { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; pointer-events: none; }
+.l-work__demo {
+  background: radial-gradient(circle, #fff 0 30%, rgb(61 242 160 / 0.8) 55%, transparent 72%);
+  animation: wk-orbit 2.6s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+}
+@keyframes wk-orbit { from { transform: rotate(-90deg) translateX(calc(min(264px, 70vw) * 0.3833)); } to { transform: rotate(270deg) translateX(calc(min(264px, 70vw) * 0.3833)); } }
+.l-work__pad.is-drawing .l-work__demo, .l-work.is-done .l-work__demo { display: none; }
+.l-work__dot { opacity: 0; background: radial-gradient(circle, #fff 0 32%, rgb(255 255 255 / 0.5) 52%, transparent 72%); transform: rotate(calc(var(--ang) * 1deg)) translateX(var(--r)); box-shadow: 0 0 22px 6px rgb(61 242 160 / 0.7); }
+.l-work__pad.is-drawing .l-work__dot { opacity: 1; }
+
+.l-work__core { position: relative; display: grid; justify-items: center; gap: 12px; pointer-events: none; transition: transform 0.25s var(--l-ease); transform: scale(calc(1 + var(--hold) * 0.12)); }
 .l-work__core small { font: 700 12px/1 var(--l-mono); letter-spacing: 0.2em; text-transform: uppercase; color: #dbe4ff; }
-.l-work__btn:not(.is-holding):not(.is-done) .l-work__core .mark { animation: ld-breathe 2.2s ease-in-out infinite; }
+.l-work__pad:not(.is-drawing) .l-work__core .mark { animation: ld-breathe 2.2s ease-in-out infinite; }
 @keyframes ld-breathe { 50% { transform: scale(1.1); } }
-.l-work__burst { position: absolute; inset: 4%; border: 4px solid #3df2a0; border-radius: 50%; opacity: 0; pointer-events: none; }
-.l-work.is-done .l-work__burst { animation: ld-done 0.8s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
-@keyframes ld-done { from { transform: scale(0.9); opacity: 1; } to { transform: scale(2.6); opacity: 0; } }
-.l-work.is-done .l-work__arc { filter: drop-shadow(0 0 18px #3df2a0) brightness(1.3); }
+.l-work.is-done .l-work__arc { filter: brightness(1.3); }
+
+/* Al cerrar el círculo, el color se desborda por toda la pantalla (como el inicio, claro) */
+.l-flood { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+.l-flood i { position: absolute; inset: 0; clip-path: circle(0 at 50% 50%); animation: wk-flood 0.95s cubic-bezier(0.6, 0, 0.2, 1) forwards; }
+.l-flood i:first-child { background: linear-gradient(135deg, #3df2a0, #4d7cff 60%, #b04dff); }
+.l-flood i:nth-child(2) { background: radial-gradient(circle at 50% 50%, #ffffff, #ecefff 60%, #c2d1ff); animation-delay: 0.14s; }
+@keyframes wk-flood { to { clip-path: circle(150vmax at 50% 50%); } }
+.l-flood svg { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; fill: #2f69ff; opacity: 0; animation: wk-star 1s 0.5s ease-out forwards; }
+@keyframes wk-star { 0% { opacity: 0; transform: scale(0.3) rotate(-40deg); } 40% { opacity: 1; transform: scale(1.15) rotate(0); } 100% { opacity: 0; transform: scale(1.5) rotate(20deg); } }
 
 @media (max-height: 640px) {
   .l-ld__field { inset-block-end: 130px; }
-  .l-work__btn { width: min(200px, 56vw); }
+  .l-work__pad { width: min(200px, 56vw); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .l-ld__bar, .l-ld__wave, .l-ld__it > *, .l-work__core .mark { animation: none !important; }
+  .l-ld__bar, .l-ld__wave, .l-ld__it > *, .l-work__core .mark, .l-work__demo, .l-flood i, .l-flood svg { animation: none !important; }
+  .l-flood i { clip-path: none; }
   .l-loader__half, .l-loader__crack polyline { transition: none; }
 }
