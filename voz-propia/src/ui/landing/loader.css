@@ -323,16 +323,30 @@
   .l-loader.is-cracking { animation: none; }
 }
 
-.l-snd--ld { position: absolute; z-index: 3; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
-.l-gate__tools { display: flex; align-items: center; gap: 8px; }
-.l-gate[data-view='trabajar'] .l-gate__top { display: flex; position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); right: 14px; left: auto; }
-.l-gate[data-view='trabajar'] .l-gate__brand, .l-gate[data-view='trabajar'] .l-gate__close { display: none; }
 
 /* Rayo: destellos de estroboscopio al caer y chisporroteo en la grieta */
 .l-loader.is-cracking:not(.is-split) .l-loader__flash { animation: ld-strobe 0.66s linear both; }
 @keyframes ld-strobe { 0% { opacity: 0; } 6% { opacity: 1; } 14% { opacity: 0.08; } 24% { opacity: 0.85; } 34% { opacity: 0.1; } 52% { opacity: 0.55; } 100% { opacity: 0; } }
 .l-loader.is-cracking .l-loader__crack-core { animation: ld-flicker 0.14s steps(2) infinite; }
 @keyframes ld-flicker { 50% { stroke-width: 9; filter: drop-shadow(0 0 12px #fff) drop-shadow(0 0 30px #4d7cff); } }
-.l-loader.is-wait .l-ld__status { color: #3df2a0; animation: ld-hint 1s ease-in-out infinite; }
-@keyframes ld-hint { 50% { opacity: 0.35; } }
-@media (prefers-reduced-motion: reduce) { .l-loader.is-cracking .l-loader__crack-core, .l-loader.is-wait .l-ld__status { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .l-loader.is-cracking .l-loader__crack-core { animation: none; } }
+
+/* Chispas que deja el pincel al dibujar el círculo */
+.l-work__spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 10px 2px var(--c);
+  pointer-events: none;
+  transform: rotate(calc(var(--a) * 1deg)) translateX(var(--r));
+  animation: wk-spark 0.7s ease-out forwards;
+}
+@keyframes wk-spark {
+  to { transform: rotate(calc(var(--a) * 1deg)) translateX(calc(var(--r) + var(--out))) translateY(var(--drift)) scale(0.2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .l-work__spark { display: none; } }

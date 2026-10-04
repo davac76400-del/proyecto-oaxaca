@@ -15,17 +15,10 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 `npm run assets` (se ejecuta solo en dev y build) prepara en `public/` los recursos que la app necesita para la cámara.
 
-## Sonido de la entrada
 
-La entrada tiene efectos de sonido sintetizados en el momento (no hay archivos de audio, así que funcionan sin internet): campanitas que suenan cuando aparece cada palabra, un tono que sube mientras carga la barra, un rayo con trueno cuando la pantalla se rompe, un tono que sube mientras se dibuja el círculo y un arpegio al cerrarlo. El sonido está activo desde el inicio (el navegador lo libera con el primer toque o clic, sin botones extra); hay un botón de bocina (en el cargador y en la pantalla de cuenta) para silenciarlo. La preferencia se recuerda.
+## Detalles de la entrada
 
-### Variedad de sonidos
-
-Cada parte tiene su propio timbre (todo sintetizado, sin archivos): kalimba, marimba, cuerda pulsada, campanas de cristal, madera, burbujas, colchones de acordes y golpes graves. Los botones suenan distinto según su tipo (principal, menú, pestaña, interruptor, tarjeta) con variación de tono en cada toque; cada capítulo de la guía y cada etapa del inicio tiene su acorde e instrumento; al hacer scroll suena una brisa suave que sigue la velocidad (en vez de campanas repetidas). El rayo de la entrada tiene tres capas: chisporroteo que se carga mientras se dibuja la grieta, estallido con trueno que rueda y golpe de bajo cuando cae, y cristales que se rompen con los pedazos volando. Si el navegador aún no libera el sonido al llenarse la barra, espera un momento un toque («Toca para romper la pantalla») para que el trueno suene.
-
-### Sonidos dentro de la app
-
-Toque suave en botones y menús, brisa al cambiar de página, campanita que sube de nota en cada capítulo de la guía y al llegar al final, tono de agua que sube mientras se mantiene «Regresar al inicio» y chapoteo al soltarse, destello al cambiar de colores y avisos bueno / suave. El botón de bocina de arriba silencia todo.
+Sin sonido (se quitó a petición). Detalles: el pincel del círculo suelta chispas de colores al dibujar y, en celulares que lo permiten, hay vibración corta en los momentos clave (se carga el rayo, cae, se cierra el círculo, error al entrar).
 
 ## Cuenta
 

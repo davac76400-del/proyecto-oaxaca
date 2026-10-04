@@ -8,7 +8,6 @@ import { HOSPITAL } from '../../data/hospital-phrases';
 import type { Category } from '../../core/types';
 import { esc, on, reducedMotion, rich, sleep } from '../dom';
 import { icon } from '../icons';
-import { sfx } from '../sfx';
 import { bindPalette, currentTheme, paletteHTML, type Theme } from '../components/theme';
 import type { GuideScene } from './guia-scene';
 
@@ -221,21 +220,12 @@ export function guiaView(root: HTMLElement) {
     scene?.setVisible(y < endTop - innerHeight * 0.6);
     chapters[k].style.setProperty('--f', f.toFixed(3));
     if (k !== active) {
-      if (active >= 0) sfx.chapter(k);
       active = k;
       railBtns.forEach((b, i) => b.classList.toggle('is-on', i === k));
     }
-    const atEnd = y >= endTop - innerHeight * 0.5;
-    if (atEnd && !el.classList.contains('is-end')) sfx.ok();
-    el.classList.toggle('is-end', atEnd);
+    el.classList.toggle('is-end', y >= endTop - innerHeight * 0.5);
   }
-  let lastY = scrollY;
-  let lastT = performance.now();
   const onScroll = () => {
-    const now = performance.now();
-    sfx.flow((Math.abs(scrollY - lastY) / Math.max(8, now - lastT)) * 1.2);
-    lastY = scrollY;
-    lastT = now;
     if (!raf) raf = requestAnimationFrame(update);
   };
   addEventListener('scroll', onScroll, { passive: true, signal });
@@ -282,7 +272,6 @@ export function guiaView(root: HTMLElement) {
    */
   const jumpTop = () => {
     cancelAnimationFrame(paging);
-    sfx.swipe();
     lockUntil = performance.now() + 900;
     if (still) {
       scrollTo({ top: 0, behavior: 'instant' });

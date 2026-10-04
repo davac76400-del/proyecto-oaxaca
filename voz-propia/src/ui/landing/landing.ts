@@ -11,7 +11,6 @@ import { brandMark } from '../brand';
 import { bindHold, holdRing } from '../components/hold';
 import { reducedMotion, sleep, vibrate } from '../dom';
 import { icon } from '../icons';
-import { sfx } from '../sfx';
 import type { FieldControl, GravityField, Pointer } from './scene';
 
 interface Options {
@@ -52,9 +51,6 @@ const CRACK_K = 7;
 const CUT_L: [number, number][] = [[23, 55], [14, 59], [0, 66]];
 const CUT_R: [number, number][] = [[76, 47], [88, 42], [100, 34]];
 const BRANCH: [number, number][][] = [[[46, 13], [36, 16], [30, 25], [24, 28]], [[56, 21], [67, 24], [72, 34], [80, 37]], [[44, 46], [33, 44], [27, 37], [18, 36]], [[55, 54], [65, 60], [72, 58], [84, 64]], [[46, 62], [38, 70], [33, 81], [27, 88]], [[56, 70], [66, 77], [69, 87], [76, 95]], [[54, 37], [63, 32], [66, 22]], [[47, 78], [40, 84], [43, 94]], [[45, 29], [37, 33], [35, 42]]];
-
-const soundBtn = (cls = '') =>
-  `<button class="l-snd ${cls}" type="button" data-sound aria-pressed="true"><span class="l-snd__on">${icon('volume', 18, 2.2)}</span><span class="l-snd__off">${icon('volume-x', 18, 2.2)}</span></button>`;
 
 const BAND = ['Sí', 'No', 'Tengo sed', 'Me duele', 'Tengo frío', 'Llama a mi familia', 'Tengo miedo', 'Gracias'];
 const MARQUEE = ['Menos silencio', 'Más voz', 'Tus labios hablan', 'Sin internet'];
@@ -106,7 +102,6 @@ function template() {
               `<span class="l-ld__it l-ld__it--${kind}" data-at="${at}" style="--x:${x}%;--y:${y}%;--c:${c}">${kind === 'w' ? `<b>${v}</b>` : LD_MOUTH[v]}</span>`,
           ).join('')}
         </div>
-        ${soundBtn('l-snd--ld')}
         <div class="l-ld__meter" aria-hidden="true">
           <div class="l-ld__track">
             <i class="l-ld__bar l-ld__bar--glow"></i>
@@ -288,7 +283,7 @@ function template() {
       <div class="l-gate__card">
         <div class="l-gate__top">
           <p class="l-gate__brand">${brandMark()}<span>Voz Propia</span></p>
-          <span class="l-gate__tools">${soundBtn()}<button class="l-gate__close" type="button" data-gate-close aria-label="Cerrar" hidden>${icon('x', 18, 2.4)}</button></span>
+          <button class="l-gate__close" type="button" data-gate-close aria-label="Cerrar" hidden>${icon('x', 18, 2.4)}</button>
         </div>
         <div class="l-gate__view" data-view="elegir">
           <h2 id="gate-t">Te damos la bienvenida.</h2>
@@ -464,14 +459,13 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     ld.style.visibility = 'hidden';
     void loader.offsetWidth;
     loader.classList.add('is-cracking');
-    sfx.crack();
+    vibrate([14, 40, 14, 40, 24]);
     wait.push(
       window.setTimeout(() => {
         loader.classList.add('is-split');
-        sfx.split();
+        vibrate([90, 40, 160]);
       }, 640),
     );
-    wait.push(window.setTimeout(() => sfx.card(), 1250));
     wait.push(
       window.setTimeout(() => {
         loader.hidden = true;
@@ -481,32 +475,13 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   };
 
   const finishLoader = () => {
-    sfx.riserStop();
-    sfx.full();
     loader.classList.add('is-full');
+    vibrate(20);
     status.textContent = 'Lista para escucharte';
     const strike = () => {
       gateFromLoader();
       breakLoader();
     };
-    // Si el navegador aún no libera el sonido, se espera un momento un toque para que el rayo truene.
-    if (sfx.enabled && !sfx.running) {
-      loader.classList.add('is-wait');
-      status.textContent = 'Toca para romper la pantalla';
-      let done = false;
-      const go = () => {
-        if (done) return;
-        done = true;
-        off();
-        loader.classList.remove('is-wait');
-        status.textContent = 'Lista para escucharte';
-        wait.push(window.setTimeout(strike, 200));
-      };
-      const off = sfx.onChange(() => sfx.running && go());
-      wait.push(window.setTimeout(go, 3200));
-      loader.addEventListener('pointerup', () => sfx.unlock(), { once: true, signal });
-      return;
-    }
     wait.push(window.setTimeout(strike, 700));
   };
 
@@ -521,14 +496,10 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     value += (goal - value) * Math.min(1, 6 * dt);
     if (sceneReady && elapsed >= MIN_MS && value > 99.4) value = 100;
     ld.style.setProperty('--p', (value / 100).toFixed(4));
-    items.forEach((it, i) => {
+    items.forEach((it) => {
       if (it.classList.contains('on') || value < Number(it.dataset.at)) return;
       it.classList.add('on');
-      const x = parseFloat(it.style.getPropertyValue('--x'));
-      if (it.classList.contains('l-ld__it--m')) sfx.mouth(i, x);
-      else sfx.word(i, x);
     });
-    sfx.riser(value / 100);
     const ph = Math.min(PHASES.length - 1, Math.floor(value / 25));
     if (ph !== phase && value < 100) {
       phase = ph;
@@ -559,25 +530,16 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   };
 
   let scrollRaf = 0;
-  let lastY = scrollY;
-  let lastT = performance.now();
   const onScroll = () => {
     if (scrollRaf) return;
     scrollRaf = requestAnimationFrame(() => {
       scrollRaf = 0;
       const progress = progressAt(window.scrollY);
       control.progress = progress;
-      const now = performance.now();
-      if (root.classList.contains('is-revealed') && gate.hidden) sfx.flow((Math.abs(window.scrollY - lastY) / Math.max(8, now - lastT)) * 1.2);
-      lastY = window.scrollY;
-      lastT = now;
       // El lienzo 3D se apaga al entrar a la parte nocturna: ahí ya no hay esferas.
       canvasBox.style.opacity = String(1 - Math.min(1, Math.max(0, (progress - 3.5) / 0.5)));
       const stage = progress > 3.55 ? 4 : progress > 2.55 ? 3 : progress > 1.55 ? 2 : progress > 0.7 ? 1 : 0;
-      if (root.dataset.stage !== String(stage)) {
-        root.dataset.stage = String(stage);
-        if (root.classList.contains('is-revealed')) sfx.stage(stage);
-      }
+      if (root.dataset.stage !== String(stage)) root.dataset.stage = String(stage);
     });
   };
   addEventListener('scroll', onScroll, { passive: true, signal });
@@ -758,7 +720,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   };
   /** Después de entrar: en el arranque pide mantener presionado el círculo; si no, un saludo corto. */
   const welcome = () => {
-    sfx.hello();
     if (afterGate) return setView('trabajar');
     const s = session()!;
     root.querySelector<HTMLElement>('[data-hello-t]')!.textContent = s.kind === 'invitado' ? '¡Bienvenido!' : `¡Hola, ${s.name.split(' ')[0]}!`;
@@ -783,8 +744,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
   };
   const flood = () => {
     finished = true;
-    sfx.drawStop();
-    sfx.success();
+    vibrate([20, 30, 60]);
     wSet(1);
     gate.querySelector('.l-work')!.classList.add('is-done');
     root.querySelector<HTMLElement>('[data-work-t]')!.textContent = '¡Adelante!';
@@ -806,7 +766,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     drawing = true;
     pad.setPointerCapture?.(e.pointerId);
     pad.classList.add('is-drawing');
-    sfx.draw(0);
     wLast = Math.atan2(e.clientY - g.y, e.clientX - g.x);
     pad.style.setProperty('--a0', ((wLast * 180) / Math.PI).toFixed(1));
     pad.style.setProperty('--dir', '1');
@@ -838,17 +797,33 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     pad.style.setProperty('--r', `${g.R.toFixed(1)}px`);
     const p = Math.max(0, Math.min(1, (wCum * (wDir || 1)) / TAU));
     wSet(p);
-    sfx.draw(p);
+    spark(a, g.R);
     if (p >= 0.97) flood();
+  };
+  /** Detalle: el pincel suelta chispas de colores que se apagan. */
+  const COLORS = ['#3df2a0', '#00e5ff', '#4d7cff', '#ff3df0', '#f7ff3d'];
+  let lastSpark = 0;
+  const spark = (a: number, R: number) => {
+    if (!motionOk) return;
+    const now = performance.now();
+    if (now - lastSpark < 32) return;
+    lastSpark = now;
+    const el = document.createElement('i');
+    el.className = 'l-work__spark';
+    el.style.setProperty('--a', ((a * 180) / Math.PI).toFixed(1));
+    el.style.setProperty('--r', `${R.toFixed(1)}px`);
+    el.style.setProperty('--out', `${(8 + Math.random() * 26).toFixed(0)}px`);
+    el.style.setProperty('--drift', `${(Math.random() * 26 - 13).toFixed(0)}px`);
+    el.style.setProperty('--s', `${(3 + Math.random() * 5).toFixed(1)}px`);
+    el.style.setProperty('--c', COLORS[Math.floor(Math.random() * COLORS.length)]);
+    pad.append(el);
+    window.setTimeout(() => el.remove(), 760);
   };
   const wUp = () => {
     if (!drawing) return;
     drawing = false;
     pad.classList.remove('is-drawing');
-    if (!finished) {
-      sfx.drawStop();
-      wReset();
-    }
+    if (!finished) wReset();
   };
   const wKey = (e: KeyboardEvent) => {
     if (finished || (e.key !== ' ' && e.key !== 'Enter') || e.repeat) return;
@@ -862,7 +837,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     const step = () => {
       const p = Math.min(1, (performance.now() - t) / 1500);
       wSet(p);
-      sfx.draw(p);
       pad.style.setProperty('--ang', (-90 + p * 360).toFixed(1));
       if (p >= 1) return flood();
       keyRaf = requestAnimationFrame(step);
@@ -873,10 +847,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     if (e.key !== ' ' && e.key !== 'Enter') return;
     cancelAnimationFrame(keyRaf);
     pad.classList.remove('is-drawing', 'is-key');
-    if (!finished) {
-      sfx.drawStop();
-      wReset();
-    }
+    if (!finished) wReset();
   };
   pad.addEventListener('pointerdown', wDown);
   pad.addEventListener('pointermove', wMove);
@@ -900,19 +871,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     gate.classList.add('is-under');
   };
   releaseGate = () => gate.classList.remove('is-under');
-  const syncSound = () => {
-    root.querySelectorAll<HTMLElement>('[data-sound]').forEach((b) => {
-      b.setAttribute('aria-pressed', String(sfx.enabled));
-      b.classList.toggle('is-off', !sfx.enabled);
-      b.setAttribute('aria-label', sfx.enabled ? 'Sonido activado. Tocar para silenciar' : 'Sonido silenciado. Tocar para activar');
-    });
-  };
-  const unlock = () => sfx.unlock();
-  // El sonido está activo desde el inicio; los navegadores lo liberan con el primer toque (iOS: al soltar).
-  for (const ev of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown']) addEventListener(ev, unlock, { signal, capture: true, passive: true });
-  unlock();
-  const offSound = sfx.onChange(syncSound);
-  syncSound();
   showAccount();
   if (opts.account) {
     afterGate = opts.onReturn ?? null;
@@ -951,7 +909,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
         form.reset();
         welcome();
       } catch (x) {
-        sfx.err();
+        vibrate([30, 50, 30]);
         err.textContent = x instanceof Error ? x.message : 'No se pudo entrar. Intenta otra vez.';
         form.classList.remove('is-shake');
         void form.offsetWidth;
@@ -969,7 +927,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
 
   const enter = async (page?: 'ayuda' | 'consejos') => {
     if (!session()) return openGate('elegir', true);
-    sfx.swipe();
     root.classList.add('is-leaving');
     await sleep(motionOk ? 420 : 0);
     opts.onChoose(chosen, page);
@@ -980,12 +937,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     (e) => {
       const t = e.target as HTMLElement;
       const goView = t.closest<HTMLElement>('[data-go-view]');
-      const snd = t.closest('[data-sound]');
-      if (snd) return sfx.setEnabled(!sfx.enabled);
-      if (t.closest('[data-role], .l-gate__opt, .l-gate__submit, [data-guest]')) sfx.tap('primary');
-      else if (t.closest('[data-ayuda], [data-tools]')) sfx.tap('card');
-      else if (t.closest('[data-scroll], .l-chip')) sfx.tap('nav');
-      else if (t.closest('.l-gate__back, [data-signout], [data-go-view]')) sfx.tap('plain');
       if (goView) return setView(goView.dataset.goView!);
       if (t.closest('[data-guest]')) {
         guest();
@@ -1027,8 +978,6 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     ac.abort();
     io.disconnect();
     offHold();
-    offSound();
-    sfx.stopAll();
     offWork();
     cancelAnimationFrame(loaderRaf);
     clearTimeout(gateTimer);

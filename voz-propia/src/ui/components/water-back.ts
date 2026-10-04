@@ -1,6 +1,5 @@
 import { icon } from '../icons';
 import { reducedMotion } from '../dom';
-import { sfx } from '../sfx';
 import { bindHold } from './hold';
 
 export const HOLD_MS = 2000;
@@ -127,37 +126,7 @@ export function bindWaterBack(btn: HTMLElement, onDone: () => void) {
     if (busy) return;
     busy = true;
     btn.classList.add('is-done');
-    sfx.drawStop();
-    sfx.splash();
     splash(btn, onDone);
   });
-  // Mientras se mantiene presionado: un tono de agua que sube con el llenado.
-  let raf = 0;
-  const follow = () => {
-    if (!btn.classList.contains('is-holding')) return sfx.drawStop();
-    sfx.draw(parseFloat(btn.style.getPropertyValue('--hold')) || 0);
-    raf = requestAnimationFrame(follow);
-  };
-  const down = () => {
-    cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(follow);
-  };
-  const stopTone = () => {
-    cancelAnimationFrame(raf);
-    sfx.drawStop();
-  };
-  btn.addEventListener('pointerdown', down);
-  btn.addEventListener('keydown', down);
-  btn.addEventListener('pointerup', stopTone);
-  btn.addEventListener('pointercancel', stopTone);
-  btn.addEventListener('keyup', stopTone);
-  return () => {
-    off();
-    stopTone();
-    btn.removeEventListener('pointerdown', down);
-    btn.removeEventListener('keydown', down);
-    btn.removeEventListener('pointerup', stopTone);
-    btn.removeEventListener('pointercancel', stopTone);
-    btn.removeEventListener('keyup', stopTone);
-  };
+  return () => off();
 }
