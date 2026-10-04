@@ -5,7 +5,6 @@ import { engine } from '../../core/engine';
 import { speakPhrase, speakText } from '../../core/voice/speaker';
 import { CATEGORY_LABEL } from '../../data/default-phrases';
 import { HOSPITAL } from '../../data/hospital-phrases';
-import { startAlarm } from '../components/alarm';
 import type { Category } from '../../core/types';
 import { esc, on, reducedMotion, rich, sleep } from '../dom';
 import { icon } from '../icons';
@@ -130,15 +129,6 @@ function template() {
           <h2 class="g-h2" data-reveal>Para que te entienda mejor.</h2>
           <ul class="g-tips">${tips}</ul>
           <button class="g-again g-again--start" type="button" data-go-page="consejos" data-reveal>${icon('lightbulb', 18, 2.4)}<span>Ver todos los consejos de uso</span></button>
-        </div>
-
-        <div class="g-help" data-reveal>
-          <div>
-            <p class="g-over">[ Si necesitas ayuda ya ]</p>
-            <h2 class="g-h2">Pide ayuda<br>con un toque.</h2>
-            <p class="g-sub">${rich('Suena una alarma y la pantalla parpadea con *«Necesito ayuda»* hasta que alguien la toque. Se apaga sola en un minuto.')}</p>
-          </div>
-          <button class="g-alarm" type="button" data-alarm>${icon('bell', 40, 2.4)}<b>Necesito ayuda</b><small>Toca para pedir ayuda</small></button>
         </div>
 
         <div class="g-start" data-reveal>
@@ -396,7 +386,6 @@ export function guiaView(root: HTMLElement) {
     }),
     on(el, 'click', '[data-skip]', () => pageTo(Math.round(endTop))),
     on(el, 'click', '[data-top]', () => pageTo(0)),
-    on(el, 'click', '[data-alarm]', () => void startAlarm()),
     on(el, 'click', '[data-hosp]', (_, b) => setHosp(Number(b.dataset.hosp))),
     on(el, 'keydown', '[data-hosp]', (e, b) => {
       const n = HOSPITAL.length;

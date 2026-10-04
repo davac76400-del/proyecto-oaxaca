@@ -654,9 +654,9 @@ function template() {
       <div class="a-copy">
         <p class="a-over">[ Empieza ]</p>
         <h2 class="a-h2" id="a-end-t">Tus labios ya saben hablar.</h2>
-        <p class="a-body">Entra como usuario para ver, pantalla por pantalla, cómo se usa.</p>
+        <p class="a-body">Toca «Iniciar a usar» para ver, pantalla por pantalla, cómo se usa.</p>
         <div class="a-actions">
-          <button class="a-cta" type="button" data-to-guide>${icon('user', 20)}<span>Entrar como usuario</span>${icon('arrow-right', 20)}</button>
+          <button class="a-cta" type="button" data-to-guide>${icon('user', 20)}<span>Iniciar a usar</span>${icon('arrow-right', 20)}</button>
           <button class="a-btn" type="button" data-to-tools>${icon('lightbulb', 18, 2.2)}<span>Consejos de uso</span></button>
           <button class="a-btn" type="button" data-jump="a-top">${icon('arrow-up', 18, 2.4)}<span>Volver arriba</span></button>
         </div>

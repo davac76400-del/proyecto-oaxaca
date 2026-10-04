@@ -196,10 +196,10 @@ function template() {
             <button class="l-role l-role--user" type="button" data-role="usuario" data-reveal>
               <span class="l-role__balls" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
               <span class="l-role__tag">${icon('user', 15)} Usuario</span>
-              <span class="l-role__title">Soy usuario</span>
+              <span class="l-role__title">Iniciar a usar</span>
               <span class="l-role__desc">Para quien va a hablar. Conoce cómo trabajamos y con qué palabras contamos.</span>
               <span class="l-role__list"><span>${icon('check', 16, 2.6)} Cómo trabajamos, paso a paso</span><span>${icon('check', 16, 2.6)} Las palabras con las que contamos</span><span>${icon('check', 16, 2.6)} Nada que configurar</span></span>
-              <span class="l-role__cta"><span>Entrar como usuario</span>${orbChevron()}</span>
+              <span class="l-role__cta"><span>Iniciar a usar</span>${orbChevron()}</span>
             </button>
             <button class="l-role l-role--pro" type="button" data-ayuda data-reveal style="--d:.12s">
               <span class="l-role__grid" aria-hidden="true"></span>
@@ -208,6 +208,13 @@ function template() {
               <span class="l-role__desc">Datos reales, a quién ayuda y cómo lee tus labios.</span>
               <span class="l-role__list"><span>${icon('check', 16, 2.6)} Datos de México y el mundo</span><span>${icon('check', 16, 2.6)} A quién ayuda y cómo</span><span>${icon('check', 16, 2.6)} Pruébalo con un ejemplo</span></span>
               <span class="l-role__cta"><span>Ver cómo ayuda</span>${orbChevron()}</span>
+            </button>
+            <button class="l-role l-role--jz" type="button" data-tools data-reveal style="--d:.18s">
+              <span class="l-jz__stickers" aria-hidden="true"><i>Buena luz</i><i>De frente</i><i>Con calma</i></span>
+              <span class="l-role__tag">${icon('lightbulb', 15)} Manual de uso</span>
+              <span class="l-role__title">Consejos para usar Voz Propia</span>
+              <span class="l-role__desc">Cómo ponerte frente a la cámara, cómo mover los labios, letras que se ven igual, qué hacer si duda y cómo puede ayudar tu familia.</span>
+              <span class="l-role__cta"><span>Ver los consejos</span>${orbChevron()}</span>
             </button>
           </div>
         </div>

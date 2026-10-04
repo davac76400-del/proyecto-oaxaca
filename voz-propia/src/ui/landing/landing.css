@@ -2070,3 +2070,64 @@ form.is-shake { animation: l-shake 0.4s; }
     animation: none;
   }
 }
+
+/* ---------- Consejos: tarjeta ancha, estilo editorial ---------- */
+
+.l-nav__btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 600 14px/1 var(--l-raleway);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.l-nav__btn:hover { opacity: 0.6; }
+
+.l-role--jz {
+  grid-column: 1 / -1;
+  min-height: 0;
+  color: #16120e;
+  background:
+    radial-gradient(50% 90% at 100% 0%, rgb(255 91 58 / 0.22), transparent 70%),
+    radial-gradient(40% 80% at 0% 100%, rgb(212 241 92 / 0.45), transparent 70%),
+    #f5efe4;
+  border: 2px solid #16120e;
+  box-shadow: 8px 8px 0 #16120e;
+}
+.l-role--jz.is-in:hover { transform: translate(-2px, -4px); box-shadow: 10px 12px 0 #16120e; }
+.l-role--jz .l-role__tag { color: #16120e; background: #d4f15c; border: 1.5px solid #16120e; }
+.l-role--jz .l-role__title { margin-top: 6px; }
+.l-role--jz .l-role__desc { max-width: 52ch; color: #463c32; }
+.l-role--jz .l-role__cta { margin-top: 10px; color: #f5efe4; background: #16120e; box-shadow: 4px 4px 0 #ff5b3a; }
+.l-role--jz .l-role__cta .l-orb { width: 40px; height: 40px; color: #16120e; background: #d4f15c; }
+
+.l-jz__stickers {
+  position: absolute !important;
+  top: 22px;
+  right: 22px;
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+  pointer-events: none;
+}
+.l-jz__stickers i {
+  padding: 8px 14px;
+  border: 2px solid #16120e;
+  border-radius: 999px;
+  font: 800 15px/1 var(--l-raleway);
+  font-style: normal;
+  white-space: nowrap;
+  box-shadow: 3px 3px 0 #16120e;
+  animation: l-float 7s ease-in-out infinite;
+}
+.l-jz__stickers i:nth-child(1) { background: #ff5b3a; rotate: 5deg; }
+.l-jz__stickers i:nth-child(2) { background: #fffdf8; rotate: -4deg; animation-delay: -2s; }
+.l-jz__stickers i:nth-child(3) { background: #7ef2c8; rotate: 3deg; animation-delay: -4s; }
+@media (max-width: 760px) {
+  .l-jz__stickers { position: relative !important; top: 0; right: 0; display: flex; flex-wrap: wrap; justify-items: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l-jz__stickers i { animation: none; }
+}
+.landing[data-stage='4'] .l-header .l-chip { color: var(--l-night-ink); }
