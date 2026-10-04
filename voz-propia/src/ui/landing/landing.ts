@@ -13,7 +13,7 @@ import type { FieldControl, GravityField, Pointer } from './scene';
 
 interface Options {
   jumpToRoles: boolean;
-  onChoose: (role: Role, page?: 'ayuda') => void;
+  onChoose: (role: Role, page?: 'ayuda' | 'jueces') => void;
 }
 
 const BALL_COLOR = '#2F69FF';
@@ -88,6 +88,7 @@ function template() {
         <a href="#historia" data-scroll="historia">Historia</a>
         <a href="#labios" data-scroll="labios">Labios</a>
         <a href="#entrar" data-scroll="entrar">Entrar</a>
+        <button class="l-nav__btn" type="button" data-jueces>Para jueces</button>
       </nav>
       <div class="l-header__right">
         <a class="l-pill" href="#entrar" data-scroll="entrar"><span>Comenzar</span>${orbChevron()}</a>
@@ -205,6 +206,13 @@ function template() {
               <span class="l-role__desc">Datos reales, a quién ayuda y cómo lee tus labios.</span>
               <span class="l-role__list"><span>${icon('check', 16, 2.6)} Datos de México y el mundo</span><span>${icon('check', 16, 2.6)} A quién ayuda y cómo</span><span>${icon('check', 16, 2.6)} Pruébalo con un ejemplo</span></span>
               <span class="l-role__cta"><span>Ver cómo ayuda</span>${orbChevron()}</span>
+            </button>
+            <button class="l-role l-role--jz" type="button" data-jueces data-reveal style="--d:.18s">
+              <span class="l-jz__stickers" aria-hidden="true"><i>742 mil</i><i>Sin internet</i><i>ODS 3 · 9 · 10</i></span>
+              <span class="l-role__tag">${icon('sparkles', 15)} Para jueces y evaluadores</span>
+              <span class="l-role__title">Ficha del proyecto</span>
+              <span class="l-role__desc">El pitch de un minuto en voz alta, los datos, el método, los criterios y una comparación. Todo en una página.</span>
+              <span class="l-role__cta"><span>Abrir la ficha</span>${orbChevron()}</span>
             </button>
           </div>
           <p class="l-soon" data-reveal>${icon('lock', 15)} Muy pronto: inicia sesión o crea tu cuenta para guardar tu perfil.</p>
@@ -510,7 +518,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
     entry.showModal();
   };
 
-  const enter = async (page?: 'ayuda') => {
+  const enter = async (page?: 'ayuda' | 'jueces') => {
     entry.close();
     root.classList.add('is-leaving');
     await sleep(motionOk ? 420 : 0);
@@ -532,6 +540,10 @@ export function mountLanding(app: HTMLElement, opts: Options) {
       if (t.closest('[data-ayuda]')) {
         chosen = 'usuario';
         return void enter('ayuda');
+      }
+      if (t.closest('[data-jueces]')) {
+        chosen = 'usuario';
+        return void enter('jueces');
       }
       if (t.closest('[data-enter]')) return void enter();
       if (t.closest('[data-close-entry]') || t === entry) entry.close();

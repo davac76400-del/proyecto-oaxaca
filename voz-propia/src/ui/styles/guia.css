@@ -673,3 +673,5 @@
 }
 .pal-sw i { width: 14px; height: 14px; border-radius: 50%; background: var(--c1); }
 .pal-sw i + i { background: var(--c2); }
+
+.g-more { display: flex; flex-wrap: wrap; gap: 12px; }

@@ -1,4 +1,5 @@
 import '@fontsource/anton/latin-400.css';
+import { go } from '../../app/router';
 import { state } from '../../app/state';
 import { engine } from '../../core/engine';
 import { speakPhrase, speakText } from '../../core/voice/speaker';
@@ -128,7 +129,11 @@ function template() {
             <li><b>4</b><span>Si duda, toca la palabra correcta.</span></li>
           </ol>
           <button class="g-start__btn" type="button" disabled>${icon('lock', 20)}<span>Muy pronto</span></button>
-          <button class="g-again" type="button" data-top>${icon('arrow-up', 18, 2.4)}<span>Ver la guía otra vez desde el inicio</span></button>
+          <div class="g-more">
+            <button class="g-again" type="button" data-top>${icon('arrow-up', 18, 2.4)}<span>Ver la guía otra vez desde el inicio</span></button>
+            <button class="g-again" type="button" data-go-page="ayuda">${icon('info', 18, 2.4)}<span>Datos y cómo te ayuda</span></button>
+            <button class="g-again" type="button" data-go-page="jueces">${icon('sparkles', 18, 2.4)}<span>Ficha para jueces</span></button>
+          </div>
           <p class="g-start__hint">Para salir, mantén presionado <b>Regresar al inicio</b> arriba a la derecha.</p>
         </div>
       </div>
@@ -353,6 +358,7 @@ export function guiaView(root: HTMLElement) {
     }),
     on(el, 'click', '[data-skip]', () => pageTo(Math.round(endTop))),
     on(el, 'click', '[data-top]', () => pageTo(0)),
+    on(el, 'click', '[data-go-page]', (_, b) => go(b.dataset.goPage as 'ayuda' | 'jueces')),
     on(el, 'click', '[data-go]', (_, b) => {
       const c = chapters[Number(b.dataset.go)];
       if (c) pageTo(Math.round(c.getBoundingClientRect().top + scrollY));

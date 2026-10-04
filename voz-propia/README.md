@@ -13,13 +13,14 @@ npm run build     # versión de producción en dist/ (incluye service worker par
 npm run preview   # sirve dist/ en http://localhost:4173
 ```
 
-`npm run assets` (se ejecuta solo en dev y build) copia el runtime de MediaPipe y descarga el modelo de rostro a `public/`.
+`npm run assets` (se ejecuta solo en dev y build) prepara en `public/` los recursos que la app necesita para la cámara.
 
 ## Dos modos
 
 La primera vez se abre el **inicio**; ahí se elige «Soy usuario» o se abre la tarjeta «Cómo funciona y cómo te ayuda» (no está en el menú: solo en esa tarjeta, al lado de «Soy usuario»).
 
 - **Cómo funciona y cómo te ayuda** (`#/ayuda`, con escala de dolor 0 a 10 y velocidad de la voz): página larga (~23 pantallas) con **datos reales y sus fuentes** (INEGI Encuesta Intercensal 2025, cáncer de laringe 2025 y 2026, traqueostomías, ELA, terapia intensiva y dolor), «Resumen», «Qué es», datos en una mirada, a quién ayuda (6 pestañas con antes y después), **cinco pasos interactivos**, una **demo** que «lee» una palabra y la dice, las **frases que prepara el equipo** (se escuchan al tocarlas), **privacidad por capas**, antes y con Voz Propia, momentos de ejemplo, **alcances y límites**, **preguntas frecuentes**, glosario, ruta y fuentes. Tiene **índice** (botón arriba a la derecha) y barra de avance. Detrás, un campo de ~2,600 puntos (Three.js) que forma labios, cada cifra, un corazón, una onda, «HOLA», «0 VIDEOS» y un «?»; los puntos **siguen al mouse o al dedo** y salen disparados al soltar el clic.
+- **Ficha para jueces** (`#/jueces`): página clara, estilo editorial, con una paleta por sección: pitch de 1 minuto en voz alta (la frase que suena se ilumina), resumen en bento, gráfica de INEGI 2025 interactiva, calculadora de alcance, comparación con otras opciones, método, criterios del jurado, Objetivos de Desarrollo Sostenible (tarjetas que se voltean), etapas, frases y escala de dolor para probar, preguntas e impresión. Se abre desde la tarjeta «Ficha del proyecto» del inicio, desde la ayuda y desde el final de la guía.
 - **Usuario:** una guía de scroll largo (unas 20 pantallas) con **una sola escena 3D ligera** (Three.js): una nube de ~500 puntos que se vuelve cara, forma de labios, galaxia de comparación, ondas de voz y globo mientras se baja. Tocar la pantalla la hace vibrar y el cursor la inclina. Al final están **«Contamos con estas palabras»** (solo las que ya tienen ejemplos; hoy, ninguna) e **«Iniciar a utilizar»** (aún bloqueado). Arriba a la derecha, el botón **«Regresar al inicio»** se llena de agua mientras se mantiene presionado 2 segundos y salpica al terminar.
 - **Programador:** panel oscuro con Panel, Entrenar, Probar, Tablero y Ajustes. No aparece en el menú: se entra con la dirección `#/programador`. Las palabras que agrega (con ejemplos) aparecen en la guía del usuario en el mismo dispositivo.
 
@@ -61,30 +62,23 @@ Si hay varias cámaras aparece un botón para cambiar de una a otra, y en Ajuste
 
 ## Cómo funciona la lectura
 
-1. **Cámara → MediaPipe Face Landmarker** (WASM, GPU si hay): 478 puntos de la cara, de los que se usan 40 de los labios y 25 *blendshapes* de la boca.
-2. **Rasgos invariantes** (`core/vision/lip-features.ts`): los labios se centran, se rotan según la línea de los ojos y se escalan por la distancia entre ojos. Así no importa dónde esté la cara ni qué tan cerca.
-3. **Secuencia** (`core/learn/sequence.ts`): se recortan los cuadros quietos, se remuestrea a 32 cuadros y se agrega la velocidad de cada rasgo.
-4. **Few-shot con DTW** (`core/learn/classifier.ts`): cada frase se aprende con 1 a 5 ejemplos. La confianza depende de cuánto más lejos queda la segunda opción que la primera; si duda, la interfaz muestra 3 opciones flotantes.
-5. **Aprende con el uso**: cuando la persona elige la opción correcta, esa toma se guarda como ejemplo nuevo (máximo 8 por frase, se descartan los más viejos). El programador puede apagarlo en Ajustes.
-6. **Voz** (`core/voice/speaker.ts`): voz del sistema en español (incluida Voz Personal de Apple si el sistema la expone) o un audio grabado por frase.
-
-Codificador neuronal opcional: si existe `public/models/lip-encoder.onnx` (entrada `[1, 32, 105]`, salida `[1, 32, E]`), la app lo carga con ONNX Runtime Web (WebGPU, con respaldo a WASM) y lo usa en lugar de la geometría directa.
+La cámara del teléfono mira el movimiento de los labios y la app reconoce la palabra entre las que preparó el equipo. Si duda, muestra opciones. La palabra se dice en voz alta con la voz del dispositivo. Todo pasa dentro del teléfono, sin internet.
 
 ## Estructura
 
 ```
 src/
   app/        estado global y enrutador por modo
-  core/       lógica sin interfaz: visión, aprendizaje, voz, almacenamiento (IndexedDB)
+  core/       lógica sin interfaz
   data/       frases de hospital iniciales
   ui/
     landing/  inicio 3D (escena Three.js, página y estilos; se carga aparte)
-    views/    Guía (con su escena 3D), Panel, Hablar, Tablero, Entrenar y Ajustes
+    views/    Guía, Ayuda, Ficha para jueces y las vistas del modo programador
     styles/   tokens de los dos temas, base, componentes y vistas
   sw.template.js   service worker (la lista de precarga se genera en cada build)
 ```
 
 ## Privacidad
 
-No se graba ni se envía video. Solo se guardan números con la forma de los labios, en el propio dispositivo.
+No se graba ni se envía video. Lo que la app guarda se queda en el propio dispositivo.
 Voz Propia es una ayuda para comunicarse, no un dispositivo médico.
