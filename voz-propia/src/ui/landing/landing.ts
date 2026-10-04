@@ -551,7 +551,10 @@ export function mountLanding(app: HTMLElement, opts: Options) {
       // El lienzo 3D se apaga al entrar a la parte nocturna: ahí ya no hay esferas.
       canvasBox.style.opacity = String(1 - Math.min(1, Math.max(0, (progress - 3.5) / 0.5)));
       const stage = progress > 3.55 ? 4 : progress > 2.55 ? 3 : progress > 1.55 ? 2 : progress > 0.7 ? 1 : 0;
-      if (root.dataset.stage !== String(stage)) root.dataset.stage = String(stage);
+      if (root.dataset.stage !== String(stage)) {
+        root.dataset.stage = String(stage);
+        if (root.classList.contains('is-revealed')) sfx.chapter(stage);
+      }
     });
   };
   addEventListener('scroll', onScroll, { passive: true, signal });
@@ -942,6 +945,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
 
   const enter = async (page?: 'ayuda' | 'consejos') => {
     if (!session()) return openGate('elegir', true);
+    sfx.swipe();
     root.classList.add('is-leaving');
     await sleep(motionOk ? 420 : 0);
     opts.onChoose(chosen, page);
@@ -954,6 +958,7 @@ export function mountLanding(app: HTMLElement, opts: Options) {
       const goView = t.closest<HTMLElement>('[data-go-view]');
       const snd = t.closest('[data-sound]');
       if (snd) return sfx.setEnabled(!sfx.enabled);
+      if (t.closest('[data-role], [data-ayuda], [data-tools], [data-scroll], .l-chip')) sfx.tick();
       if (t.closest('.l-gate__opt, .l-gate__submit, .l-gate__back, [data-guest], [data-signout]')) sfx.tick();
       if (goView) return setView(goView.dataset.goView!);
       if (t.closest('[data-guest]')) {

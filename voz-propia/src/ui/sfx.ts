@@ -236,6 +236,60 @@ export function createSfx(inject?: BaseAudioContext) {
     burst(c, t + 0.35, 0.8, 'highpass', 5000, 0.07);
   };
 
+  /* ---- Sonidos de la app ---- */
+
+  /** Cambio de página: brisa corta. */
+  const swipe = () => {
+    const c = live();
+    if (!c) return;
+    const t = c.currentTime + 0.01;
+    burst(c, t, 0.34, 'bandpass', 500, 0.5, -0.3, 2600, 1.1);
+    bell(c, hz(7, 783.99), t + 0.14, 0.1, 0.2, 0.5);
+  };
+  /** Capítulo nuevo de la guía: campanita cuya nota sube con cada capítulo. */
+  const chapter = (i: number) => {
+    const c = live();
+    if (!c) return;
+    const t = c.currentTime + 0.01;
+    const f = hz(PENT[i % 5] + 12 * Math.floor(i / 5));
+    bell(c, f, t, 0.38, 0, 1.2);
+    bell(c, f * 1.5, t + 0.06, 0.14, 0.3, 0.8);
+  };
+  /** Chapoteo: ruido de agua que sube, burbujas y un golpe grave. */
+  const splash = () => {
+    const c = live();
+    if (!c) return;
+    const t = c.currentTime + 0.01;
+    burst(c, t, 0.9, 'bandpass', 250, 0.55, 0, 1800, 0.9);
+    burst(c, t + 0.05, 0.6, 'highpass', 4500, 0.1);
+    const sub = out(c, 0, 0.3);
+    env(sub.gain, t, 0.01, 0.8, 0.7);
+    osc(c, 'sine', 120, t, 0.7, 40).connect(sub);
+    for (let k = 0; k < 9; k++) {
+      const at = t + 0.08 + Math.random() * 0.7;
+      const g = out(c, Math.random() * 1.6 - 0.8, 0.5);
+      env(g.gain, at, 0.005, 0.2, 0.12);
+      const f0 = 300 + Math.random() * 500;
+      osc(c, 'sine', f0, at, 0.12, f0 * 2.2).connect(g);
+    }
+  };
+  /** Destello de color (cambiar paleta, marcar algo). */
+  const sparkle = () => {
+    const c = live();
+    if (!c) return;
+    const t = c.currentTime + 0.01;
+    [0, 4, 7, 12, 16].forEach((st, k) => bell(c, hz(st, 1046.5), t + k * 0.05, 0.14, (k - 2) * 0.35, 0.7));
+  };
+  /** Aviso bueno / aviso suave. */
+  const ok = () => hello();
+  const warn = () => {
+    const c = live();
+    if (!c) return;
+    const t = c.currentTime + 0.01;
+    bell(c, hz(-5, 523.25), t, 0.3, 0, 0.7);
+    bell(c, hz(-8, 523.25), t + 0.12, 0.3, 0, 0.9);
+  };
+
   /* ---- Sonidos continuos ---- */
 
   let rise: { stop: () => void; set: (p: number) => void } | null = null;
@@ -344,6 +398,12 @@ export function createSfx(inject?: BaseAudioContext) {
     tick,
     hello,
     success,
+    swipe,
+    chapter,
+    splash,
+    sparkle,
+    ok,
+    warn,
     riser,
     riserStop,
     draw,
@@ -378,3 +438,27 @@ export function createSfx(inject?: BaseAudioContext) {
 }
 
 export const sfx = createSfx();
+
+/** Botón de sonido (silenciar / activar) para cualquier pantalla. */
+export const soundBtnHTML = (iconOn: string, iconOff: string, cls = '') =>
+  `<button class="l-snd ${cls}" type="button" data-sound aria-pressed="true"><span class="l-snd__on">${iconOn}</span><span class="l-snd__off">${iconOff}</span></button>`;
+
+/** Conecta todos los botones `[data-sound]` dentro de `root`. Devuelve la función que los desconecta. */
+export function bindSound(root: HTMLElement) {
+  const sync = () =>
+    root.querySelectorAll<HTMLElement>('[data-sound]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(sfx.enabled));
+      b.classList.toggle('is-off', !sfx.enabled);
+      b.setAttribute('aria-label', sfx.enabled ? 'Sonido activado. Tocar para silenciar' : 'Sonido silenciado. Tocar para activar');
+    });
+  const click = (e: Event) => {
+    if ((e.target as Element).closest('[data-sound]')) sfx.setEnabled(!sfx.enabled);
+  };
+  root.addEventListener('click', click);
+  const off = sfx.onChange(sync);
+  sync();
+  return () => {
+    root.removeEventListener('click', click);
+    off();
+  };
+}

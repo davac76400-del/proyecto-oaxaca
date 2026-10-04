@@ -8,6 +8,7 @@ import './ui/styles/views.css';
 import './ui/styles/guia.css';
 import './ui/styles/ayuda.css';
 import './ui/styles/consejos.css';
+import './ui/styles/sound.css';
 
 import { go, hashRoute, startRouter, type Route, type View } from './app/router';
 import { loadSettings, state, updateSettings } from './app/state';
@@ -22,6 +23,7 @@ import { enableTilt } from './ui/components/tilt';
 import { bindWaterBack, waterBackHTML } from './ui/components/water-back';
 import { toast } from './ui/components/toast';
 import { icon } from './ui/icons';
+import { bindSound, sfx, soundBtnHTML } from './ui/sfx';
 import { ajustesView } from './ui/views/ajustes';
 import { ayudaView } from './ui/views/ayuda';
 import { entrenarView } from './ui/views/entrenar';
@@ -91,7 +93,7 @@ function shell(role: Role) {
       <a class="brand" href="#/${m.home}" aria-label="Voz Propia, inicio de la sección">${brandMark()}<span class="brand__word">Voz Propia</span>${
         pro ? `<span class="mode-badge">${icon('code', 13, 2.4)}Programador</span>` : ''
       }</a>
-      ${pro ? '' : acctHTML()}
+      ${pro ? '' : `${acctHTML()}${soundBtnHTML(icon('volume', 18, 2.2), icon('volume-x', 18, 2.2), 'app-snd')}`}
       ${pro ? `<nav class="topnav" aria-label="Secciones">${links}</nav>` : ''}
       <div class="topbar__right">
         <span class="chip chip--net" data-net hidden>${icon('wifi-off', 14)} Sin internet · todo funciona</span>
@@ -128,6 +130,7 @@ function mountApp(role: Role) {
     async (e) => {
       const t = e.target as Element;
       if (t.closest('[data-app-acct]')) lastPage = hashRoute();
+      if (t.closest('button, [role="button"], a.btn, .nav__item, summary, [data-go]') && !t.closest('[data-sound], [data-water-back], [data-install]')) sfx.tick();
       if (t.closest('[data-install]')) {
         app.querySelectorAll<HTMLElement>('[data-install]').forEach((b) => (b.hidden = true));
         await installPrompt?.prompt();
@@ -139,6 +142,7 @@ function mountApp(role: Role) {
 
   const unbindBack = role === 'usuario' ? bindWaterBack(app.querySelector<HTMLElement>('[data-water-back]')!, () => go('inicio/elegir')) : () => {};
 
+  const offSound = bindSound(app);
   const stopRouter = startRouter(app.querySelector<HTMLElement>('#view')!, MODES[role].views, MODES[role].home);
 
   // Precarga del lector de labios en segundo plano: la cámara abre al instante después.
@@ -148,6 +152,7 @@ function mountApp(role: Role) {
   return () => {
     ac.abort();
     unbindBack();
+    offSound();
     stopRouter();
     tracker.stop();
     app.innerHTML = '';
@@ -192,6 +197,14 @@ async function route() {
   } else {
     mounted = { kind, unmount: mountApp(kind) };
   }
+}
+
+/** El sonido se libera con el primer toque; desde ahí suena todo sin pasos extra. */
+function setupSound() {
+  const unlock = () => sfx.unlock();
+  for (const ev of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown']) addEventListener(ev, unlock, { capture: true, passive: true });
+  unlock();
+  addEventListener('palette', () => sfx.sparkle());
 }
 
 function registerServiceWorker() {
@@ -259,6 +272,7 @@ async function boot() {
   if (!(await db.persistent())) {
     toast('Este navegador no deja guardar datos aquí. Tus frases se borrarán al cerrar la página.', { tone: 'warn', ms: 8000 });
   }
+  setupSound();
   registerServiceWorker();
   restartWhenReopened();
 }

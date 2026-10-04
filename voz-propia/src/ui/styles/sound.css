@@ -1,0 +1,25 @@
+/* ---------- Botón de sonido ---------- */
+.l-snd {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgb(150 175 230 / 0.3);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+  font: 700 13px/1 var(--l-raleway, var(--font-display));
+  cursor: pointer;
+  justify-content: center;
+}
+.l-snd__off { display: none; }
+.l-snd.is-off .l-snd__on { display: none; }
+.l-snd.is-off .l-snd__off { display: inline-flex; }
+.topbar > .app-snd { margin-left: 8px; }
+@media (max-width: 520px) {
+  .topbar > .app-snd { min-width: 40px; min-height: 40px; padding: 0 10px; margin-left: 4px; }
+  .topbar > .app-snd { margin-right: auto; }
+  .topbar > .app-acct { margin-right: 0; }
+}

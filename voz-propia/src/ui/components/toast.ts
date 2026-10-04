@@ -1,5 +1,6 @@
 import { esc } from '../dom';
 import { icon } from '../icons';
+import { sfx } from '../sfx';
 
 interface ToastOptions {
   tone?: 'info' | 'ok' | 'warn';
@@ -26,5 +27,7 @@ export function toast(message: string, opts: ToastOptions = {}) {
     close();
   });
   host.append(el);
+  if (opts.tone === 'ok') sfx.ok();
+  else if (opts.tone === 'warn') sfx.warn();
   setTimeout(close, opts.ms ?? (opts.action ? 9000 : 3200));
 }

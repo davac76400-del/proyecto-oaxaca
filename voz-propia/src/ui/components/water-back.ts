@@ -1,5 +1,6 @@
 import { icon } from '../icons';
 import { reducedMotion } from '../dom';
+import { sfx } from '../sfx';
 import { bindHold } from './hold';
 
 export const HOLD_MS = 2000;
@@ -9,7 +10,7 @@ export const waterBackHTML = () => `
   <button class="water-back" type="button" data-water-back aria-label="Regresar al inicio. Mantén presionado dos segundos">
     <span class="water-back__label">
       ${icon('arrow-left', 20, 2.6)}
-      <span class="water-back__text"><b>Regresar al inicio</b><small><span class="wb-idle">Mantén presionado 2 segundos</span><span class="wb-busy">Sigue presionando…</span></small></span>
+      <span class="water-back__text"><b>Regresar al inicio</b><small><span class="wb-idle">Mantén 2 segundos</span><span class="wb-busy">Sigue presionando…</span></small></span>
     </span>
     <span class="water-back__fill" aria-hidden="true">
       <svg class="water-back__wave water-back__wave--b" viewBox="0 0 240 16" preserveAspectRatio="none"><path d="M0 8 Q30 0 60 8 T120 8 T180 8 T240 8 V16 H0Z"/></svg>
@@ -17,7 +18,7 @@ export const waterBackHTML = () => `
       <span class="water-back__clip">
         <span class="water-back__label water-back__label--on">
           ${icon('arrow-left', 20, 2.6)}
-          <span class="water-back__text"><b>Regresar al inicio</b><small>Mantén presionado 2 segundos</small></span>
+          <span class="water-back__text"><b>Regresar al inicio</b><small>Mantén 2 segundos</small></span>
         </span>
       </span>
     </span>
@@ -126,7 +127,37 @@ export function bindWaterBack(btn: HTMLElement, onDone: () => void) {
     if (busy) return;
     busy = true;
     btn.classList.add('is-done');
+    sfx.drawStop();
+    sfx.splash();
     splash(btn, onDone);
   });
-  return () => off();
+  // Mientras se mantiene presionado: un tono de agua que sube con el llenado.
+  let raf = 0;
+  const follow = () => {
+    if (!btn.classList.contains('is-holding')) return sfx.drawStop();
+    sfx.draw(parseFloat(btn.style.getPropertyValue('--hold')) || 0);
+    raf = requestAnimationFrame(follow);
+  };
+  const down = () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(follow);
+  };
+  const stopTone = () => {
+    cancelAnimationFrame(raf);
+    sfx.drawStop();
+  };
+  btn.addEventListener('pointerdown', down);
+  btn.addEventListener('keydown', down);
+  btn.addEventListener('pointerup', stopTone);
+  btn.addEventListener('pointercancel', stopTone);
+  btn.addEventListener('keyup', stopTone);
+  return () => {
+    off();
+    stopTone();
+    btn.removeEventListener('pointerdown', down);
+    btn.removeEventListener('keydown', down);
+    btn.removeEventListener('pointerup', stopTone);
+    btn.removeEventListener('pointercancel', stopTone);
+    btn.removeEventListener('keyup', stopTone);
+  };
 }

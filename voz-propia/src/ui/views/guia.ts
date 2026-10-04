@@ -8,6 +8,7 @@ import { HOSPITAL } from '../../data/hospital-phrases';
 import type { Category } from '../../core/types';
 import { esc, on, reducedMotion, rich, sleep } from '../dom';
 import { icon } from '../icons';
+import { sfx } from '../sfx';
 import { bindPalette, currentTheme, paletteHTML, type Theme } from '../components/theme';
 import type { GuideScene } from './guia-scene';
 
@@ -220,10 +221,13 @@ export function guiaView(root: HTMLElement) {
     scene?.setVisible(y < endTop - innerHeight * 0.6);
     chapters[k].style.setProperty('--f', f.toFixed(3));
     if (k !== active) {
+      if (active >= 0) sfx.chapter(k);
       active = k;
       railBtns.forEach((b, i) => b.classList.toggle('is-on', i === k));
     }
-    el.classList.toggle('is-end', y >= endTop - innerHeight * 0.5);
+    const atEnd = y >= endTop - innerHeight * 0.5;
+    if (atEnd && !el.classList.contains('is-end')) sfx.ok();
+    el.classList.toggle('is-end', atEnd);
   }
   const onScroll = () => {
     if (!raf) raf = requestAnimationFrame(update);
@@ -265,6 +269,35 @@ export function guiaView(root: HTMLElement) {
       }
     };
     paging = requestAnimationFrame(step);
+  };
+  /**
+   * Volver al inicio desde el final: un salto largo animado trababa la página en el teléfono (el imán de
+   * scroll y el 3D se pelean). Se atenúa, se salta de golpe con el imán apagado y se vuelve a mostrar.
+   */
+  const jumpTop = () => {
+    cancelAnimationFrame(paging);
+    sfx.swipe();
+    lockUntil = performance.now() + 900;
+    if (still) {
+      scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
+    el.style.transition = 'opacity 0.16s ease-out';
+    el.style.opacity = '0';
+    snap(false);
+    window.setTimeout(() => {
+      scrollTo({ top: 0, behavior: 'instant' });
+      update();
+      requestAnimationFrame(() => {
+        scrollTo({ top: 0, behavior: 'instant' });
+        el.style.opacity = '1';
+        window.setTimeout(() => {
+          el.style.transition = '';
+          el.style.opacity = '';
+          snap(true);
+        }, 260);
+      });
+    }, 180);
   };
   const nextStop = (dir: number) => {
     const y = scrollY;
@@ -385,7 +418,7 @@ export function guiaView(root: HTMLElement) {
       scene?.setChosen(was ? -1 : i);
     }),
     on(el, 'click', '[data-skip]', () => pageTo(Math.round(endTop))),
-    on(el, 'click', '[data-top]', () => pageTo(0)),
+    on(el, 'click', '[data-top]', () => jumpTop()),
     on(el, 'click', '[data-hosp]', (_, b) => setHosp(Number(b.dataset.hosp))),
     on(el, 'keydown', '[data-hosp]', (e, b) => {
       const n = HOSPITAL.length;

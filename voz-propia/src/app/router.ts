@@ -1,4 +1,5 @@
 import { $$ } from '../ui/dom';
+import { sfx } from '../ui/sfx';
 
 export type Route = 'guia' | 'ayuda' | 'consejos' | 'panel' | 'hablar' | 'tablero' | 'entrenar' | 'ajustes';
 export type View = (el: HTMLElement) => (() => void) | void;
@@ -25,6 +26,7 @@ export function startRouter(outlet: HTMLElement, views: Partial<Record<Route, Vi
     if (wanted !== r) history.replaceState(null, '', `#/${r}`);
     if (r === current) return;
     const swap = () => {
+      if (current) sfx.swipe();
       cleanup?.();
       document.documentElement.classList.remove('snap-guide');
       scrollTo({ top: 0, behavior: 'instant' });
