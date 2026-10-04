@@ -1,4 +1,7 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "buildCommand": "cd voz-propia && npm run build",
+  "outputDirectory": "voz-propia/dist",
+  "git": {
+    "productionBranch": "claude/cool-euler-x6kh3f"
+  }
 }
