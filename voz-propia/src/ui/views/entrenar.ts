@@ -5,6 +5,7 @@ import { captureSequence, CaptureError, type Capture } from '../../core/vision/r
 import { recordAudio, speakPhrase, speakText, type AudioRecording } from '../../core/voice/speaker';
 import { CATEGORY_LABEL, ICON_CHOICES } from '../../data/default-phrases';
 import { createStage, type FaceState } from '../components/camera-stage';
+import { openVideoImporter } from '../components/video-importer-modal';
 import { toast } from '../components/toast';
 import { $, esc, on, reducedMotion, sleep, vibrate } from '../dom';
 import { icon } from '../icons';
@@ -34,7 +35,10 @@ export function entrenarView(root: HTMLElement) {
             <h2>${done === 0 ? 'Empieza con Sí, No y una frase más' : done === total ? 'Todas las frases están listas' : 'Va muy bien'}</h2>
             <p>Cada frase necesita ${TARGET} ejemplos de 5 segundos <b>de la persona que la va a usar</b>. Sostén el teléfono frente a su cara y que hable sin voz.</p>
           </div>
-          <button class="btn btn--primary" type="button" data-new>${icon('plus', 18)}<span>Nueva frase</span></button>
+          <div class="row">
+            <button class="btn btn--primary" type="button" data-new>${icon('plus', 18)}<span>Nueva frase</span></button>
+            <button class="btn btn--soft" type="button" data-import-video>${icon('upload', 18)}<span>Cargar video</span></button>
+          </div>
         </div>
 
         <ul class="plist" role="list">
@@ -70,6 +74,7 @@ export function entrenarView(root: HTMLElement) {
       if (p) openTrainer(p);
     }),
     on(root, 'click', '[data-new]', () => openEditor()),
+    on(root, 'click', '[data-import-video]', () => openVideoImporter()),
     on(root, 'click', '[data-edit]', (_, el) => openEditor(engine.phrase(el.dataset.edit!))),
     on(root, 'click', '[data-del]', async (_, el) => {
       const snap = await engine.deletePhrase(el.dataset.del!);
