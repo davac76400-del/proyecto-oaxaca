@@ -38,7 +38,7 @@ Los montos salen de páginas que resumen la tarifa oficial; **confírmalos en im
 
 ### Cuidados que no debes ignorar
 - **Código escrito con IA:** el derecho de autor protege obras de autores humanos. Declara tu contribución y consulta a un abogado de propiedad intelectual sobre qué partes quedan protegidas.
-- **Terceros:** MediaPipe (Google) y Whisper (OpenAI) tienen sus propias licencias; lo que registres es **tu parte**.
+- **Terceros:** MediaPipe (Google) y otras herramientas tienen sus propias licencias; lo que registres es **tu parte**.
 - Esto es información general, no asesoría legal. Para decidir patentar, habla con un agente registrado ante el IMPI.
 
 ---

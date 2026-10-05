@@ -27,6 +27,15 @@ Solución: **normalizar por hablante** (`speakerNormalize`): restar la media y e
 - El corpus es por dominio (salud, necesidades). Agregar frases nuevas ahí mejora el desempate.
 - La UI y los mensajes van en español, cortos.
 
+## Importar videos: solo labios, patrones que se repiten (2026-10-05)
+- **El audio NO se usa.** Los videos del programador a veces se traban y el audio sale tarde. Se quitó Whisper y `@huggingface/transformers`. El nombre sale del archivo (`voz-palabra.mp4`) o de lo que escribe David.
+- **Una palabra por video.** `oneWordProblem()` (`src/core/vision/filename-phrase.ts`) avisa y bloquea si el nombre tiene dos palabras: las frases se arman solas («Me» + «Duele»).
+- **Revisión de patrones** (`src/core/vision/pattern-check.ts`, usada por `analyzeGroup()` en `video-importer-modal.ts`): corta el video en repeticiones por movimiento de labios (`splitRepetitions`), mide distancias DTW entre ellas y las agrupa en patrones (radio = 2.2 × la distancia a la vecina más cercana, tomada en el cuartil bajo). Un patrón **sirve** si se repite ≥ 3 veces y al menos 2 seguidas; los de 1–2 veces o sueltos se descartan («pocas»/«raro»).
+- También descarta: video trabado (≥ 20 % de cuadros idénticos al anterior), duración 2.5× mayor o 0.4× menor que la típica, y boca casi quieta (< 35 % del movimiento típico).
+- Mide la **cadencia** («una vez cada 1.8 s, parejo/irregular») y avisa de pausas largas (posible trabazón).
+- Avisa si lo que se ve se parece mucho (ratio ≤ 1.4) a otra palabra ya guardada y no al nombre escrito.
+- Límites: con menos de 4 repeticiones no compara patrones; si todas las repeticiones son distintas entre sí no hay escala interna para notarlo (lo cubren las otras señales). Probado con datos sintéticos y con un «video» sintético de 12 repeticiones, no con tus videos reales.
+
 ## Cómo probar
 - `npx tsc --noEmit -p .` y `npx vite build`.
 - Pruebas con videos de cámara falsa (`.y4m`: «sin cara» y «imagen fija») para verificar los mensajes de rechazo.
