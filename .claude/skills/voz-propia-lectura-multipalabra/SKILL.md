@@ -36,6 +36,14 @@ Solución: **normalizar por hablante** (`speakerNormalize`): restar la media y e
 - Avisa si lo que se ve se parece mucho (ratio ≤ 1.4) a otra palabra ya guardada y no al nombre escrito.
 - Límites: con menos de 4 repeticiones no compara patrones; si todas las repeticiones son distintas entre sí no hay escala interna para notarlo (lo cubren las otras señales). Probado con datos sintéticos y con un «video» sintético de 12 repeticiones, no con tus videos reales.
 
+## Fusionar grabaciones, quedarse con las mejores, leer más rápido (2026-10-05)
+- **Fusión automática:** `publishPhrase()` (`src/core/shared-sync.ts`) junta TODAS las grabaciones guardadas de una palabra, sin importar mayúsculas ni acentos (`keyOf()` en `src/core/language/key.ts`: «Si»/«Sí»/«SI» son la misma). Cada video nuevo se suma a los anteriores y se vuelve a elegir.
+- **Mejores ejemplos** (`src/core/learn/curate.ts`, `curateExamples`): agrupa por patrón, descarta los raros o de pocas veces, y de los grupos que sirven toma los **más centrales repartidos entre las grabaciones** (cada una es otro día, luz o persona). Máximo `MAX_SAMPLES_PER_PHRASE` = 12. Con ≤ 3 ejemplos se queda con todos. Al terminar, el aviso dice cuántas grabaciones, repeticiones y con cuántas se quedó.
+- **Por qué repartir entre grabaciones:** el método anterior tomaba los 12 más centrales y salían casi todos de la grabación más larga (12/0/0). Ahora 4/4/4. Con datos sintéticos, la persona más difícil subió de 93 % a 99 %. Se probó que elegir «los más lejanos entre sí» (diversidad) metía ejemplos ruidosos: se quitó.
+- **Lectura más rápida:** `FewShotClassifier` compara primero contra 3 representantes por palabra (el más central y los más distintos) y solo afina las 4 más cercanas con todos sus ejemplos (solo si hay > 8 palabras). 300 → 130 comparaciones DTW por lectura (2.9× más rápido) con la misma exactitud. `WordDecoder` hace lo mismo al buscar dónde empieza cada palabra (1.6× más rápido, mismas frases). Se pueden apagar con `FewShotClassifier.twoStage = false` y `WordDecoder.fast = false` para comparar.
+- **Adaptación a la persona:** viene de (1) repartir los ejemplos entre grabaciones/personas y (2) los ejemplos que aprende al usarla (`learnFromUse`). Se probó darle más peso a los ejemplos propios (×0.9 y ×0.8) y **no mejoró** (con 0.8 bajó a 87 %), así que no se usa.
+- Pruebas hechas con datos sintéticos, no con los videos reales de David.
+
 ## Cómo probar
 - `npx tsc --noEmit -p .` y `npx vite build`.
 - Pruebas con videos de cámara falsa (`.y4m`: «sin cara» y «imagen fija») para verificar los mensajes de rechazo.
