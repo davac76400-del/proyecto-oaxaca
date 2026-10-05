@@ -1,61 +1,60 @@
-# Voz Propia · Transparencia, IA y reglas de SOLACYT
+# Voz Propia · Convocatoria XXI de Infomatrix (SOLACYT): reglas, IA y qué te toca hacer
 
-Fecha: 5 de octubre de 2026 · Concurso: Infomatrix Iberoamérica (SOLACYT), categoría Desarrollo de Software.
+Fuente: «Convocatoria General XXI», actualizada el 29 de septiembre de 2026 (el PDF que me mandaste). Cuando cito una regla, va con su número.
 
-## 1. Lo que pude y no pude verificar
+## 1. Lo más importante: la IA SÍ está permitida
 
-| Tema | Estado |
-|---|---|
-| Proyecto original e inédito | Confirmado en la [convocatoria XIX](https://www.ugto.mx/convocatorias/send/6-otras/512-xix-concurso-iberoamericano-de-proyectos-estudiantiles-en-ciencia-tecnologia-y-emprendimiento) (la más reciente que pude leer en resultados de búsqueda). |
-| Imágenes, música y video de apoyo | Se permiten con créditos del autor y bibliografía usada. Confirmado en la misma convocatoria. |
-| Derechos | SOLACYT puede usar, distribuir y publicar los proyectos; los creadores conservan sus derechos de autor. |
-| Equipo y edad | Máximo 3 estudiantes y un asesor mayor de 18 años; de 5 a 25 años cumplidos al cierre de inscripciones (de la investigación anterior; marcada para verificar). |
-| **Reglas sobre uso de IA** | **No lo pude verificar.** La página oficial ([infomatrix.lat/convocatoria](https://infomatrix.lat/convocatoria/)) está bloqueada desde mi entorno y ninguna búsqueda mostró un texto que prohíba o regule la IA. Ver sección 4. |
+> **II. Proyecto:** «el uso de IA como apoyo al desarrollo es aceptado mientras se indique en el reporte la contribución que realizó.»
+> **IV.2:** «Se podrán usar como apoyo externo; imágenes, gráficos, IA, música y videos indicando créditos de autoría.»
+> **IV.3:** «Los proyectos deberán incluir créditos de quienes lo hicieron y la bibliografía utilizada.»
 
-Por eso **no quité ninguna herramienta**: no hay una prohibición confirmada. Hice la app transparente para cumplir cualquier versión razonable de la regla (declarar, dar créditos, ser original).
+Conclusión: **no hay que quitar ninguna herramienta.** Lo que exige la regla es **declarar en el reporte qué hizo la IA**. La app ya lo dice (sección «Herramientas y créditos») y la declaración para el reporte está en la sección 4.
 
-## 2. Auditoría de lo que usa la app
+El riesgo real no es usar IA, es **no declararla o declararla a medias**: IV.17 descalifica a quien incumpla la convocatoria.
 
-| Componente | Para qué | ¿Es IA? | Licencia | Dónde se usa |
-|---|---|---|---|---|
-| MediaPipe Face Landmarker (Google) | Puntos de la cara y la boca | Sí, modelo preentrenado | Apache 2.0 (librería); revisar tarjeta del modelo | Siempre, es la base de la lectura de labios |
-| ONNX Runtime Web | Ejecutar un modelo opcional | Solo ejecuta modelos | MIT | Hoy no hay modelo instalado |
-| Transformers.js + Whisper base (OpenAI) | Escribir el texto de un video para nombrar una frase | Sí, modelo preentrenado | Apache 2.0 y MIT | **Solo modo programador** |
-| Claude Code (Anthropic) | Asistente para escribir y revisar código | Sí | Servicio | Solo durante el desarrollo |
-| Three.js, Lucide, Supabase (cliente) | 3D, íconos, cuentas | No | MIT, ISC, MIT | Siempre |
-| Raleway, Atkinson Hyperlegible Next, JetBrains Mono, Anton, Sacramento | Letras | No | SIL OFL 1.1 | Siempre |
-| Código propio | Normalización por hablante, comparación DTW, decodificador de frases, modelo de frases en español, entrenamiento continuo, cuentas, diseño | No es IA generativa | Del equipo | Siempre |
+## 2. Reglas que sí te afectan
 
-En la app **no hay** chatbot, ni generación de textos o imágenes con IA, ni llamadas a APIs de IA mientras se usa.
-Llamadas externas al usar la app: Supabase (cuentas y ejemplos compartidos) y Google DNS (solo el dominio del correo, por ejemplo `gmail.com`). El modelo de la cara se descarga al compilar, no al usarla.
+| # | Regla | Cómo estás |
+|---|---|---|
+| II | El proyecto debe haberse realizado **no antes de abril de 2026**. | Cumples: el historial de cambios empieza el 3 y 4 de octubre de 2026. |
+| IV.1 | Creación propia e inédita. Se aceptan modificaciones de productos existentes que los hagan novedosos. | Cumples. Tu parte propia está listada en la app. |
+| V | Categoría **Desarrollo de Software** (cualquier lenguaje y plataforma, web incluida). | Es la correcta. Ver nota de la sección 5 sobre «Ciencia Aplicada». |
+| IX.2 | Reporte: para Software se recomienda el **Avanzado o Científico** (https://bit.ly/ReporteAvanzado, solo descargar, no pedir edición). Las credenciales van en el «Anexo A»; la carta responsiva se entrega en original el día del evento. | Pendiente de llenar. |
+| X.4 y 5 | Máximo **7 minutos** para exponer y un stand. | Prepara demo en vivo. |
+| IV.5 | Tú respondes por la propiedad del proyecto ante cualquier reclamo. | Por eso conviene tener las licencias a la vista (tabla de la sección 3). |
+| X.20 | Si acreditas a un evento internacional de Infomatrix, ya no puedes acreditar en otro: ese ciclo del proyecto termina. | Tenlo presente al planear. |
+| IV.4 | SOLACYT puede usar y publicar el proyecto; los derechos de autor siguen siendo tuyos. | Sin acción. |
 
-## 3. Lo que cambié
+La convocatoria **no menciona** estudios con personas ni temas médicos. Aun así, es buena práctica tener permiso por escrito de quien aparezca en los videos de entrenamiento y mantener el aviso «no es un dispositivo médico».
 
-1. **Nueva sección dentro de la app: «Herramientas y créditos»** (enlace en el pie del inicio). Dice qué hizo el equipo, qué se usó de otros con su licencia, cómo se usó la IA y qué datos se guardan.
-2. Esta auditoría por escrito, lista para anexar al reporte.
-3. El entrenamiento nuevo no usa ningún servicio de IA externo: mide con los ejemplos que sube el programador y comparaciones propias.
+## 3. Lo que usa la app (todo cabe dentro de las reglas)
 
-## 4. Lo que tienes que confirmar tú (10 minutos en infomatrix.lat/convocatoria)
+| Componente | Para qué | ¿Es IA? | Licencia |
+|---|---|---|---|
+| MediaPipe Face Landmarker (Google) | Puntos de la cara y la boca | Sí, modelo preentrenado | Apache 2.0 (librería); revisar la tarjeta del modelo |
+| Whisper base (OpenAI) con Transformers.js | Escribir el texto de un video, solo en modo programador | Sí, modelo preentrenado | MIT y Apache 2.0 |
+| Claude Code (Anthropic) | Asistente para programar | Sí | Servicio |
+| ONNX Runtime Web | Ejecutar un modelo opcional (hoy no hay ninguno) | No | MIT |
+| Three.js, Lucide, Supabase (cliente) | 3D, íconos, cuentas | No | MIT, ISC, MIT |
+| Raleway, Atkinson Hyperlegible Next, JetBrains Mono, Anton, Sacramento | Letras | No | SIL OFL 1.1 |
 
-Abre la convocatoria vigente (ciclo XXI) y busca estas palabras con Ctrl+F: `inteligencia artificial`, `IA`, `ChatGPT`, `plagio`, `originalidad`, `herramientas`, `código`, `bibliografía`, `estudios con personas`, `médico`.
+Dentro de la app no hay chatbot ni IA que genere textos o imágenes. Llamadas externas al usarla: Supabase y Google DNS (solo el dominio del correo, por ejemplo `gmail.com`). No se guarda video, solo posiciones de puntos de la boca.
 
-| Si dice… | Qué hacer |
-|---|---|
-| No menciona IA | Nada más. La sección de transparencia ya cubre la declaración. |
-| Hay que declarar el uso de IA | Pega la declaración de la sección 5 en el reporte y en la bitácora. |
-| Prohíbe IA para escribir código | Dímelo exactamente cómo lo dice. Se reescribe a mano lo que corresponda y se ajusta la declaración. |
-| Prohíbe modelos preentrenados | Se puede reemplazar MediaPipe por un detector propio, pero la lectura de labios perdería precisión. Hay que decidirlo con el texto delante. |
-| Pide permiso para estudios con personas o temas médicos | Preparar un consentimiento firmado para cada persona que aparezca en los videos de entrenamiento y mantener el aviso «no es un dispositivo médico». |
+## 4. Declaración lista para el reporte (honesta)
 
-Pega aquí el párrafo exacto cuando lo tengas y adapto la app y la declaración.
+Pégala en el reporte avanzado, en el apartado de herramientas, créditos o bibliografía. Ajusta si algo no coincide con lo que tú hiciste.
 
-## 5. Declaración lista para el reporte
+> **Uso de inteligencia artificial.** Según la convocatoria XXI (apartados II y IV.2), declaramos la contribución de la IA. Herramienta: Claude Code (Anthropic), un asistente de programación con IA. **Contribución de la IA:** escribió y revisó la mayor parte del código de la aplicación (interfaz, cuentas, lectura de labios, entrenamiento y pruebas), propuso soluciones a los errores que fueron surgiendo, ayudó a redactar textos y buscó datos y fuentes para la página «Cómo funciona y cómo te ayuda». **Contribución del equipo:** decidió qué problema resolver, para quién y cómo debía verse y sentirse; dirigió el trabajo paso a paso, probó cada resultado y pidió correcciones; prepara los ejemplos con los que se entrena la aplicación y es responsable del resultado. **Otras herramientas con IA:** MediaPipe Face Landmarker (Google) detecta los puntos de la cara; Whisper base (OpenAI, MIT) escribe el texto de los videos en el modo programador. La aplicación no genera textos ni imágenes con IA al usarse y no guarda video. **Créditos:** Three.js (MIT), Lucide (ISC), Supabase (MIT), letras con licencia SIL OFL 1.1. **Idea de investigación:** aprender palabras con pocos ejemplos, inspirada en LipLearner (Su, Fang y Rekimoto, CHI 2023) [verifica esta cita antes de imprimirla].
 
-> **Uso de inteligencia artificial y herramientas.** La lectura de labios, el decodificador de frases, el modelo de frases en español, el entrenamiento y las cuentas de Voz Propia fueron diseñados y programados por el equipo. Para la detección de puntos de la cara usamos el modelo preentrenado MediaPipe Face Landmarker de Google (licencia de MediaPipe, Apache 2.0). En el modo programador, usado solo para preparar ejemplos, empleamos Whisper base de OpenAI (MIT) para escribir el texto de los videos. Durante el desarrollo usamos un asistente de programación con IA (Claude Code, de Anthropic); el equipo decidió qué construir, revisó y probó el código y se hace responsable del resultado. La app no genera textos ni imágenes con IA al usarse. No se guarda video: solo posiciones de puntos de la boca. Letras: SIL OFL 1.1. Íconos: Lucide (ISC). Gráficas 3D: Three.js (MIT). Idea de investigación: aprender palabras con pocos ejemplos, inspirada en LipLearner (Su, Fang y Rekimoto, CHI 2023) [verificar la cita antes de imprimirla].
+Bitácora (rubro 4 de la rúbrica): el historial de cambios del repositorio muestra fecha y motivo de cada avance. Anexa capturas del panel «Entrenamiento» para mostrar cómo mejora la precisión al subir palabras.
 
-## 6. Recomendaciones para el reporte y la bitácora
+## 5. Lo que tienes que revisar tú (puede costarte la participación)
 
-- La bitácora (rubro 4 de la rúbrica) puede apoyarse en el historial de cambios del repositorio, que muestra fecha y motivo de cada avance.
-- Anexa las capturas del panel «Entrenamiento» para mostrar la mejora de la precisión conforme se suben palabras.
-- No presentes estudios con pacientes ni afirmes uso clínico: la app es una ayuda de comunicación.
-- Si hay personas en los videos de entrenamiento, ten el permiso por escrito de cada una.
+1. **Ser estudiante (III.1).** El requisito es ser estudiante de preescolar a universidad. Si no estás inscrito en ninguna escuela, esto es lo primero que debes resolver con contacto@solacyt.org o WhatsApp +52 3310733731.
+2. **Edad (III.2).** Tienes 25 años. La edad se mide **a la fecha de cierre de inscripciones**. Si cumples 26 antes de ese cierre, solo puedes participar como estudiante activo. Revisa tu fecha de cumpleaños contra el cierre de tu sede.
+3. **Sede.** Debes inscribirte en la que te corresponde por geografía (VI.5): **Oaxaca**. Hoy su registro está **cerrado**, sin fecha ni sede publicadas para este ciclo. Vigila infomatrix.lat. La **final nacional** es en **Oaxaca de Juárez (Universidad La Salle Oaxaca), 16 al 19 de junio de 2027**; la **final iberoamericana**, en **Tijuana, 19 al 22 de mayo de 2027** (para equipos acreditados). La sede virtual de abril de 2027 solo es para quienes no pueden asistir a su regional por razones económicas o de salud comprobables (hay que pedir autorización por correo).
+4. **Costo en México:** $450 MXN por participante (equipo de 1 persona = $450; de 3 = $1,350). Conserva el comprobante: se sube a la plataforma junto con el reporte.
+5. **Qué se sube** antes del cierre de tu sede: comprobante de pago y reporte. Sin los dos completos y legibles, quedas como «No Finalista» (IX).
+6. **Categoría.** Software es la correcta. La alternativa es «Ciencia Aplicada» (incluye Medicina y Salud). No lo cambies sin pensarlo: tu producto es software, y la rúbrica de Software encaja mejor.
+
+Pendiente que no pude comprobar: la rúbrica oficial vigente y el formato exacto del reporte avanzado (las ligas bit.ly y el sitio de SOLACYT están bloqueados desde mi entorno). Descarga el reporte y pásame el archivo para ajustar la app y la declaración a su estructura.

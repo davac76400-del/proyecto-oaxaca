@@ -39,7 +39,8 @@ Antes de copiar: `ls` del destino y `git log -- ruta`. Cada proyecto, su carpeta
 ## 7. Git en este entorno
 - Commits con el pie de atribución indicado por el sistema; mensajes cortos que expliquen el porqué.
 - Rama designada de la sesión: `claude/cool-euler-x6kh3f` en `proyecto-oaxaca`. El repo `voz-propia` trabaja sobre `main`.
-- `pkill -f` puede matar la propia shell; usar PID guardado.
+- `pkill -f` y `kill $(pgrep -f ...)` matan la propia shell (el patrón coincide con su línea de comando); **se repitió dos veces**. Guardar el PID al lanzar (`cmd & echo $! > pid`) y `kill $(cat pid)`.
+- Desde el entorno remoto los sitios de SOLACYT (infomatrix.lat), bit.ly e idoc.pub están bloqueados (EGRESS_BLOCKED): pedir al usuario el PDF o el texto en vez de insistir.
 - Revisar `git status` después de `git add` amplio y no subir `.env`.
 
 ## 8. Preferencias del usuario
