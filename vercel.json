@@ -1,4 +1,5 @@
 {
+  "installCommand": "cd voz-propia && npm ci",
   "buildCommand": "cd voz-propia && npm run build",
   "outputDirectory": "voz-propia/dist",
   "git": {
