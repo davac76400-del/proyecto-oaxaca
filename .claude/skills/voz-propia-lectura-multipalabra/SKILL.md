@@ -44,6 +44,10 @@ Solución: **normalizar por hablante** (`speakerNormalize`): restar la media y e
 - **Adaptación a la persona:** viene de (1) repartir los ejemplos entre grabaciones/personas y (2) los ejemplos que aprende al usarla (`learnFromUse`). Se probó darle más peso a los ejemplos propios (×0.9 y ×0.8) y **no mejoró** (con 0.8 bajó a 87 %), así que no se usa.
 - Pruebas hechas con datos sintéticos, no con los videos reales de David.
 
+## Nombre de los archivos (2026-10-05)
+- `phraseFromFilename()` (`src/core/vision/filename-phrase.ts`): la palabra sale del nombre con `voz` antes o después (`voz-me`, `me-voz`) y **los contadores no cuentan**: `voz-piel2`, `voz-piel-3`, `cabeza2-voz`, `voz2-piel`, `voz-me (1)`, `voz-me - copia` → «Piel», «Cabeza», «Me». TODO EN MAYÚSCULAS se normaliza. Sin la palabra `voz` en el nombre no se adivina (evita IMG-2026-…).
+- Todos los videos que son la misma palabra (`nameKey`: sin mayúsculas ni acentos) se llaman **como el primero que se subió** en ese lote, y al publicar (`publishPhrase`) la palabra toma el texto de la grabación **más antigua** guardada.
+
 ## Cómo probar
 - `npx tsc --noEmit -p .` y `npx vite build`.
 - Pruebas con videos de cámara falsa (`.y4m`: «sin cara» y «imagen fija») para verificar los mensajes de rechazo.
