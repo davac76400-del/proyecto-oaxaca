@@ -52,3 +52,11 @@ Solución: **normalizar por hablante** (`speakerNormalize`): restar la media y e
 - `npx tsc --noEmit -p .` y `npx vite build`.
 - Pruebas con videos de cámara falsa (`.y4m`: «sin cara» y «imagen fija») para verificar los mensajes de rechazo.
 - Para otra persona/cámara, comparar tasa de error antes/después de `speaker`.
+
+## Raya neón, movimientos chicos, colados, administrador y minijuego (2026-10-06)
+- **Raya neón** (`camera-stage.ts`, `neonLine()`): contorno fosforescente alrededor de los labios, solo dibujo (se pinta después de medir; no afecta nada). Los puntos y la retícula técnicos ya NO se ven: solo en modo programador con el botón «Puntos» (`localStorage voz-propia:ver-puntos`), para que no copien la idea.
+- **Movimientos chicos:** la cámara pide 1280×720 (antes 640×480: en pantallas grandes la cara quedaba chica y se perdían los gestos finos). `prepareFrames` usa `smooth: true` en `engine.embed` y en el decodificador (suaviza temblor; en simulación +1 a +6 puntos). Subir el piso del clasificador no ayudó (`FewShotClassifier.floor`).
+- **Colados** (`classifier.ts`, `dropLookAlikes`): un ejemplo más cercano a otra palabra que a las suyas se aparta si esa otra tiene MÁS ejemplos (5 vs 3: se van los de 3) o está mejor respaldada. Nunca se quita más de la mitad de una palabra ni se deja con menos de 2. Salen en «dudosos» del panel.
+- **Administrador** (`dev-panel.ts`): palabra → videos (por `source_name`) → repeticiones. Se puede borrar el video entero, repeticiones marcadas, o la palabra; luego se vuelve a publicar con `publishPhrase`.
+- **Minijuego** (`mini-game.ts`): a la izquierda mientras se analiza el video; canvas, sin guardar nada, se carga solo al analizar.
+- Probado con datos sintéticos y capturas con Supabase simulado; la raya neón no se probó con cámara real.
