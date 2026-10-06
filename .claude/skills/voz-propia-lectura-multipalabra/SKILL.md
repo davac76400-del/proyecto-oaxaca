@@ -60,3 +60,10 @@ Solución: **normalizar por hablante** (`speakerNormalize`): restar la media y e
 - **Administrador** (`dev-panel.ts`): palabra → videos (por `source_name`) → repeticiones. Se puede borrar el video entero, repeticiones marcadas, o la palabra; luego se vuelve a publicar con `publishPhrase`.
 - **Minijuego** (`mini-game.ts`): a la izquierda mientras se analiza el video; canvas, sin guardar nada, se carga solo al analizar.
 - Probado con datos sintéticos y capturas con Supabase simulado; la raya neón no se probó con cámara real.
+
+## Precisión: lo que se midió y lo que se descartó (2026-10-06)
+Se armó un **simulador de boca** (96 puntos + 25 gestos, palabras = secuencias de visemas, personas con ancho/grosor/amplitud distintos, palabras parecidas a propósito). Línea base 75 % de aciertos con personas nuevas; ahora ~90 % (top 3: 98.8 %). Es simulado, no con tus videos.
+- **Sí se aplicó:** (1) escala de amplitud suave en vez de completa: `AMP_POWER = 0.25` en `embed.ts` (normalizar la energía de toda la toma borraba cuánto abre la boca: 80 → 88 % al quitarlo); (2) `TARGET_LEN` 32 → 24; (3) **pesos por rasgo de Fisher** (`weights.ts`, `FewShotClassifier.fisher = 0.5`, también en el decodificador): +5 a +10 puntos con movimientos chicos o ruido; en frases pegadas el decodificador pasó de 4/42 a 33/42 palabras; (4) suavizado temporal.
+- **Se probó y NO se usó:** blanqueo por covarianza intra-palabra (WCCN) → empeora con personas nuevas (75 → 62 %); penalizar duración distinta → empeora; banda DTW → sin efecto; aumento de datos (amplitud/tiempo) → +1 punto por 3× el costo; puntaje min / media de 3 → igual o peor que media de los 2 mejores.
+- **Métricas** en «Probar precisión»: error por palabra, top 3 y error por letras (CER, distancia de edición).
+- **LipNet** (Assael et al., 2016; repo nicknochnack/LipNet): red profunda de 8.5 M de parámetros con un solo hablante y gramática fija (GRID). No se usó su código ni sus pesos; solo se tomó la idea de medir error por palabra/letra. Se cita como antecedente en Créditos.
