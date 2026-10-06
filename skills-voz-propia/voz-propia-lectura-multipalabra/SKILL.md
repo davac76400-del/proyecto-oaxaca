@@ -67,3 +67,11 @@ Se armó un **simulador de boca** (96 puntos + 25 gestos, palabras = secuencias 
 - **Se probó y NO se usó:** blanqueo por covarianza intra-palabra (WCCN) → empeora con personas nuevas (75 → 62 %); penalizar duración distinta → empeora; banda DTW → sin efecto; aumento de datos (amplitud/tiempo) → +1 punto por 3× el costo; puntaje min / media de 3 → igual o peor que media de los 2 mejores.
 - **Métricas** en «Probar precisión»: error por palabra, top 3 y error por letras (CER, distancia de edición).
 - **LipNet** (Assael et al., 2016; repo nicknochnack/LipNet): red profunda de 8.5 M de parámetros con un solo hablante y gramática fija (GRID). No se usó su código ni sus pesos; solo se tomó la idea de medir error por palabra/letra. Se cita como antecedente en Créditos.
+
+## Segunda ronda (2026-10-06)
+- **Raya neón y puntos para todos:** `camera-stage.ts` dibuja la raya neón y, por defecto, los puntos que mide el sistema (con neón); el botón «Puntos» los apaga (`localStorage voz-propia:ver-puntos = 0`). Verificado con cámara falsa y la cara de plantilla.
+- **Poda de ejemplos mal etiquetados** (`FewShotClassifier.pruneMargin = 1.4`): un ejemplo mucho más cercano a otra palabra que a las suyas se aparta (máx. 1/3 de la palabra, siempre quedan ≥ 3). Con 10 % de etiquetas mal puestas: 85.8 → 87.1 %, sin costo en los demás casos.
+- **Fallo corregido:** `dropLookAlikes`/`dropDoubtful` filtraban la lista mientras usaban índices de la lista original; ahora todos marcan sobre la lista original y se filtra una sola vez.
+- **Suavizado:** binomial de 5 puntos (antes 3) y velocidades con peso 1.2 en el lector de palabras (0.8 en el decodificador): con ruido muy alto 83 → 87 %.
+- **Se probó y NO se usó:** re-puntaje por pares (rasgos que separan solo a los 2 primeros): +2.5 en normal, −0.4 en movimientos chicos, nada con ruido. Savitzky-Golay y gauss 7: peor.
+- **Prueba con Vite:** el servidor de desarrollo carga módulos con `?t=`; una prueba que importe `/src/core/engine.ts` obtiene OTRA copia (sin frases). Importar la misma URL que aparece en `performance.getEntriesByType('resource')`.
