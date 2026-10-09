@@ -39,9 +39,10 @@ Antes de copiar: `ls` del destino y `git log -- ruta`. Cada proyecto, su carpeta
 ## 7. Git en este entorno
 - Commits con el pie de atribución indicado por el sistema; mensajes cortos que expliquen el porqué.
 - Rama designada de la sesión: `claude/cool-euler-x6kh3f` en `proyecto-oaxaca`. El repo `voz-propia` trabaja sobre `main`.
-- `pkill -f` y `kill $(pgrep -f ...)` matan la propia shell (el patrón coincide con su línea de comando); **se repitió dos veces**. Guardar el PID al lanzar (`cmd & echo $! > pid`) y `kill $(cat pid)`.
+- `pkill -f` y `kill $(pgrep -f ...)` matan la propia shell (el patrón coincide con su línea de comando); **se repitió tres veces** (la última con `pkill -f "vite --port"`, exit 144). Guardar el PID al lanzar (`cmd & echo $! > pid`) y `kill $(cat pid)`.
 - Desde el entorno remoto los sitios de SOLACYT (infomatrix.lat), bit.ly e idoc.pub están bloqueados (EGRESS_BLOCKED): pedir al usuario el PDF o el texto en vez de insistir.
 - Revisar `git status` después de `git add` amplio y no subir `.env`.
 
 ## 8. Preferencias del usuario
 Español, frases cortas, directo. Windows + Claude Code, Supabase, Cursor, n8n, Python. No quiere gastar dinero: buscar opción gratis primero (así se llegó a Gmail SMTP). Quiere que se ejecute, revise y corrija sin tanto preguntar.
+- Los procesos en segundo plano mueren entre llamadas: lanzar y usar en el MISMO comando (`(nohup cmd &) ; sleep 7; probar`). Si un puerto está ocupado Vite cambia de puerto sin avisar: usar `--strictPort` y mirar su log.
